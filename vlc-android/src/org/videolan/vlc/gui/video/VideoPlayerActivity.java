@@ -395,6 +395,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mActionBar.setDisplayShowTitleEnabled(false);
         mActionBar.setBackgroundDrawable(null);
         mActionBar.setDisplayShowCustomEnabled(true);
+        /** add back button to action bar */
+        mActionBar.setDisplayHomeAsUpEnabled(true);
         mActionBar.setCustomView(R.layout.player_action_bar);
 
         mRootView = findViewById(R.id.player_root);
@@ -485,7 +487,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSurfaceXDisplayRange = Math.max(mScreen.widthPixels, mScreen.heightPixels);
         mCurrentSize = mSettings.getInt(PreferencesActivity.VIDEO_RATIO, SURFACE_BEST_FIT);
     }
-
+    @Override
+    public boolean onSupportNavigateUp(){
+        onBackPressed();
+        return true;
+    }
     @Override
     protected void onResume() {
         super.onResume();
