@@ -29,7 +29,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void applyTheme() {
-        boolean enableBlackTheme = mSettings.getBoolean("enable_black_theme", false);
+        boolean enableBlackTheme = mSettings.getBoolean("enable_black_theme", true);
         if (VLCApplication.showTvUi() || enableBlackTheme) {
             setTheme(R.style.Theme_VLC_Black);
         }

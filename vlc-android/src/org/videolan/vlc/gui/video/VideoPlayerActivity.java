@@ -433,7 +433,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mSwitchingView = false;
 
-        mAskResume = mSettings.getBoolean("dialog_confirm_resume", false);
+        mAskResume = mSettings.getBoolean("dialog_confirm_resume", true);
         mDisplayRemainingTime = mSettings.getBoolean(KEY_REMAINING_TIME_DISPLAY, false);
         // Clear the resume time, since it is only used for resumes in external
         // videos.

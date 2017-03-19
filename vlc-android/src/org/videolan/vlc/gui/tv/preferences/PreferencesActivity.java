@@ -85,7 +85,7 @@ public class PreferencesActivity extends Activity implements PlaybackService.Cli
 
     private void applyTheme() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean enableBlackTheme = pref.getBoolean("enable_black_theme", false);
+        boolean enableBlackTheme = pref.getBoolean("enable_black_theme", true);
         if (enableBlackTheme) {
             setTheme(R.style.Theme_VLC_Black);
         }

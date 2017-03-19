@@ -46,7 +46,7 @@
             android:summary="@string/enable_brightness_gesture_summary"
             android:title="@string/enable_brightness_gesture_title" />
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="dialog_confirm_resume"
             android:summary="@string/confirm_resume_summary"
             android:title="@string/confirm_resume_title" />

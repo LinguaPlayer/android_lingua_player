@@ -5,7 +5,7 @@
     android:title="@string/interface_prefs_screen">
 
     <android.support.v7.preference.SwitchPreferenceCompat
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="enable_black_theme"
         android:summary="@string/enable_black_theme_summary"
         android:title="@string/enable_black_theme"
