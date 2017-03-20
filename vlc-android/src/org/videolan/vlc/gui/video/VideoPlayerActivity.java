@@ -53,6 +53,7 @@ import android.provider.Settings.SettingNotFoundException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBar;
@@ -139,6 +140,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
         IPlaybackSettingsController, PlaybackService.Client.Callback, PlaybackService.Callback,
@@ -231,8 +233,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private TextView mLength;
     private TextView mInfo;
     private View mOverlayInfo;
-    private View mVerticalBar;
-    private View mVerticalBarProgress;
+    private ImageView mOverlayInfoIcon;
     private boolean mIsLoading;
     private boolean mIsPlaying = false;
     private ImageView mLoading;
@@ -1349,7 +1350,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private void initPlaybackSettingInfo() {
         initInfoOverlay();
-        UiTools.setViewVisibility(mVerticalBar, View.GONE);
+        UiTools.setViewVisibility(mOverlayInfoIcon, View.GONE);
         UiTools.setViewVisibility(mOverlayInfo, View.VISIBLE);
         String text = "";
         if (mPlaybackSetting == DelayState.AUDIO) {
@@ -1483,18 +1484,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     /**
      * Show text in the info view and vertical progress bar for "duration" milliseconds
-     * @param text
+     * @param resource
      * @param duration
      * @param barNewValue new volume/brightness value (range: 0 - 15)
      */
-    private void showInfoWithVerticalBar(String text, int duration, int barNewValue) {
-        showInfo(text, duration);
-        if (mVerticalBarProgress == null)
-            return;
-        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) mVerticalBarProgress.getLayoutParams();
-        layoutParams.weight = barNewValue;
-        mVerticalBarProgress.setLayoutParams(layoutParams);
-        mVerticalBar.setVisibility(View.VISIBLE);
+    private  void showInfoWithIcon(int resource, int duration, int barNewValue) {
+        showInfo(Integer.toString(barNewValue), duration);
+        mOverlayInfoIcon.setImageResource(resource);
+        mOverlayInfoIcon.setColorFilter(ContextCompat.getColor(this,R.color.white));
+        mOverlayInfoIcon.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -1504,7 +1502,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      */
     private void showInfo(String text, int duration) {
         initInfoOverlay();
-        UiTools.setViewVisibility(mVerticalBar, View.GONE);
+        UiTools.setViewVisibility(mOverlayInfoIcon, View.GONE);
         UiTools.setViewVisibility(mOverlayInfo, View.VISIBLE);
         mInfo.setText(text);
         mHandler.removeMessages(FADE_OUT_INFO);
@@ -1518,14 +1516,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             // the info textView is not on the overlay
             mInfo = (TextView) findViewById(R.id.player_overlay_textinfo);
             mOverlayInfo = findViewById(R.id.player_overlay_info);
-            mVerticalBar = findViewById(R.id.verticalbar);
-            mVerticalBarProgress = findViewById(R.id.verticalbar_progress);
+            mOverlayInfoIcon = (ImageView) findViewById(R.id.overlay_info_icon);
         }
     }
 
     private void showInfo(int textid, int duration) {
         initInfoOverlay();
-        UiTools.setViewVisibility(mVerticalBar, View.GONE);
+        UiTools.setViewVisibility(mOverlayInfoIcon, View.GONE);
         UiTools.setViewVisibility(mOverlayInfo, View.VISIBLE);
         mInfo.setText(textid);
         mHandler.removeMessages(FADE_OUT_INFO);
@@ -2193,7 +2190,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mTouchAction = TOUCH_VOLUME;
         vol = vol * 100 / mAudioMax;
-        showInfoWithVerticalBar(getString(R.string.volume) + "\n" + Integer.toString(vol) + '%', 1000, vol);
+        showInfoWithIcon(R.drawable.ic_volume_up_black_24dp, 1000, vol);
     }
 
     private void mute(boolean mute) {
@@ -2253,7 +2250,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         float brightness =  Math.min(Math.max(lp.screenBrightness + delta, 0.01f), 1f);
         setWindowBrightness(brightness);
         brightness = Math.round(brightness * 100);
-        showInfoWithVerticalBar(getString(R.string.brightness) + "\n" + (int) brightness + '%', 1000, (int) brightness);
+        showInfoWithIcon(R.drawable.ic_brightness_high_black_24dp, 1000, (int) brightness);
     }
 
     private void setWindowBrightness(float brightness) {
