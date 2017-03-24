@@ -64,24 +64,22 @@ public class AndroidDevices {
     public final static String EXTERNAL_PUBLIC_DIRECTORY = Environment.getExternalStorageDirectory().getPath();
 
     final static boolean hasNavBar;
-    final static boolean hasTsp, isTv, showInternalStorage;
-    public final static boolean showMediaStyle;
+    final static boolean hasTsp = VLCApplication.getAppContext().getPackageManager().hasSystemFeature("android.hardware.touchscreen");
+    final static boolean isTv = VLCApplication.getAppContext().getPackageManager().hasSystemFeature("android.software.leanback");
+    final static boolean showInternalStorage = !TextUtils.equals(Build.BRAND, "Swisscom") && !TextUtils.equals(Build.BOARD, "sprint");
+    public final static boolean isChromeBook = VLCApplication.getAppContext().getPackageManager().hasSystemFeature("org.chromium.arc.device_management");
+    private final static String[] noMediaStyleManufacturers = {"huawei", "symphony teleca"};
+    public final static boolean showMediaStyle = !isManufacturerBannedForMediastyleNotifications();
 
-    final static String[] noMediaStyleManufacturers = {"huawei", "symphony teleca"};
 
     static {
-        HashSet<String> devicesWithoutNavBar = new HashSet<String>();
+        HashSet<String> devicesWithoutNavBar = new HashSet<>();
         devicesWithoutNavBar.add("HTC One V");
         devicesWithoutNavBar.add("HTC One S");
         devicesWithoutNavBar.add("HTC One X");
         devicesWithoutNavBar.add("HTC One XL");
         hasNavBar = AndroidUtil.isICSOrLater
                 && !devicesWithoutNavBar.contains(android.os.Build.MODEL);
-        hasTsp = VLCApplication.getAppContext().getPackageManager().hasSystemFeature("android.hardware.touchscreen");
-        isTv = VLCApplication.getAppContext().getPackageManager().hasSystemFeature("android.software.leanback");
-        showInternalStorage = !TextUtils.equals(Build.BRAND, "Swisscom") && !TextUtils.equals(Build.BOARD, "sprint");
-
-        showMediaStyle = !isManufacturerBannedForMediastyleNotifications();
     }
 
     public static boolean hasExternalStorage() {
@@ -126,9 +124,11 @@ public class AndroidDevices {
         List<String> typeBL = Arrays.asList("tmpfs");
         String[] mountWL = {"/mnt", "/Removable", "/storage"};
         String[] mountBL = {
+                EXTERNAL_PUBLIC_DIRECTORY,
                 "/mnt/secure",
                 "/mnt/shell",
                 "/mnt/asec",
+                "/mnt/nand",
                 "/mnt/runtime",
                 "/mnt/obb",
                 "/mnt/media_rw/extSdCard",
@@ -162,8 +162,7 @@ public class AndroidDevices {
                     list.add(mountpoint);
                 }
             }
-        } catch (FileNotFoundException e) {
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         } finally {
             Util.close(bufReader);
         }
