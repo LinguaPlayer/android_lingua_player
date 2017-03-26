@@ -352,8 +352,9 @@ public class MediaDatabase {
         private void createExtSubsTableQuery(SQLiteDatabase db) {
             String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
                     EXTERNAL_SUBTITLES_TABLE_NAME + " (" +
-                    EXTERNAL_SUBTITLES_URI + " TEXT PRIMARY KEY NOT NULL, " +
-                    EXTERNAL_SUBTITLES_MEDIA_NAME + " TEXT NOT NULL" +
+                    EXTERNAL_SUBTITLES_URI + " TEXT NOT NULL, " +
+                    EXTERNAL_SUBTITLES_MEDIA_NAME + " TEXT NOT NULL, " +
+                    " PRIMARY KEY" + " ( " + EXTERNAL_SUBTITLES_URI + " , " +  EXTERNAL_SUBTITLES_MEDIA_NAME + " )" +
                     ");";
             db.execSQL(createMrlTableQuery);
         }
@@ -1277,7 +1278,7 @@ public class MediaDatabase {
                     if (new File(fileUrl).exists())
                         list.add(fileUrl);
                     else
-                        deleteSubtitle(url);
+                        deleteSubtitle(url,mediaName);
                 }
             }
             cursor.close();
@@ -1285,8 +1286,8 @@ public class MediaDatabase {
         return list;
     }
 
-    public synchronized void deleteSubtitle(String path) {
-        mDb.delete(EXTERNAL_SUBTITLES_TABLE_NAME, EXTERNAL_SUBTITLES_URI + "=?", new String[] { path });
+    public synchronized void deleteSubtitle(String path, String mediaName) {
+        mDb.delete(EXTERNAL_SUBTITLES_TABLE_NAME, EXTERNAL_SUBTITLES_URI + "=?" + " and " + EXTERNAL_SUBTITLES_MEDIA_NAME + "=?", new String[] { path,mediaName });
     }
 
     public synchronized void clearExternalSubtitlesTable() {

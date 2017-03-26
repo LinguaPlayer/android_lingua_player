@@ -963,14 +963,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(data.hasExtra(FilePickerFragment.EXTRA_MRL)) {
 //            mService.addSubtitleTrack(Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL)), true);
             final Uri subLocation = Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL));
-            mSubtitleFiles.add(subLocation.getPath());
-            VLCApplication.runBackground(new Runnable() {
-                @Override
-                public void run() {
-//                    MediaDatabase.getInstance().saveSlave(mService.getCurrentMediaLocation(), Media.Slave.Type.Subtitle, 2, data.getStringExtra(FilePickerFragment.EXTRA_MRL));
-                    MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment());
-                }
-            });
+            addAndSaveSubtitle(subLocation);
         } else
             Log.d(TAG, "Subtitle selection dialog was cancelled");
     }
@@ -2550,7 +2543,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 VLCApplication.runBackground(new Runnable() {
                     @Override
                     public void run() {
-                        MediaDatabase.getInstance().deleteSubtitle(deletedPath);
+                        MediaDatabase.getInstance().deleteSubtitle(deletedPath,mUri.getLastPathSegment());
                     }
                 });
                 if(newTracksList.size() == 0)
@@ -3075,13 +3068,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         if (intent.hasExtra(PLAY_EXTRA_SUBTITLES_LOCATION)) {
             final Uri subLocation = Uri.parse(extras.getString(PLAY_EXTRA_SUBTITLES_LOCATION));
-            mSubtitleFiles.add(subLocation.getPath());
-            VLCApplication.runBackground(new Runnable() {
-                @Override
-                public void run() {
-                    MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment());
-                }
-            });
+            addAndSaveSubtitle(subLocation);
         }
         if (intent.hasExtra(PLAY_EXTRA_ITEM_TITLE))
             itemTitle = extras.getString(PLAY_EXTRA_ITEM_TITLE);
@@ -3214,6 +3201,21 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             showOverlay(true);
         }
+    }
+
+    private void addAndSaveSubtitle(final Uri subLocation){
+        if(mSubtitleFiles.contains(subLocation.getPath()))
+            return;
+
+        mSubtitleFiles.add(subLocation.getPath());
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+//                    MediaDatabase.getInstance().saveSlave(mService.getCurrentMediaLocation(), Media.Slave.Type.Subtitle, 2, data.getStringExtra(FilePickerFragment.EXTRA_MRL));
+                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment());
+            }
+        });
+
     }
 
     private SubtitlesGetTask mSubtitlesGetTask = null;
