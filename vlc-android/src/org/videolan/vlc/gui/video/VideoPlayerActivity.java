@@ -341,6 +341,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private OnLayoutChangeListener mOnLayoutChangeListener;
     private AlertDialog mAlertDialog;
 
+    /*detect was medaiaplayer playing before opening dialog*/
+    private boolean wasPlaying;
+
     DisplayMetrics mScreen = new DisplayMetrics();
 
     private static LibVLC LibVLC() {
@@ -958,7 +961,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        if(data == null) return;
+        if(wasPlaying)
+            play();
+
+        if(data == null){
+            Log.d(TAG, "Subtitle selection dialog was cancelled");
+            return;
+        }
 
         if(data.hasExtra(FilePickerFragment.EXTRA_MRL)) {
 //            mService.addSubtitleTrack(Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL)), true);
@@ -2312,6 +2321,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 } else if (item.getItemId() == R.id.video_menu_subtitles_picker) {
                     if (mUri == null)
                         return false;
+                    wasPlaying = mService.isPlaying();
+                    pause();
                     Intent filePickerIntent = new Intent(context, FilePickerActivity.class);
                     filePickerIntent.setData(Uri.parse(FileUtils.getParent(mUri.toString())));
                     context.startActivityForResult(filePickerIntent, 0);
