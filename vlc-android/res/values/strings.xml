@@ -706,4 +706,7 @@
         <item>RGB 16-bit</item>
         <item>YUV</item>
     </string-array>
+
+    <string name="subtitle_track">Subtitle Track</string>
+
 </resources>
