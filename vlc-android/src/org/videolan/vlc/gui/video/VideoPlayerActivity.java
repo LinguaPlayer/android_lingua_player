@@ -124,6 +124,9 @@ import org.videolan.vlc.gui.tv.audioplayer.AudioPlayerActivity;
 import org.videolan.vlc.interfaces.IPlaybackSettingsController;
 import org.videolan.vlc.media.MediaDatabase;
 import org.videolan.vlc.media.MediaUtils;
+import org.videolan.vlc.subs.Caption;
+import org.videolan.vlc.subs.SubtitleParser;
+import org.videolan.vlc.subs.TimedTextObject;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Permissions;
@@ -131,15 +134,17 @@ import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.SubtitlesDownloader;
 import org.videolan.vlc.util.VLCInstance;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
         IPlaybackSettingsController, PlaybackService.Client.Callback, PlaybackService.Callback,
-        PlaylistAdapter.IPlayer, OnClickListener, View.OnLongClickListener, ScaleGestureDetector.OnScaleGestureListener {
+        PlaylistAdapter.IPlayer, OnClickListener, View.OnLongClickListener, ScaleGestureDetector.OnScaleGestureListener,SubtitleParser.ISubtitleParserListener {
 
     public final static String TAG = "VLC/VideoPlayerActivity";
 
@@ -2478,6 +2483,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     @Override
     public void onScaleEnd(ScaleGestureDetector detector) {}
 
+
     private interface TrackSelectedListener {
         boolean onTrackSelected(int trackID);
     }
@@ -2540,12 +2546,49 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 });
     }
 
+    @Override
+    public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile) {
+
+        Collection<Caption> captions = subtitleFile.captions.values();
+        int i = 0;
+        for(Caption caption:captions){
+            Log.d("caption",caption.content);
+            i++;
+            if(i==11)
+                break;
+        }
+
+    }
+
+    private String mCurrentSubtitlePath = null;
     private void selectSubtitles() {
+        if(mSubtitleFiles == null || mSubtitleFiles.size()==0)
+            return;
         FragmentManager fm = getSupportFragmentManager();
-        final SubtitleSelectorDialog subtitleSelectorDialog = SubtitleSelectorDialog.newInstance(mSubtitleFiles, 1);
+        int trackPosition = -1;
+        int tempPosition = 0;
+        for (String path : mSubtitleFiles){
+            if(path.equals(mCurrentSubtitlePath)){
+                trackPosition = tempPosition;
+                break;
+            }
+            tempPosition++;
+        }
+
+        final SubtitleSelectorDialog subtitleSelectorDialog = SubtitleSelectorDialog.newInstance(mSubtitleFiles, trackPosition);
         subtitleSelectorDialog.setOnTrackClickListener(new SubtitleSelectorDialog.OnTrackClickListener() {
             @Override
             public void onTrackClick(boolean isChecked, String path) {
+                //not unselected the subtitle track
+                if(isChecked){
+                    mCurrentSubtitlePath = path;
+                    SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
+
+                    mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
+                    mSubtitleParser.parseSubtitle(new File(path),null);
+                }
+                else
+                    mCurrentSubtitlePath = null;
 
             }
 
@@ -2562,6 +2605,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     getSupportFragmentManager().beginTransaction().remove(subtitleSelectorDialog).commit();
 
                 mSubtitleFiles = newTracksList;
+                if(mCurrentSubtitlePath.equals(deletedPath))
+                    mCurrentSubtitlePath = null;
             }
 
         });
