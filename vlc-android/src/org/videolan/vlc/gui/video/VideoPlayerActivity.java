@@ -342,7 +342,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private AlertDialog mAlertDialog;
 
     /*detect was medaiaplayer playing before opening dialog*/
-    private boolean wasPlaying;
+    private boolean mWasPlaying;
 
     DisplayMetrics mScreen = new DisplayMetrics();
 
@@ -961,7 +961,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        if(wasPlaying)
+        if(mWasPlaying)
             play();
 
         if(data == null){
@@ -2321,7 +2321,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 } else if (item.getItemId() == R.id.video_menu_subtitles_picker) {
                     if (mUri == null)
                         return false;
-                    wasPlaying = mService.isPlaying();
+                    mWasPlaying = mService.isPlaying();
                     pause();
                     Intent filePickerIntent = new Intent(context, FilePickerActivity.class);
                     filePickerIntent.setData(Uri.parse(FileUtils.getParent(mUri.toString())));
