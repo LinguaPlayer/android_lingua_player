@@ -64,10 +64,14 @@ import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.ViewStubCompat;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.InputDevice;
@@ -133,6 +137,7 @@ import org.videolan.vlc.util.Permissions;
 import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.SubtitlesDownloader;
 import org.videolan.vlc.util.VLCInstance;
+import org.videolan.vlc.widget.StrokedRobotoTextView;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -177,7 +182,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private final PlaybackServiceActivity.Helper mHelper = new PlaybackServiceActivity.Helper(this, this);
     protected PlaybackService mService;
     private SurfaceView mSurfaceView = null;
-    private SurfaceView mSubtitlesSurfaceView = null;
+    private StrokedRobotoTextView mSubtitleView = null;
     private View mRootView;
     private FrameLayout mSurfaceFrame;
     protected MediaRouter mMediaRouter;
@@ -324,6 +329,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      * (just like desktop VLC allows you as well.)
      */
     private volatile ArrayList<String> mSubtitleFiles = new ArrayList<>();
+    private TimedTextObject mSubs;
+    private String mCurrentSubtitlePath = null;
+    private Caption mLastSub = null;
 
     /**
      * Flag to indicate whether the media should be paused once loaded
@@ -425,10 +433,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mSettings.getString("screen_orientation", "99" /*SCREEN ORIENTATION SENSOR*/));
 
         mSurfaceView = (SurfaceView) findViewById(R.id.player_surface);
-        mSubtitlesSurfaceView = (SurfaceView) findViewById(R.id.subtitles_surface);
+        mSubtitleView = (StrokedRobotoTextView) findViewById(R.id.subtitles_surface);
 
-        mSubtitlesSurfaceView.setZOrderMediaOverlay(true);
-        mSubtitlesSurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+//        mSubtitleView.setZOrderMediaOverlay(true);
+//        mSubtitleView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
         mSurfaceFrame = (FrameLayout) findViewById(R.id.player_surface_frame);
 
@@ -494,6 +502,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSurfaceYDisplayRange = Math.min(mScreen.widthPixels, mScreen.heightPixels);
         mSurfaceXDisplayRange = Math.max(mScreen.widthPixels, mScreen.heightPixels);
         mCurrentSize = mSettings.getInt(PreferencesActivity.VIDEO_RATIO, SURFACE_BEST_FIT);
+
+        //config subtitle view
+        //TODO get them from preference
+        mSubtitleView.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
+        mSubtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);
+        mSubtitleView.setStrokeColor(ContextCompat.getColor(getApplicationContext(),R.color.black));
+        mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP, 2);
+        mSubtitleView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),R.color.grey900transparent));
     }
     @Override
     public boolean onSupportNavigateUp(){
@@ -781,10 +797,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         if (mPresentation == null) {
             vlcVout.setVideoView(mSurfaceView);
-            vlcVout.setSubtitlesView(mSubtitlesSurfaceView);
+//            vlcVout.setSubtitlesView(mSubtitleView);
         } else {
             vlcVout.setVideoView(mPresentation.mSurfaceView);
-            vlcVout.setSubtitlesView(mPresentation.mSubtitlesSurfaceView);
+//            vlcVout.setSubtitlesView(mPresentation.mSubtitleView);
         }
         vlcVout.addCallback(this);
         vlcVout.attachViews(this);
@@ -1619,8 +1635,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             case MediaPlayer.Event.EncounteredError:
                 encounteredError();
                 break;
-            case MediaPlayer.Event.TimeChanged:
-                break;
             case MediaPlayer.Event.Vout:
                 updateNavStatus();
                 if (mMenuIdx == -1)
@@ -1648,6 +1662,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 else if (!mHandler.hasMessages(LOADING_ANIMATION) && !mIsLoading
                         && mTouchAction != TOUCH_SEEK && !mDragging)
                     mHandler.sendEmptyMessageDelayed(LOADING_ANIMATION, LOADING_ANIMATION_DELAY);
+                break;
+            case MediaPlayer.Event.TimeChanged:
+            case MediaPlayer.Event.PositionChanged:
+                progressSubtitleCaption();
                 break;
         }
     }
@@ -1913,7 +1931,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         FrameLayout surfaceFrame;
         if (mPresentation == null) {
             surface = mSurfaceView;
-            subtitlesSurface = mSubtitlesSurfaceView;
+//            subtitlesSurface = mSubtitleView;
             surfaceFrame = mSurfaceFrame;
         } else {
             surface = mPresentation.mSurfaceView;
@@ -2011,7 +2029,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         lp.width  = (int) Math.ceil(dw * mVideoWidth / mVideoVisibleWidth);
         lp.height = (int) Math.ceil(dh * mVideoHeight / mVideoVisibleHeight);
         surface.setLayoutParams(lp);
-        subtitlesSurface.setLayoutParams(lp);
+//        subtitlesSurface.setLayoutParams(lp);
 
         // set frame size (crop if necessary)
         lp = surfaceFrame.getLayoutParams();
@@ -2020,7 +2038,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         surfaceFrame.setLayoutParams(lp);
 
         surface.invalidate();
-        subtitlesSurface.invalidate();
+//        subtitlesSurface.invalidate();
     }
 
     private void sendMouseEvent(int action, int button, int x, int y) {
@@ -2532,6 +2550,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
+
     private void selectAudioTrack() {
         setESTrackLists();
         selectTrack(mAudioTracksList, mService.getAudioTrack(), R.string.track_audio,
@@ -2546,21 +2565,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 });
     }
 
+
     @Override
     public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile) {
+        mSubs = subtitleFile;
+        //usage of below :
+        // A- when video is paused and user loads the subtitle
+        // B- to change the current caption when user switches the subtitle
+        mLastSub = null;
+        progressSubtitleCaption();
+    }
 
-        Collection<Caption> captions = subtitleFile.captions.values();
-        int i = 0;
-        for(Caption caption:captions){
-            Log.d("caption",caption.content);
-            i++;
-            if(i==11)
-                break;
-        }
+    private void parseSubtitle(String path){
+        SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
+        mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
+        mSubtitleParser.parseSubtitle(new File(path),null);
 
     }
 
-    private String mCurrentSubtitlePath = null;
     private void selectSubtitles() {
         if(mSubtitleFiles == null || mSubtitleFiles.size()==0)
             return;
@@ -2582,13 +2604,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 //not unselected the subtitle track
                 if(isChecked){
                     mCurrentSubtitlePath = path;
-                    SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
-
-                    mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
-                    mSubtitleParser.parseSubtitle(new File(path),null);
+                    parseSubtitle(path);
                 }
-                else
+                else{
                     mCurrentSubtitlePath = null;
+                    //delete previous sub captions and hide current Caption
+                    mSubs = null;
+                    hideSubtitleCaption();
+                }
 
             }
 
@@ -2605,8 +2628,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     getSupportFragmentManager().beginTransaction().remove(subtitleSelectorDialog).commit();
 
                 mSubtitleFiles = newTracksList;
-                if(mCurrentSubtitlePath.equals(deletedPath))
+                if(mCurrentSubtitlePath.equals(deletedPath)){
                     mCurrentSubtitlePath = null;
+                    //delete previous sub captions and hide current Caption
+                    mSubs = null;
+                    hideSubtitleCaption();
+
+                }
+
             }
 
         });
@@ -2629,6 +2658,68 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //                    }
 //                });
     }
+
+    private void removeCurrentSubtitle(){
+        mSubs = null;
+        mLastSub = null;
+        hideSubtitleCaption();
+
+    }
+    private void hideSubtitleCaption(){
+        mSubtitleView.setVisibility(View.INVISIBLE);
+
+        //I should set it to "". consider this situation
+        // 1:1->1:10 "Hello" and 1:11->1:15 no caption and 1:16->1:20 "Hello"
+        //if I don't the second "Hello" is equal to first one and will not shown
+        mSubtitleView.setText("");
+
+    }
+
+    private void progressSubtitleCaption() {
+        if ( mService != null && mSubs != null) {
+            Collection<Caption> subtitles = mSubs.captions.values();
+            double currentTime = getTime();
+            if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
+                showTimedCaptionText(mLastSub);
+            } else {
+                for (Caption caption : subtitles) {
+                    if (currentTime >= caption.start.getMilliseconds() && currentTime <= caption.end.getMilliseconds()) {
+                        mLastSub = caption;
+                        showTimedCaptionText(caption);
+                        break;
+                    } else if (currentTime > caption.end.getMilliseconds()) {
+                        showTimedCaptionText(null);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void showTimedCaptionText(final Caption text) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (text == null) {
+                    if (mSubtitleView.getText().length() > 0) {
+                        hideSubtitleCaption();
+                    }
+                    return;
+                }
+                SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(text.content);
+
+                ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
+                for (ForegroundColorSpan remove : toRemoveSpans) {
+                    styledString.removeSpan(remove);
+                }
+
+                if (!mSubtitleView.getText().toString().equals(styledString.toString())) {
+                    mSubtitleView.setVisibility(View.VISIBLE);
+                    mSubtitleView.setText(styledString);
+                }
+            }
+        });
+    }
+
 
 
     private void showNavMenu() {
@@ -2701,9 +2792,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void seek(long position, long length) {
+        Log.d("seek","seek");
         mForcedTime = position;
         mLastTime = mService.getTime();
         mService.seek(position, length);
+        //when video is paused and user seeks
+        if(!mService.isPlaying())
+            progressSubtitleCaption();
     }
 
     private void seekDelta(int delta) {
