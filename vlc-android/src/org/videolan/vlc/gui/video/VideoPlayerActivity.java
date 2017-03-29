@@ -2686,7 +2686,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if ( mService != null && mSubs != null) {
             Collection<Caption> subtitles = mSubs.captions.values();
             double currentTime = getTime() - mSubtitleDelay;
-            Log.d("delay","" + getTime());
             if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
                 showTimedCaptionText(mLastSub);
             } else {
@@ -2800,7 +2799,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void seek(long position, long length) {
-        Log.d("seek","seek");
         mForcedTime = position;
         mLastTime = mService.getTime();
         mService.seek(position, length);
@@ -2895,6 +2893,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mShowing = true;
             return;
         }
+
+        if(mOverlayProgress !=null){
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
+            params.addRule(RelativeLayout.ABOVE, R.id.progress_overlay);
+            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,0); // remove the ALIGN_PARENT_BOTTOM rull
+            mSubtitleView.setLayoutParams(params);
+        }
         mHandler.sendEmptyMessage(SHOW_PROGRESS);
         if (!mShowing) {
             mShowing = true;
@@ -2973,6 +2978,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             Log.i(TAG, "remove View!");
             mObjectFocused = getCurrentFocus();
             UiTools.setViewVisibility(mOverlayTips, View.INVISIBLE);
+
+            if(mOverlayProgress !=null){
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
+                params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rull
+                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                mSubtitleView.setLayoutParams(params);
+            }
+
             if (!fromUser && !mIsLocked) {
                 mOverlayProgress.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.fade_out));
                 mPlayPause.startAnimation(AnimationUtils.loadAnimation(this, android.R.anim.fade_out));

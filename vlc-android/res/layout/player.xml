@@ -29,19 +29,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-           <org.videolan.vlc.widget.StrokedRobotoTextView
-                android:id="@+id/subtitles_surface"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/player_subtitle_margin"
-                android:textDirection="anyRtl"
-                android:background="@color/grey900transparent"
-                android:gravity="center_horizontal"
-                android:paddingRight="@dimen/player_subtitle_padding"
-                android:paddingLeft="@dimen/player_subtitle_padding"
-                android:paddingTop="@dimen/player_subtitle_padding"
-                android:layout_gravity="bottom|center_horizontal"
-                android:visibility="invisible"/>
 
 
 
@@ -74,9 +61,8 @@
             android:id="@+id/player_info_stub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/progress_overlay"
+            android:layout_centerInParent="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginBottom="@dimen/default_margin"
             android:layout="@layout/player_overlay_info"/>
 
         <android.support.v7.widget.ViewStubCompat
@@ -87,6 +73,21 @@
             android:layout_above="@+id/progress_overlay"
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/default_margin" />
+
+        <org.videolan.vlc.widget.StrokedRobotoTextView
+            android:id="@+id/subtitles_surface"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/player_subtitle_margin"
+            android:textDirection="anyRtl"
+            android:background="@color/grey900transparent"
+            android:gravity="center_horizontal"
+            android:paddingRight="@dimen/player_subtitle_padding"
+            android:paddingLeft="@dimen/player_subtitle_padding"
+            android:paddingTop="@dimen/player_subtitle_padding"
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible"
+            android:layout_alignParentBottom="true" />
 
         <android.support.v7.widget.ViewStubCompat
             android:id="@+id/player_hud_stub"
