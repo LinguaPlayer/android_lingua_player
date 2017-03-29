@@ -264,7 +264,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mSize;
     private String KEY_REMAINING_TIME_DISPLAY = "remaining_time_display";
     private String KEY_BLUETOOTH_DELAY = "key_bluetooth_delay";
-    private long mSpuDelay = 0;
+//    private long mSpuDelay = 0;
+    private long mSubtitleDelay = 0;
     private long mAudioDelay = 0;
     private boolean mRateHasChanged = false;
     private int mCurrentAudioTrack = -2, mCurrentSpuTrack = -2;
@@ -896,7 +897,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mService.setAudioDelay(mAudioDelay);
         else if (mBtReceiver != null && (mAudioManager.isBluetoothA2dpOn() || mAudioManager.isBluetoothScoOn()))
             toggleBtDelay(true);
-        mService.setSpuDelay(mSpuDelay);
+//        mService.setSpuDelay(mSpuDelay);
         if (mCurrentSpuTrack != -2)
             mService.setSpuTrack(mCurrentSpuTrack);
         if (mCurrentAudioTrack != -2)
@@ -1381,6 +1382,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         initPlaybackSettingInfo();
     }
 
+
     private void initPlaybackSettingInfo() {
         initInfoOverlay();
         UiTools.setViewVisibility(mOverlayInfoIcon, View.GONE);
@@ -1392,7 +1394,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             text += " ms";
         } else if (mPlaybackSetting == DelayState.SUBS) {
             text += getString(R.string.spu_delay)+"\n";
-            text += mService.getSpuDelay() / 1000l;
+            text += getSubtitleDelay();
             text += " ms";
         } else if (mPlaybackSetting == DelayState.SPEED) {
             text += getString(R.string.playback_speed)+"\n";
@@ -1443,16 +1445,21 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
+    public long getSubtitleDelay(){
+        return mSubtitleDelay;
+    }
+
     public void delaySubs(long delta) {
         initInfoOverlay();
-        long delay = mService.getSpuDelay()+delta;
-        mService.setSpuDelay(delay);
-        mInfo.setText(getString(R.string.spu_delay) + "\n" + (delay / 1000l) + " ms");
-        mSpuDelay = delay;
+        long delay = getSubtitleDelay()+delta;
+        mInfo.setText(getString(R.string.spu_delay) + "\n" + delay + " ms");
+        mSubtitleDelay = delay;
         if (mPlaybackSetting == DelayState.OFF) {
             mPlaybackSetting = DelayState.SUBS;
             initPlaybackSettingInfo();
         }
+
+        progressSubtitleCaption();
     }
 
     public void changeSpeed(float delta){
@@ -2446,7 +2453,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 if (mPlaybackSetting == DelayState.AUDIO)
                     delayAudio(-50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
-                    delaySubs(-50000);
+                    delaySubs(-100);
                 else if (mPlaybackSetting == DelayState.SPEED)
                     changeSpeed(-0.05f);
                 break;
@@ -2454,7 +2461,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 if (mPlaybackSetting == DelayState.AUDIO)
                     delayAudio(50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
-                    delaySubs(50000);
+                    delaySubs(100);
                 else if (mPlaybackSetting == DelayState.SPEED)
                     changeSpeed(0.05f);
                 break;
@@ -2678,7 +2685,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private void progressSubtitleCaption() {
         if ( mService != null && mSubs != null) {
             Collection<Caption> subtitles = mSubs.captions.values();
-            double currentTime = getTime();
+            double currentTime = getTime() - mSubtitleDelay;
+            Log.d("delay","" + getTime());
             if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
                 showTimedCaptionText(mLastSub);
             } else {

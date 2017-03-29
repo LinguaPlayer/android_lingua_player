@@ -306,7 +306,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     }
 
     private void initSpuDelay() {
-        long spudelay = mService.getSpuDelay() / 1000L;
+        long spudelay = ((VideoPlayerActivity)getActivity()).getSubtitleDelay();
         if (spudelay == 0L) {
             mSpuDelay.setText(null);
             mSpuDelay.setCompoundDrawablesWithIntrinsicBounds(0,
