@@ -995,6 +995,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //            mService.addSubtitleTrack(Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL)), true);
             final Uri subLocation = Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL));
             addAndSaveSubtitle(subLocation);
+            if(mCurrentSubtitlePath != null)
+                if(!mCurrentSubtitlePath.contains(subLocation.getPath()))
+                    showConfirmReplaceSubtitleDialog(subLocation.getPath());
+                else if(mCurrentSubtitlePath.equals(subLocation.getPath()))
+                    //maybe content of file changed!!
+                    parseSubtitle(subLocation.getPath());
+            else {
+                mCurrentSubtitlePath = subLocation.getPath();
+                parseSubtitle(subLocation.getPath());
+            }
         } else
             Log.d(TAG, "Subtitle selection dialog was cancelled");
     }
@@ -2635,7 +2645,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     getSupportFragmentManager().beginTransaction().remove(subtitleSelectorDialog).commit();
 
                 mSubtitleFiles = newTracksList;
-                if(mCurrentSubtitlePath.equals(deletedPath)){
+                if(mCurrentSubtitlePath!=null && mCurrentSubtitlePath.equals(deletedPath)){
                     mCurrentSubtitlePath = null;
                     //delete previous sub captions and hide current Caption
                     mSubs = null;
@@ -3541,6 +3551,36 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     @Override
                     public void onCancel(DialogInterface dialog) {
                         onBackPressed();
+                    }
+                })
+                .create();
+        mAlertDialog.setCancelable(true);
+        mAlertDialog.show();
+    }
+
+    public void showConfirmReplaceSubtitleDialog(final String path){
+        if (isFinishing())
+            return;
+        pause();
+        /* Encountered Error, exit player with a message */
+        mAlertDialog = new AlertDialog.Builder(VideoPlayerActivity.this)
+                .setMessage(R.string.replace_subtitle)
+                .setPositiveButton(R.string.use_and_add_subtitle, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mCurrentSubtitlePath = path;
+                        parseSubtitle(path);
+                        play();
+                    }
+                })
+                .setNegativeButton(R.string.just_add_to_list, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        play();
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener(){
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        play();
                     }
                 })
                 .create();

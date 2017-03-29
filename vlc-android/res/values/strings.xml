@@ -708,5 +708,8 @@
     </string-array>
 
     <string name="subtitle_track">Subtitle Track</string>
+    <string name="replace_subtitle">Use this subtitle now or just add it to subtitle track list?</string>
+    <string name="use_and_add_subtitle">use this subtitle</string>
+    <string name="just_add_to_list">just add to list</string>
 
 </resources>
