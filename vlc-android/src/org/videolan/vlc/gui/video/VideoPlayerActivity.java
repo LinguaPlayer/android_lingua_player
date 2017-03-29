@@ -3537,8 +3537,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         loadMedia(true);
                     }
                 })
+                .setOnCancelListener(new DialogInterface.OnCancelListener(){
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        onBackPressed();
+                    }
+                })
                 .create();
-        mAlertDialog.setCancelable(false);
+        mAlertDialog.setCancelable(true);
         mAlertDialog.show();
     }
 
