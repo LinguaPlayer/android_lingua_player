@@ -1001,13 +1001,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //            mService.addSubtitleTrack(Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL)), true);
             final Uri subLocation = Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL));
             addAndSaveSubtitle(subLocation);
-            if(mCurrentSubtitlePath != null)
-                if(!mCurrentSubtitlePath.contains(subLocation.getPath()))
+            if(mCurrentSubtitlePath != null) {
+                if (!mCurrentSubtitlePath.contains(subLocation.getPath()))
                     showConfirmReplaceSubtitleDialog(subLocation.getPath());
-                else if(mCurrentSubtitlePath.equals(subLocation.getPath()))
+                else if (mCurrentSubtitlePath.equals(subLocation.getPath()))
                     //maybe content of file changed!!
                     parseSubtitle(subLocation.getPath());
-            else {
+            } else {
                 mCurrentSubtitlePath = subLocation.getPath();
                 parseSubtitle(subLocation.getPath());
             }
