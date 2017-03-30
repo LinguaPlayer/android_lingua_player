@@ -57,7 +57,7 @@ public class MediaDatabase {
 
     private SQLiteDatabase mDb;
     private static final String DB_NAME = "vlc_database";
-    private static final int DB_VERSION = 26;
+    private static final int DB_VERSION = 1;
     private static final int CHUNK_SIZE = 50;
 
     private static final String DIR_TABLE_NAME = "directories_table";
@@ -105,6 +105,8 @@ public class MediaDatabase {
     private static final String EXTERNAL_SUBTITLES_TABLE_NAME = "external_subtitles_table";
     private static final String EXTERNAL_SUBTITLES_MEDIA_NAME = "media_name";
     private static final String EXTERNAL_SUBTITLES_URI = "uri";
+
+    private static final String LAST_USED_SUBTITLES_TABLE_NAME = "last_used_subtitles_table";
 
     private static final String SLAVES_TABLE_NAME = "SLAVES_table";
     private static final String SLAVES_MEDIA_PATH = "slave_media_mrl";
@@ -359,6 +361,15 @@ public class MediaDatabase {
             db.execSQL(createMrlTableQuery);
         }
 
+        private void createLastUsedSubsTableQuery(SQLiteDatabase db) {
+            String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
+                    LAST_USED_SUBTITLES_TABLE_NAME + " (" +
+                    EXTERNAL_SUBTITLES_URI + " TEXT, " +
+                    EXTERNAL_SUBTITLES_MEDIA_NAME + " TEXT PRIMARY KEY NOT NULL " +
+                    ");";
+            db.execSQL(createMrlTableQuery);
+        }
+
         private void createSlavesTableQuery(SQLiteDatabase db) {
             String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
                     SLAVES_TABLE_NAME + " (" +
@@ -405,6 +416,8 @@ public class MediaDatabase {
 
                 createExtSubsTableQuery(db);
 
+                createLastUsedSubsTableQuery(db);
+
                 createSlavesTableQuery(db);
             }
         }
@@ -418,39 +431,39 @@ public class MediaDatabase {
                 // Upgrade incrementally from oldVersion to newVersion
                 for(int i = oldVersion+1; i <= newVersion; i++) {
                     switch(i) {
-                        case 9:
-                            // Remodelled playlist tables: re-create them
-                            db.execSQL("DROP TABLE " + PLAYLIST_MEDIA_TABLE_NAME + ";");
-                            db.execSQL("DROP TABLE " + PLAYLIST_TABLE_NAME + ";");
-                            createPlaylistTablesQuery(db);
-                            break;
-                        case 11:
-                            createMRLTableQuery(db);
-                            break;
-                        case 13:
-                            createNetworkFavTableQuery(db);
-                            break;
-                        case 17:
-                            dropMRLTableQuery(db);
-                            createMRLTableQuery(db);
-                            break;
-                        case 18:
-                            dropNetworkFavTableQuery(db);
-                            createNetworkFavTableQuery(db);
-                            break;
-                        case 23:
-                            createHistoryTableQuery(db);
-                            break;
-                        case 24:
-                            dropNetworkFavTableQuery(db);
-                            createNetworkFavTableQuery(db);
-                            break;
-                        case 25:
-                            createExtSubsTableQuery(db);
-                            break;
-                        case 26:
-                            createSlavesTableQuery(db);
-                            break;
+//                        case 9:
+//                             Remodelled playlist tables: re-create them
+//                            db.execSQL("DROP TABLE " + PLAYLIST_MEDIA_TABLE_NAME + ";");
+//                            db.execSQL("DROP TABLE " + PLAYLIST_TABLE_NAME + ";");
+//                            createPlaylistTablesQuery(db);
+//                            break;
+//                        case 11:
+//                            createMRLTableQuery(db);
+//                            break;
+//                        case 13:
+//                            createNetworkFavTableQuery(db);
+//                            break;
+//                        case 17:
+//                            dropMRLTableQuery(db);
+//                            createMRLTableQuery(db);
+//                            break;
+//                        case 18:
+//                            dropNetworkFavTableQuery(db);
+//                            createNetworkFavTableQuery(db);
+//                            break;
+//                        case 23:
+//                            createHistoryTableQuery(db);
+//                            break;
+//                        case 24:
+//                            dropNetworkFavTableQuery(db);
+//                            createNetworkFavTableQuery(db);
+//                            break;
+//                        case 25:
+//                            createExtSubsTableQuery(db);
+//                            break;
+//                        case 26:
+//                            createSlavesTableQuery(db);
+//                            break;
                         default:
                             break;
                     }
@@ -1293,6 +1306,41 @@ public class MediaDatabase {
     public synchronized void clearExternalSubtitlesTable() {
         mDb.delete(EXTERNAL_SUBTITLES_TABLE_NAME, null, null);
     }
+
+    public synchronized void saveLastUsedSubtitle(String path, String mediaName) {
+        if (TextUtils.isEmpty(mediaName))
+            return;
+        ContentValues values = new ContentValues();
+        values.put(EXTERNAL_SUBTITLES_URI, path);
+        values.put(EXTERNAL_SUBTITLES_MEDIA_NAME, mediaName);
+        mDb.replace(LAST_USED_SUBTITLES_TABLE_NAME, null, values);
+
+    }
+    public synchronized String getLastUsedSubtitle(String mediaName) {
+        if (TextUtils.isEmpty(mediaName))
+            return null;
+        Cursor cursor = mDb.query(LAST_USED_SUBTITLES_TABLE_NAME,
+                new String[] {EXTERNAL_SUBTITLES_MEDIA_NAME, EXTERNAL_SUBTITLES_URI },
+                EXTERNAL_SUBTITLES_MEDIA_NAME + "=?",
+                new String[] { mediaName },
+                null, null, null);
+        String lastUsedSubtitle = null;
+        if (cursor != null) {
+            if(cursor.moveToFirst()) {
+                String url = cursor.getString(1);
+                if (!TextUtils.isEmpty(url)) {
+                    String fileUrl = Uri.decode(url);
+                    if (new File(fileUrl).exists())
+                        lastUsedSubtitle = fileUrl;
+                    else
+                        deleteSubtitle(url,mediaName);
+                }
+            }
+            cursor.close();
+        }
+        return lastUsedSubtitle;
+    }
+
 
     /**
      * slaves management

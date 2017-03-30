@@ -726,6 +726,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService != null)
             mService.removeCallback(this);
         mHelper.onStop();
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+                MediaDatabase.getInstance().saveLastUsedSubtitle(mCurrentSubtitlePath ,mUri.getLastPathSegment());
+            }
+        });
     }
 
     private void restoreBrightness() {
@@ -3401,9 +3407,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private SubtitlesGetTask mSubtitlesGetTask = null;
-    private class SubtitlesGetTask extends AsyncTask<String, Void, ArrayList<String>> {
+    private class SubtitlesGetTask extends AsyncTask<String, Void, SubtitlesGetTask.Wrapper> {
+
+        public class Wrapper{
+            public String lastUsedSubtitle;
+            public ArrayList<String> prefsList;
+        }
         @Override
-        protected ArrayList<String> doInBackground(String... strings) {
+        protected Wrapper doInBackground(String... strings) {
 //            final String subtitleList_serialized = strings[0];
             ArrayList<String> prefsList = new ArrayList<>();
 //
@@ -3417,17 +3428,25 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //                } catch (ClassNotFoundException | IOException ignored) {}
 //            }
 
+            final String lastUsedSubtitle = MediaDatabase.getInstance().getLastUsedSubtitle(mUri.getLastPathSegment());
             if (!TextUtils.equals(mUri.getScheme(), "content"))
                 prefsList.addAll(MediaDatabase.getInstance().getSubtitles(mUri.getLastPathSegment()));
 
-            return prefsList;
+            Wrapper wrapper = new Wrapper();
+            wrapper.lastUsedSubtitle = lastUsedSubtitle;
+            wrapper.prefsList = prefsList;
+
+            return wrapper;
         }
 
         @Override
-        protected void onPostExecute(ArrayList<String> prefsList) {
+        protected void onPostExecute(Wrapper w) {
+            mCurrentSubtitlePath = w.lastUsedSubtitle;
+            if(w.lastUsedSubtitle != null)
+                parseSubtitle(w.lastUsedSubtitle);
             // Add any selected subtitle file from the file picker
-            if (prefsList.size() > 0) {
-                for (String file : prefsList) {
+            if (w.prefsList.size() > 0) {
+                for (String file : w.prefsList) {
                     if (!mSubtitleFiles.contains(file)) {
                         mSubtitleFiles.add(file);
                         Log.i(TAG, "Adding user-selected subtitle " + file);
