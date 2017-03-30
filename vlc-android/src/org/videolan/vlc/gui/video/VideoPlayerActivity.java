@@ -264,16 +264,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mSize;
     private String KEY_REMAINING_TIME_DISPLAY = "remaining_time_display";
     private String KEY_BLUETOOTH_DELAY = "key_bluetooth_delay";
-//    private long mSpuDelay = 0;
     private long mSubtitleDelay = 0;
     private long mAudioDelay = 0;
     private boolean mRateHasChanged = false;
-    private int mCurrentAudioTrack = -2, mCurrentSpuTrack = -2;
+    private int mCurrentAudioTrack = -2;
 
     private boolean mIsLocked = false;
     /* -1 is a valid track (Disable) */
     private int mLastAudioTrack = -2;
-    private int mLastSpuTrack = -2;
     private int mOverlayTimeout = 0;
     private boolean mLockBackButton = false;
     boolean mWasPaused = false;
@@ -323,12 +321,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     // Tracks & Subtitles
     private MediaPlayer.TrackDescription[] mAudioTracksList;
-//    private MediaPlayer.TrackDescription[] mSubtitleTracksList;
-    /**
-     * Used to store a selected subtitle; see onActivityResult.
-     * It is possible to have multiple custom subs in one session
-     * (just like desktop VLC allows you as well.)
-     */
+
     private volatile ArrayList<String> mSubtitleFiles = new ArrayList<>();
     private TimedTextObject mSubs;
     private String mCurrentSubtitlePath = null;
@@ -436,9 +429,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSurfaceView = (SurfaceView) findViewById(R.id.player_surface);
         mSubtitleView = (StrokedRobotoTextView) findViewById(R.id.subtitles_surface);
 
-//        mSubtitleView.setZOrderMediaOverlay(true);
-//        mSubtitleView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
         mSurfaceFrame = (FrameLayout) findViewById(R.id.player_surface_frame);
 
         /* Loading view */
@@ -456,10 +446,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         // videos.
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putLong(PreferencesActivity.VIDEO_RESUME_TIME, -1);
-        // Also clear the subs list, because it is supposed to be per session
-        // only (like desktop VLC). We don't want the custom subtitle files
-        // to persist forever with this video.
-        editor.putString(PreferencesActivity.VIDEO_SUBTITLE_FILES, null);
+
         // Paused flag - per session too, like the subs list.
         editor.remove(PreferencesActivity.VIDEO_PAUSED);
         editor.apply();
@@ -704,18 +691,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         editor.putFloat(PreferencesActivity.VIDEO_RATE, mSavedRate);
 
-        // Save selected subtitles
-//        String subtitleList_serialized = null;
-//        if(mSubtitleFiles.size() > 0) {
-//            Log.d(TAG, "Saving selected subtitle files");
-//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//            try {
-//                ObjectOutputStream oos = new ObjectOutputStream(bos);
-//                oos.writeObject(mSubtitleFiles);
-//                subtitleList_serialized = bos.toString();
-//            } catch(IOException e) {}
-//        }
-//        editor.putString(PreferencesActivity.VIDEO_SUBTITLE_FILES, subtitleList_serialized);
         editor.apply();
 
         restoreBrightness();
@@ -903,9 +878,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mService.setAudioDelay(mAudioDelay);
         else if (mBtReceiver != null && (mAudioManager.isBluetoothA2dpOn() || mAudioManager.isBluetoothScoOn()))
             toggleBtDelay(true);
-//        mService.setSpuDelay(mSpuDelay);
-        if (mCurrentSpuTrack != -2)
-            mService.setSpuTrack(mCurrentSpuTrack);
         if (mCurrentAudioTrack != -2)
             mService.setAudioTrack(mCurrentAudioTrack);
     }
@@ -918,7 +890,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mWasPaused = !mService.isPlaying();
         if (!isFinishing()) {
             mCurrentAudioTrack = mService.getAudioTrack();
-            mCurrentSpuTrack = mService.getSpuTrack();
         }
 
         if (mMute)
@@ -998,7 +969,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
 
         if(data.hasExtra(FilePickerFragment.EXTRA_MRL)) {
-//            mService.addSubtitleTrack(Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL)), true);
             final Uri subLocation = Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL));
             addAndSaveSubtitle(subLocation);
             if(mCurrentSubtitlePath != null) {
@@ -1950,7 +1920,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
 
         SurfaceView surface;
-        SurfaceView subtitlesSurface;
+//        SurfaceView subtitlesSurface;
         FrameLayout surfaceFrame;
         if (mPresentation == null) {
             surface = mSurfaceView;
@@ -1958,7 +1928,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             surfaceFrame = mSurfaceFrame;
         } else {
             surface = mPresentation.mSurfaceView;
-            subtitlesSurface = mPresentation.mSubtitlesSurfaceView;
+//            subtitlesSurface = mPresentation.mSubtitlesSurfaceView;
             surfaceFrame = mPresentation.mSurfaceFrame;
         }
         LayoutParams lp = surface.getLayoutParams();
@@ -2061,7 +2031,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         surfaceFrame.setLayoutParams(lp);
 
         surface.invalidate();
-//        subtitlesSurface.invalidate();
     }
 
     private void sendMouseEvent(int action, int button, int x, int y) {
@@ -2663,23 +2632,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         });
         subtitleSelectorDialog.show(fm,"select_subtitles");
-
-
-
-
-
-
-//        setESTrackLists();
-//        selectTrack(mSubtitleTracksList, mService.getSpuTrack(), R.string.track_text,
-//                new TrackSelectedListener() {
-//                    @Override
-//                    public boolean onTrackSelected(int trackID) {
-//                        if (trackID < -1 || mService == null)
-//                            return false;
-//                        mService.setSpuTrack(trackID);
-//                        return true;
-//                    }
-//                });
     }
 
     private void removeCurrentSubtitle(){
@@ -3166,17 +3118,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mService.setAudioTrack(mLastAudioTrack);
             mLastAudioTrack = -2;
         }
-        if (mLastSpuTrack >= -1) {
-            mService.setSpuTrack(mLastSpuTrack);
-            mLastSpuTrack = -2;
-        }
     }
 
     private void setESTrackLists() {
         if (mAudioTracksList == null && mService.getAudioTracksCount() > 0)
             mAudioTracksList = mService.getAudioTracks();
-//        if (mSubtitleTracksList == null && mService.getSpuTracksCount() > 0)
-//            mSubtitleTracksList = mService.getSpuTracks();
     }
 
 
@@ -3310,7 +3256,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     savedTime = media.getTime();
 
                 mLastAudioTrack = media.getAudioTrack();
-                mLastSpuTrack = media.getSpuTrack();
             } else {
                 // not in media library
 
@@ -3399,7 +3344,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-//                    MediaDatabase.getInstance().saveSlave(mService.getCurrentMediaLocation(), Media.Slave.Type.Subtitle, 2, data.getStringExtra(FilePickerFragment.EXTRA_MRL));
                 MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment());
             }
         });
@@ -3415,18 +3359,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         @Override
         protected Wrapper doInBackground(String... strings) {
-//            final String subtitleList_serialized = strings[0];
             ArrayList<String> prefsList = new ArrayList<>();
-//
-//            if (subtitleList_serialized != null) {
-//                ByteArrayInputStream bis = new ByteArrayInputStream(subtitleList_serialized.getBytes());
-//                try {
-//                    ObjectInputStream ois = new ObjectInputStream(bis);
-//                    prefsList = (ArrayList<String>) ois.readObject();
-//                } catch (InterruptedIOException ignored) {
-//                    return prefsList; /* Task is cancelled */
-//                } catch (ClassNotFoundException | IOException ignored) {}
-//            }
 
             final String lastUsedSubtitle = MediaDatabase.getInstance().getLastUsedSubtitle(mUri.getLastPathSegment());
             if (!TextUtils.equals(mUri.getScheme(), "content"))
@@ -3450,7 +3383,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     if (!mSubtitleFiles.contains(file)) {
                         mSubtitleFiles.add(file);
                         Log.i(TAG, "Adding user-selected subtitle " + file);
-//                        mService.addSubtitleTrack(file, true);
                     }
                 }
             }
@@ -3466,7 +3398,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void getSubtitles() {
         if (mSubtitlesGetTask != null || mService == null)
             return;
-//        final String subtitleList_serialized = mSettings.getString(PreferencesActivity.VIDEO_SUBTITLE_FILES, null);
 
         mSubtitlesGetTask = new SubtitlesGetTask();
         mSubtitlesGetTask.execute();
