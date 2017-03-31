@@ -46,9 +46,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import org.videolan.libvlc.Media;
-import org.videolan.libvlc.MediaPlayer;
-import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.MediaParsingService;
 import org.videolan.vlc.PlaybackService;
@@ -58,14 +55,13 @@ import org.videolan.vlc.gui.audio.AudioPlayer;
 import org.videolan.vlc.gui.browser.StorageBrowserFragment;
 import org.videolan.vlc.interfaces.IRefreshable;
 import org.videolan.vlc.media.MediaUtils;
-import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.WeakHandler;
 
 import static org.videolan.vlc.MediaParsingService.EXTRA_PATH;
 import static org.videolan.vlc.MediaParsingService.EXTRA_UUID;
 
-public class AudioPlayerContainerActivity extends BaseActivity implements PlaybackService.Client.Callback, PlaybackService.Callback {
+public class AudioPlayerContainerActivity extends BaseActivity implements PlaybackService.Client.Callback {
 
     public static final String TAG = "VLC/AudioPlayerContainerActivity";
     public static final String ACTION_SHOW_PLAYER = Strings.buildPkgString("gui.ShowPlayer");
@@ -233,13 +229,8 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
      */
     public void removeTipViewIfDisplayed() {
         View tips = findViewById(R.id.audio_tips);
-        if (tips == null)
-            return;
-        ViewGroup root = (ViewGroup) tips.getParent();
-        for (int i = 0; i < root.getChildCount(); ++i){
-            if (root.getChildAt(i).getId() == R.id.audio_tips)
-                root.removeViewAt(i);
-        }
+        if (tips != null)
+            ((ViewGroup) tips.getParent()).removeView(tips);
     }
     /**
      * Show the audio player.
@@ -318,21 +309,6 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     private static final int ACTION_MEDIA_MOUNTED = 1337;
     private static final int ACTION_MEDIA_UNMOUNTED = 1338;
 
-    @Override
-    public void update() {}
-
-    @Override
-    public void updateProgress() {
-        if (!isAudioPlayerReady())
-            showAudioPlayer();
-    }
-
-    @Override
-    public void onMediaEvent(Media.Event event) {}
-
-    @Override
-    public void onMediaPlayerEvent(MediaPlayer.Event event) {}
-
     public boolean isAudioPlayerReady() {
         return mAudioPlayer != null;
     }
@@ -403,14 +379,13 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
 
     @Override
     public void onConnected(PlaybackService service) {
-        service.addCallback(this);
         mService = service;
+        if (service.hasMedia() && !mService.isVideoPlaying())
+            showAudioPlayer();
     }
 
     @Override
     public void onDisconnected() {
-        if (mService != null)
-            mService.removeCallback(this);
         mService = null;
     }
 }

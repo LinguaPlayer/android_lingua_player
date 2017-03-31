@@ -67,7 +67,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         //public static final int ScrambledChanged    = 0x113;
         public static final int ESAdded             = 0x114;
         public static final int ESDeleted           = 0x115;
-        //public static final int ESSelected          = 0x116;
+        public static final int ESSelected          = 0x116;
 
         protected Event(int type) {
             super(type);
@@ -75,21 +75,29 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         protected Event(int type, long arg1) {
             super(type, arg1);
         }
-        protected Event(int type, float arg2) {
-            super(type, arg2);
+
+        protected Event(int type, long arg1, long arg2) {
+            super(type, arg1, arg2);
+        }
+
+        protected Event(int type, float argf) {
+            super(type, argf);
         }
 
         public long getTimeChanged() {
             return arg1;
         }
         public float getPositionChanged() {
-            return arg2;
+            return argf1;
         }
         public int getVoutCount() {
             return (int) arg1;
         }
         public int getEsChangedType() {
             return (int) arg1;
+        }
+        public int getEsChangedID() {
+            return (int) arg2;
         }
         public boolean getPausable() {
             return arg1 != 0;
@@ -98,7 +106,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
             return arg1 != 0;
         }
         public float getBuffering() {
-            return arg2;
+            return argf1;
         }
     }
 
@@ -812,13 +820,6 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
                 for (MediaPlayer.TrackDescription track : tracks) {
                     if (track.id != -1) {
                         setVideoTrack(track.id);
-                        /* HACK: flush when activating a video track. This will force an
-                         * I-Frame to be displayed right away. */
-                        if (isSeekable()) {
-                            long time = getTime();
-                            if (time > 0)
-                                setTime(time);
-                        }
                         break;
                     }
                 }
@@ -1077,7 +1078,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     }
 
     @Override
-    protected synchronized Event onEventNative(int eventType, long arg1, float arg2) {
+    protected synchronized Event onEventNative(int eventType, long arg1, long arg2, float argf1) {
         switch (eventType) {
             case Event.MediaChanged:
             case Event.Stopped:
@@ -1087,20 +1088,22 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
                 notify();
             case Event.Opening:
             case Event.Buffering:
-                return new Event(eventType, arg2);
+                return new Event(eventType, argf1);
             case Event.Playing:
             case Event.Paused:
                 return new Event(eventType);
             case Event.TimeChanged:
                 return new Event(eventType, arg1);
             case Event.PositionChanged:
-                return new Event(eventType, arg2);
+                return new Event(eventType, argf1);
             case Event.Vout:
                 mVoutCount = (int) arg1;
                 notify();
                 return new Event(eventType, arg1);
             case Event.ESAdded:
             case Event.ESDeleted:
+            case Event.ESSelected:
+                return new Event(eventType, arg1, arg2);
             case Event.SeekableChanged:
             case Event.PausableChanged:
                 return new Event(eventType, arg1);

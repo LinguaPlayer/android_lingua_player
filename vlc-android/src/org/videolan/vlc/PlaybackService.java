@@ -1,7 +1,7 @@
 /*****************************************************************************
  * PlaybackService.java
  *****************************************************************************
- * Copyright © 2011-2015 VLC authors and VideoLAN
+ * Copyright © 2011-2017 VLC authors and VideoLAN
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -294,9 +294,13 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (intent == null)
             return START_STICKY;
         String action = intent.getAction();
-        if (ACTION_REMOTE_PLAYPAUSE.equals(action)){
+        if (Intent.ACTION_MEDIA_BUTTON.equals(action)) {
+            MediaButtonReceiver.handleIntent(mMediaSession, intent);
+            return START_STICKY;
+        }
+        if (ACTION_REMOTE_PLAYPAUSE.equals(action)) {
             if (hasCurrentMedia())
-                return START_STICKY;
+                return super.onStartCommand(intent, flags, startId);
             else
                 loadLastPlaylist(TYPE_AUDIO);
         } else if (ACTION_REMOTE_PLAY.equals(action)) {
@@ -439,7 +443,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
              */
             if (action.equalsIgnoreCase(ACTION_REMOTE_PLAYPAUSE)) {
                 if (!hasCurrentMedia())
-                    return;
+                    loadLastPlaylist(TYPE_AUDIO);
                 if (mMediaPlayer.isPlaying())
                     pause();
                 else
@@ -574,10 +578,12 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     changeAudioFocus(true);
                     if (!mWakeLock.isHeld())
                         mWakeLock.acquire();
-                    if (!keyguardManager.inKeyguardRestrictedInputMode() && !mVideoBackground && switchToVideo())
+                    if (!keyguardManager.inKeyguardRestrictedInputMode() && !mVideoBackground && switchToVideo()) {
                         hideNotification();
-                    else
+                    } else {
+                        showPlayer();
                         showNotification();
+                    }
                     mVideoBackground = false;
                     if (getCurrentMediaWrapper().getType() == MediaWrapper.TYPE_STREAM)
                         mMedialibrary.addToHistory(getCurrentMediaLocation(), getCurrentMediaWrapper().getTitle());
@@ -652,6 +658,10 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             }
         }
     };
+
+    private void showPlayer() {
+        sendBroadcast(new Intent(AudioPlayerContainerActivity.ACTION_SHOW_PLAYER));
+    }
 
     public void saveMediaMeta() {
         MediaWrapper media = mMedialibrary.findMedia(getCurrentMediaWrapper());
@@ -1066,15 +1076,15 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     private void initMediaSession() {
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
 
-        mediaButtonIntent.setClass(this, MediaButtonReceiver.class);
+        mediaButtonIntent.setClass(this, RemoteControlClientReceiver.class);
         PendingIntent mbrIntent = PendingIntent.getBroadcast(this, 0, mediaButtonIntent, 0);
+        ComponentName mbrName = new ComponentName(this, RemoteControlClientReceiver.class);
 
         mSessionCallback = new MediaSessionCallback();
-        mMediaSession = new MediaSessionCompat(this, "VLC");
+        mMediaSession = new MediaSessionCompat(this, "VLC", mbrName, mbrIntent);
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSession.setCallback(mSessionCallback);
-        mMediaSession.setMediaButtonReceiver(mbrIntent);
         try {
             mMediaSession.setActive(true);
         } catch (NullPointerException e) {
@@ -1098,7 +1108,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             KeyEvent event = mediaButtonEvent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event != null) {
                 int keyCode = event.getKeyCode();
-                if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE || keyCode == KeyEvent.KEYCODE_HEADSETHOOK) {
+                if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE
+                        || keyCode == KeyEvent.KEYCODE_HEADSETHOOK || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                     long time = SystemClock.uptimeMillis();
                     switch (event.getAction()) {
                         case KeyEvent.ACTION_DOWN:
@@ -1127,6 +1138,15 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                             break;
                     }
                     return false;
+                } else if (!AndroidUtil.isHoneycombOrLater) {
+                    switch (keyCode) {
+                        case KeyEvent.KEYCODE_MEDIA_NEXT:
+                            onSkipToNext();
+                            return true;
+                        case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                            onSkipToPrevious();
+                            return true;
+                    }
                 }
             }
             return false;
@@ -1301,7 +1321,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         }
         if (hasNext())
             actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
-        if (hasPrevious())
+        if (hasPrevious() || isSeekable())
             actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
         if (isSeekable())
             actions |= PlaybackStateCompat.ACTION_FAST_FORWARD | PlaybackStateCompat.ACTION_REWIND;
@@ -1684,25 +1704,22 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     @MainThread
-    public Bitmap getCover() {
-        if (hasCurrentMedia()) {
-            return AudioUtil.getCover(PlaybackService.this, getCurrentMedia(), 512);
-        }
-        return null;
+    public String getCoverArt() {
+        return getCurrentMedia().getArtworkMrl();
     }
 
     @MainThread
-    public Bitmap getCoverPrev() {
+    public String getPrevCoverArt() {
         if (mPrevIndex != -1)
-            return AudioUtil.getCover(PlaybackService.this, mMediaList.getMedia(mPrevIndex), 512);
+            return mMediaList.getMedia(mPrevIndex).getArtworkMrl();
         else
             return null;
     }
 
     @MainThread
-    public Bitmap getCoverNext() {
+    public String getNextCoverArt() {
         if (mNextIndex != -1)
-            return AudioUtil.getCover(PlaybackService.this, mMediaList.getMedia(mNextIndex), 512);
+            return mMediaList.getMedia(mNextIndex).getArtworkMrl();
         else
             return null;
     }
@@ -1959,6 +1976,17 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     @MainThread
     public void playIndex(int index) {
         playIndex(index, 0);
+    }
+
+    @MainThread
+    public void flush() {
+        /* HACK: flush when activating a video track. This will force an
+         * I-Frame to be displayed right away. */
+        if (isSeekable()) {
+            long time = getTime();
+            if (time > 0 )
+                setTime(time);
+        }
     }
 
     /**
