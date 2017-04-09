@@ -5,14 +5,14 @@
     android:title="@string/subtitles_prefs_category">
 
     <ListPreference
-        android:defaultValue="16"
-        android:entries="@array/subtitles_size_entries"
+        android:defaultValue="30"
+        android:entries="@array/subtitles_size_values"
         android:entryValues="@array/subtitles_size_values"
         android:key="subtitles_size"
         android:persistent="true"
         android:title="@string/subtitles_size_title" />
     <ListPreference
-        android:defaultValue="16777215"
+        android:defaultValue="#ffffff"
         android:entries="@array/subtitles_color_entries"
         android:entryValues="@array/subtitles_color_values"
         android:key="subtitles_color"
@@ -22,6 +22,23 @@
         android:defaultValue="false"
         android:key="subtitles_background"
         android:title="@string/subtitles_background_title" />
+
+    <ListPreference
+        android:defaultValue="4"
+        android:entries="@array/subtitles_outline_width_values"
+        android:entryValues="@array/subtitles_outline_width_values"
+        android:key="subtitles_outline_width"
+        android:persistent="true"
+        android:title="@string/subtitles_outline_width_title" />
+
+    <ListPreference
+        android:defaultValue="#000000"
+        android:entries="@array/subtitles_outline_color_entries"
+        android:entryValues="@array/subtitles_outline_color_values"
+        android:key="subtitles_outline_color"
+        android:persistent="true"
+        android:title="@string/subtitles_outline_color_title" />
+
     <android.support.v14.preference.MultiSelectListPreference
         android:dialogTitle="@string/preferences_languages_download"
         android:entries="@array/language_entries"

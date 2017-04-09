@@ -31,24 +31,26 @@ public class SubtitleParser {
         void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile);
     }
 
-    public void parseSubtitle(@NonNull File subtitleFile ,String subtitleLanguage) {
+    public void parseSubtitle(@NonNull File subtitleFile ,String subtitleLanguage, String manualEncoding) {
         if (listenerReference == null) throw new IllegalArgumentException("listener must not null. Call setSubtitleParserListener() to sets one");
         if (listenerReference.get() == null) return;
         ISubtitleParserListener listener = listenerReference.get();
         if(mSubtitleParseTask != null )
             mSubtitleParseTask.cancel(true);
 
-        mSubtitleParseTask = new SubtitleParseTask(subtitleLanguage, listener);
+        mSubtitleParseTask = new SubtitleParseTask(subtitleLanguage,manualEncoding, listener );
         mSubtitleParseTask.execute(subtitleFile);
     }
 
     private SubtitleParseTask mSubtitleParseTask = null;
     private class SubtitleParseTask extends AsyncTask<File, TimedTextObject, TimedTextObject> {
         String subtitleLanguage;
+        String subtitleManualEncoding;
         WeakReference<ISubtitleParserListener> listenerReference;
 
-        public SubtitleParseTask(String language, ISubtitleParserListener listener) {
+        public SubtitleParseTask(String language, String manualEncoding, ISubtitleParserListener listener ) {
             subtitleLanguage = language;
+            subtitleManualEncoding = manualEncoding;
             listenerReference = new WeakReference<>(listener);
         }
 
@@ -99,7 +101,7 @@ public class SubtitleParser {
                     file.toString(),
                     SubUtils.inputstreamToCharsetString(
                             fileInputStream,
-                            subtitleLanguage).split("\n"));
+                            subtitleLanguage,subtitleManualEncoding).split("\n"));
             return result;
         }
     }

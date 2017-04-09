@@ -310,8 +310,12 @@
     <string name="subtitles_color_pink">Pink</string>
     <string name="subtitles_color_blue">Blue</string>
     <string name="subtitles_color_yellow">Yellow</string>
+    <string name="subtitles_color_black">Black</string>
     <string name="subtitles_color_green">Green</string>
     <string name="subtitles_background_title">Subtitles Background</string>
+    <string name="subtitles_outline_width_title">Subtitles Outline Width</string>
+    <string name="subtitles_outline_color_title">Subtitles Outline Color</string>
+
 
     <string name="audio_prefs_category">Audio</string>
     <string name="lockscreen_cover_title">Media cover on Lockscreen</string>
@@ -543,7 +547,7 @@
     </string-array>
 
     <string-array name="subtitles_encoding_list" tools:ignore="TypographyDashes">
-        <item>Default (Windows-1252)</item>
+        <item>Auto detect</item>
         <item>Universal (UTF-8)</item>
         <item>Universal (UTF-16)</item>
         <item>Universal (big endian UTF-16)</item>

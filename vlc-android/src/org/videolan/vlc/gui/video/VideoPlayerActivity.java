@@ -493,11 +493,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         //config subtitle view
         //TODO get them from preference
-        mSubtitleView.setTextColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
-        mSubtitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);
-        mSubtitleView.setStrokeColor(ContextCompat.getColor(getApplicationContext(),R.color.black));
-        mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP, 2);
-        mSubtitleView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),R.color.grey900transparent));
+        mSubtitleView.setTextColor(Color.parseColor(mSettings.getString("subtitles_color","#ffffff")));
+        mSubtitleView.setTextSize(Integer.parseInt(mSettings.getString("subtitles_size","30")));
+        mSubtitleView.setStrokeColor(Color.parseColor(mSettings.getString("subtitles_outline_color","#000000")));
+        mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP,Integer.parseInt(mSettings.getString("subtitles_outline_width","4")));
+        boolean background = mSettings.getBoolean("subtitles_background",false);
+        if(background)
+            mSubtitleView.setBackgroundColor(ContextCompat.getColor(getApplicationContext(),R.color.grey900transparent));
     }
     @Override
     public boolean onSupportNavigateUp(){
@@ -2571,7 +2573,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private void parseSubtitle(String path){
         SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
         mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
-        mSubtitleParser.parseSubtitle(new File(path),null);
+        String manualEncoding = mSettings.getString("subtitle_text_encoding","");
+        mSubtitleParser.parseSubtitle(new File(path),null, manualEncoding);
+
 
     }
 

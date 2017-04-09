@@ -110,7 +110,7 @@ public class SubUtils {
      * @throws IOException
      */
     public static String inputstreamToCharsetString(InputStream inputStream) throws IOException {
-        return inputstreamToCharsetString(inputStream, null);
+        return inputstreamToCharsetString(inputStream, null,"");
     }
 
     /**
@@ -121,7 +121,7 @@ public class SubUtils {
      * @return Charset String name
      * @throws IOException
      */
-    public static String inputstreamToCharsetString(InputStream inputStream, String languageCode) throws IOException {
+    public static String inputstreamToCharsetString(InputStream inputStream, String languageCode, String manualCharset) throws IOException {
         UniversalDetector charsetDetector = new UniversalDetector(null);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -151,6 +151,10 @@ public class SubUtils {
             detectedCharset = sOverrideMap.get(languageCode);
         }
 
+        if(!manualCharset.isEmpty()){
+            detectedCharset = manualCharset;
+        }
+
         byte[] stringBytes = byteArrayOutputStream.toByteArray();
         Charset charset = Charset.forName(detectedCharset);
         CharsetDecoder decoder = charset.newDecoder();
@@ -171,7 +175,7 @@ public class SubUtils {
      * @throws IOException
      */
     public static void saveStringFile(InputStream inputStream, File path) throws IOException {
-        String outputString = inputstreamToCharsetString(inputStream, null);
+        String outputString = inputstreamToCharsetString(inputStream, null,"");
         saveStringToFile(outputString, path, "UTF-8");
     }
 
