@@ -989,6 +989,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         } else
             Log.d(TAG, "Subtitle selection dialog was cancelled");
+
     }
 
     public static void start(Context context, Uri uri) {
@@ -3522,6 +3523,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void showConfirmReplaceSubtitleDialog(final String path){
         if (isFinishing())
             return;
+
+        mWasPlaying = mService.isPlaying();
         pause();
         /* Encountered Error, exit player with a message */
         mAlertDialog = new AlertDialog.Builder(VideoPlayerActivity.this)
@@ -3530,12 +3533,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     public void onClick(DialogInterface dialog, int id) {
                         mCurrentSubtitlePath = path;
                         parseSubtitle(path);
-                        play();
+                        if(mWasPlaying)
+                            play();
                     }
                 })
                 .setNegativeButton(R.string.just_add_to_list, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        play();
+                        if(mWasPlaying)
+                            play();
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener(){
