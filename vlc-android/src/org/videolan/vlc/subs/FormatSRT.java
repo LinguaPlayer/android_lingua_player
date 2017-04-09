@@ -64,6 +64,7 @@ public class FormatSRT extends TimedTextFileFormat {
         int lineCounter = 0;
         int stringIndex = 0;
         String line;
+        String nextLine;
         try {
             line = getLine(inputString, stringIndex++);
             while (line != null && stringIndex < inputString.length) {
@@ -117,9 +118,13 @@ public class FormatSRT extends TimedTextFileFormat {
                         line = getLine(inputString, stringIndex++).trim();
                         String text = "";
                         while (!line.isEmpty() && stringIndex < inputString.length) {
-                            text += line + "<br />";
-                            line = getLine(inputString, stringIndex++).trim();
+                            nextLine = getLine(inputString, stringIndex++).trim();
                             lineCounter++;
+                            text += line;
+
+                            if(!nextLine.isEmpty())
+                                text += "<br />";
+                            line = nextLine;
                         }
                         caption.content = text;
                         int key = caption.start.mseconds;

@@ -2688,7 +2688,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     }
                     return;
                 }
-                SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml((text.content).replaceAll("(<br\\s*/>)$",""));
+                SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(text.content);
 
                 ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
                 for (ForegroundColorSpan remove : toRemoveSpans) {
