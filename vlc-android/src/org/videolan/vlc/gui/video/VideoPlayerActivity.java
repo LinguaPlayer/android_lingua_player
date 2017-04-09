@@ -3122,6 +3122,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mService.setAudioTrack(mLastAudioTrack);
             mLastAudioTrack = -2;
         }
+        mService.setSpuTrack(-1);
     }
 
     private void setESTrackLists() {
