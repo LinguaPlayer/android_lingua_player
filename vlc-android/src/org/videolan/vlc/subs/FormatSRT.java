@@ -55,7 +55,8 @@ public class FormatSRT extends TimedTextFileFormat {
         TimedTextObject tto = new TimedTextObject();
         Caption caption = new Caption();
         int captionNumber = 1;
-        boolean allGood;
+        boolean ignoreUntilNextCaption;
+        boolean subtitleHasIncreasingNumber;
 
         //the file name is saved
         tto.fileName = fileName;
@@ -70,25 +71,36 @@ public class FormatSRT extends TimedTextFileFormat {
                 lineCounter++;
                 //if its a blank line, ignore it, otherwise...
                 if (!line.isEmpty()) {
-                    allGood = false;
-                    //the first thing should be an increasing number
+                    //check if this caption has increasing number
                     try {
                         int num = Integer.parseInt(line);
-                        if (num != captionNumber)
-                            throw new Exception();
-                        else {
-                            captionNumber++;
-                            allGood = true;
-                        }
+                        subtitleHasIncreasingNumber = true;
+
                     } catch (Exception e) {
-                        tto.warnings += captionNumber + " expected at line " + lineCounter;
-                        tto.warnings += "\n skipping to next line\n\n";
+                        subtitleHasIncreasingNumber = false;
                     }
-                    if (allGood) {
                         //we go to next line, here the begin and end time should be found
                         try {
+                            ignoreUntilNextCaption = false;
                             lineCounter++;
-                            line = getLine(inputString, stringIndex++).trim();
+//                            if a caption didn't have increasing number
+//                            so we allready read the line about time so don't read it again
+//                            like below example
+                            /*
+                            1
+                            00:00:07,591 --> 00:00:10,427
+                            - sync and corrections by Mr. C -
+                            - www.addic7ed.com -
+                            2
+                            00:00:35,118 --> 00:00:36,662
+                                    <i>and the people who got hurt.</i>
+
+                            <--- below caption has no increasing number ---->
+                            00:00:30,614 --> 00:00:32,199
+                            <i>and the damage left behind...</i>
+                            */
+                            if (subtitleHasIncreasingNumber)
+                                line = getLine(inputString, stringIndex++).trim();
                             String start = line.substring(0, 12);
                             String end = line.substring(line.length() - 12, line.length());
                             Time time = new Time("hh:mm:ss,ms", start);
@@ -97,10 +109,9 @@ public class FormatSRT extends TimedTextFileFormat {
                             caption.end = time;
                         } catch (Exception e) {
                             tto.warnings += "incorrect time format at line " + lineCounter;
-                            allGood = false;
+                            ignoreUntilNextCaption = true;
                         }
-                    }
-                    if (allGood) {
+                    if (!ignoreUntilNextCaption) {
                         //we go to next line where the caption text starts
                         lineCounter++;
                         line = getLine(inputString, stringIndex++).trim();
