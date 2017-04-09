@@ -24,6 +24,14 @@
         android:title="@string/subtitles_background_title" />
 
     <ListPreference
+        android:defaultValue="25"
+        android:entries="@array/subtitles_bottom_margins"
+        android:entryValues="@array/subtitles_bottom_margins"
+        android:key="subtitles_bottom_margins"
+        android:persistent="true"
+        android:title="@string/subtitles_bottom_margins_title" />
+
+    <ListPreference
         android:defaultValue="4"
         android:entries="@array/subtitles_outline_width_values"
         android:entryValues="@array/subtitles_outline_width_values"
