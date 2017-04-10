@@ -74,6 +74,15 @@
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/default_margin" />
 
+
+        <android.support.v7.widget.ViewStubCompat
+            android:id="@+id/player_overlay_next_prev_subcaption_stub"
+            android:layout="@layout/player_overlay_next_prev_subcaption"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/subtitles_surface" />
+
         <org.videolan.vlc.widget.StrokedRobotoTextView
             android:id="@+id/subtitles_surface"
             android:layout_width="wrap_content"

@@ -254,6 +254,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mAdvOptions;
     private ImageView mPlaybackSettingPlus;
     private ImageView mPlaybackSettingMinus;
+    private ImageView mCaptionSettingsNext;
+    private ImageView mCaptionSettingsPrev;
     private View mObjectFocused;
     private boolean mEnableBrightnessGesture;
     protected boolean mEnableCloneMode;
@@ -326,6 +328,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private TimedTextObject mSubs;
     private String mCurrentSubtitlePath = null;
     private Caption mLastSub = null;
+    private int mLastSubIndex = 0;
 
     /**
      * Flag to indicate whether the media should be paused once loaded
@@ -1374,6 +1377,31 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mPlaybackSettingPlus.requestFocus();
         initPlaybackSettingInfo();
     }
+    private void hideCaptionControls(){
+        if(mCaptionSettingsNext !=null)
+            mCaptionSettingsNext.setVisibility(View.INVISIBLE);
+        if(mCaptionSettingsPrev != null)
+            mCaptionSettingsPrev.setVisibility(View.INVISIBLE);
+
+    }
+    private void showCaptionControls(){
+        ViewStubCompat vsc = (ViewStubCompat) findViewById(R.id.player_overlay_next_prev_subcaption_stub);
+        if (vsc != null) {
+            vsc.inflate();
+            mCaptionSettingsPrev = (ImageView) findViewById(R.id.player_prev_caption);
+            mCaptionSettingsNext = (ImageView) findViewById(R.id.player_next_caption);
+        }
+
+        mCaptionSettingsPrev.setOnClickListener(this);
+        mCaptionSettingsNext.setOnClickListener(this);
+        mCaptionSettingsPrev.setOnLongClickListener(this);
+        mCaptionSettingsNext.setOnLongClickListener(this);
+        if(mCaptionSettingsNext !=null)
+            mCaptionSettingsNext.setVisibility(View.VISIBLE);
+        if(mCaptionSettingsPrev != null)
+            mCaptionSettingsPrev.setVisibility(View.VISIBLE);
+
+    }
 
 
     private void initPlaybackSettingInfo() {
@@ -2190,7 +2218,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         //Jump !
         if (seek && length > 0)
-            seek(time + jump, length);
+            seek(time + jump, length,true);
 
         if (length > 0)
             //Show the jump's size
@@ -2462,6 +2490,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case R.id.player_overlay_tracks:
                 onAudioSubClick(v);
+                break;
+            case R.id.player_prev_caption:
+                showPrevSubtitleCaption();
+                break;
+            case R.id.player_next_caption:
+                showNextSubtitleCaption();
+                break;
         }
     }
 
@@ -2477,6 +2512,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     mService.setRepeatType(PlaybackService.REPEAT_ONE);
                     showInfo(getString(R.string.repeat_single), 1000);
                 }
+                return true;
+            case R.id.player_next_caption:
+                seekNextSubtitleCaption();
+                return true;
+            case R.id.player_prev_caption:
+                seekPrevSubtitleCaption();
                 return true;
             default:
                 return false;
@@ -2573,6 +2614,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         // B- to change the current caption when user switches the subtitle
         mLastSub = null;
         progressSubtitleCaption();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                showCaptionControls();
+            }
+        });
     }
 
     private void parseSubtitle(String path){
@@ -2612,6 +2659,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     //delete previous sub captions and hide current Caption
                     mSubs = null;
                     hideSubtitleCaption();
+                    hideCaptionControls();
                 }
 
             }
@@ -2634,6 +2682,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     //delete previous sub captions and hide current Caption
                     mSubs = null;
                     hideSubtitleCaption();
+                    hideCaptionControls();
 
                 }
 
@@ -2666,9 +2715,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
                 showTimedCaptionText(mLastSub);
             } else {
+                int index = 0;
                 for (Caption caption : subtitles) {
+                    index++;
                     if (currentTime >= caption.start.getMilliseconds() && currentTime <= caption.end.getMilliseconds()) {
                         mLastSub = caption;
+                        mLastSubIndex = index;
                         showTimedCaptionText(caption);
                         break;
                     } else if (currentTime > caption.end.getMilliseconds()) {
@@ -2677,6 +2729,34 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
             }
         }
+    }
+
+    private Caption showNextSubtitleCaption(){
+        Collection<Caption> subtitles = mSubs.captions.values();
+        Caption caption = (subtitles.toArray(new Caption[subtitles.size()]))[++mLastSubIndex];
+
+        showTimedCaptionText(caption);
+        return caption;
+    }
+
+    private Caption showPrevSubtitleCaption(){
+        double currentTime = getTime() - mSubtitleDelay;
+        Collection<Caption> subtitles = mSubs.captions.values();
+        Caption caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
+
+        showTimedCaptionText(caption);
+        return caption;
+
+    }
+
+    private void seekNextSubtitleCaption(){
+        Caption caption = showNextSubtitleCaption();
+        seekWithOutCaption(caption.start.getMilliseconds());
+    }
+
+    private void seekPrevSubtitleCaption(){
+        Caption caption = showPrevSubtitleCaption();
+        seekWithOutCaption(caption.start.getMilliseconds());
     }
 
     protected void showTimedCaptionText(final Caption text) {
@@ -2743,12 +2823,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService.isPlaying()) {
             pause();
             showOverlayTimeout(OVERLAY_INFINITE);
+            if(mSubs != null)
+                showCaptionControls();
         } else {
+            hideCaptionControls();
             play();
             showOverlayTimeout(OVERLAY_TIMEOUT);
         }
         mPlayPause.requestFocus();
     }
+
 
     private long getTime() {
         long time = mService.getTime();
@@ -2772,15 +2856,20 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     protected void seek(long position) {
-        seek(position, mService.getLength());
+        seek(position, mService.getLength(),true);
     }
 
-    private void seek(long position, long length) {
+    private void seekWithOutCaption(long position){
+        seek(position, mService.getLength(),false);
+
+    }
+
+    private void seek(long position, long length, boolean showCaption) {
         mForcedTime = position;
         mLastTime = mService.getTime();
         mService.seek(position, length);
         //when video is paused and user seeks
-        if(!mService.isPlaying())
+        if(!mService.isPlaying() && showCaption)
             progressSubtitleCaption();
     }
 
