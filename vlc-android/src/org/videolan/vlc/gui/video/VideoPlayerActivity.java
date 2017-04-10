@@ -2729,11 +2729,19 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         mLastSub = caption;
                         mLastSubIndex = index;
                         showTimedCaptionText(caption);
-                        break;
+                        return;
                     } else if (currentTime > caption.end.getMilliseconds()) {
                         showTimedCaptionText(null);
                     }
+                    else if(caption.start.getMilliseconds() > currentTime ) {
+                        mLastSubIndex = index;
+                        //we don't need to check other captions
+                        return;
+                    }
+
                 }
+                //reached to end of captions and didn't find the caption
+                mLastSubIndex = index;
             }
         }
     }
