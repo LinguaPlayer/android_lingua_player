@@ -2740,30 +2740,38 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private Caption showNextSubtitleCaption(){
         Collection<Caption> subtitles = mSubs.captions.values();
-        Caption caption = (subtitles.toArray(new Caption[subtitles.size()]))[++mLastSubIndex];
+        Caption caption = null;
+        if(mLastSubIndex < subtitles.size()-1) {
+            caption = (subtitles.toArray(new Caption[subtitles.size()]))[++mLastSubIndex];
+            showTimedCaptionText(caption);
+        }
 
-        showTimedCaptionText(caption);
         return caption;
+
+
     }
 
     private Caption showPrevSubtitleCaption(){
         double currentTime = getTime() - mSubtitleDelay;
         Collection<Caption> subtitles = mSubs.captions.values();
-        Caption caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
-
-        showTimedCaptionText(caption);
+        Caption caption = null;
+        if(mLastSubIndex > 0) {
+            caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
+            showTimedCaptionText(caption);
+        }
         return caption;
-
     }
 
     private void seekNextSubtitleCaption(){
         Caption caption = showNextSubtitleCaption();
-        seekWithOutCaption(caption.start.getMilliseconds());
+        if(caption !=null)
+            seekWithOutCaption(caption.start.getMilliseconds());
     }
 
     private void seekPrevSubtitleCaption(){
         Caption caption = showPrevSubtitleCaption();
-        seekWithOutCaption(caption.start.getMilliseconds());
+        if(caption != null)
+            seekWithOutCaption(caption.start.getMilliseconds());
     }
 
     protected void showTimedCaptionText(final Caption text) {
