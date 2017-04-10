@@ -227,6 +227,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private static final int RESET_BACK_LOCK = 6;
     private static final int CHECK_VIDEO_TRACKS = 7;
     private static final int LOADING_ANIMATION = 8;
+    private static final int SHOW_CAPTION_CONTROLS = 9;
+    private static final int HIDE_CAPTION_CONTROLS = 10;
 
     private static final int LOADING_ANIMATION_DELAY = 1000;
 
@@ -1647,9 +1649,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case MediaPlayer.Event.Playing:
                 onPlaying();
+                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
                 break;
             case MediaPlayer.Event.Paused:
                 updateOverlayPausePlay();
+                if(mSubs != null)
+                    mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
                 break;
             case MediaPlayer.Event.Stopped:
                 exitOK();
@@ -1739,6 +1744,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 case LOADING_ANIMATION:
                     startLoading();
                     break;
+                case SHOW_CAPTION_CONTROLS:
+                    showCaptionControls();
+                    break;
+                case HIDE_CAPTION_CONTROLS:
+                    hideCaptionControls();
+                    break;
             }
             return true;
         }
@@ -1759,6 +1770,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mService.getCurrentMediaWrapper().removeFlags(MediaWrapper.MEDIA_PAUSED);
             mWasPaused = false;
         }
+
         setESTracks();
     }
 
@@ -2614,12 +2626,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         // B- to change the current caption when user switches the subtitle
         mLastSub = null;
         progressSubtitleCaption();
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                showCaptionControls();
-            }
-        });
+        mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
     }
 
     private void parseSubtitle(String path){
@@ -2823,10 +2830,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService.isPlaying()) {
             pause();
             showOverlayTimeout(OVERLAY_INFINITE);
-            if(mSubs != null)
-                showCaptionControls();
         } else {
-            hideCaptionControls();
             play();
             showOverlayTimeout(OVERLAY_TIMEOUT);
         }
@@ -3166,6 +3170,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService.isPausable())
             mPlayPause.setImageResource(mService.isPlaying() ? R.drawable.ic_pause_circle
                     : R.drawable.ic_play_circle);
+
     }
 
     /**
