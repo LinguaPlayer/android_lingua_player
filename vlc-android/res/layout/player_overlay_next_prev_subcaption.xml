@@ -7,20 +7,20 @@
 
     <ImageView
         android:id="@+id/player_prev_caption"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:src="@drawable/ic_navigate_before_black_24dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/ic_navigate_back_circle"
         android:focusable="true"
-        android:tint="@color/grey900"
+        android:layout_margin="5dp"
         android:visibility="invisible"/>
 
     <ImageView
         android:id="@+id/player_next_caption"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:src="@drawable/ic_navigate_next_black_24dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/ic_navigate_next_circle"
         android:focusable="true"
-        android:tint="@color/grey900"
+        android:layout_margin="5dp"
         android:visibility="invisible"/>
 
 </LinearLayout>
