@@ -1347,6 +1347,26 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         showDelayControls();
     }
 
+    private boolean enableCaptionControls = true;
+
+    @Override
+    public boolean isCaptionControllerEnabled(){
+        return enableCaptionControls;
+    }
+
+    @Override
+    public void enableDisableCaptionControls(){
+        if(enableCaptionControls) {
+            enableCaptionControls = false;
+            mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+        }
+        else {
+            enableCaptionControls = true;
+            if(!mService.isPlaying())
+                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+        }
+    }
+
     @Override
     public void showSubsDelaySetting() {
         mPlaybackSetting = DelayState.SUBS;
@@ -1387,6 +1407,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     }
     private void showCaptionControls(){
+        if(!enableCaptionControls)
+            return;
+
         ViewStubCompat vsc = (ViewStubCompat) findViewById(R.id.player_overlay_next_prev_subcaption_stub);
         if (vsc != null) {
             vsc.inflate();

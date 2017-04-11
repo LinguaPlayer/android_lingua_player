@@ -91,6 +91,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private static final int ID_POPUP_VIDEO = 9 ;
     private static final int ID_REPEAT = 10 ;
     private static final int ID_SHUFFLE = 11 ;
+    private static final int ID_CAPTION_BACK_NEXT = 12 ;
+
 
     private Activity mActivity;
     private int mTheme;
@@ -111,6 +113,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private TextView mShuffle;
 
     private TextView mChaptersTitle;
+
+    private TextView mCaptionController;
     private int mTextColor;
     private static final int FOCUSED_TEXT_COLOR = ContextCompat.getColor(VLCApplication.getAppContext(), R.color.orange300);
     private PlaybackService mService;
@@ -274,6 +278,12 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
         }
         VLCApplication.sPlayerSleepTime = time;
     }
+    private void enableDisableCaptionControls(){
+        if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
+            mPlaybackController = (IPlaybackSettingsController) getActivity();
+        mPlaybackController.enableDisableCaptionControls();
+        dismiss();
+    }
 
     public void initPlaybackSpeed () {
         if (!mService.isSeekable()) {
@@ -405,6 +415,17 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 0, 0);
     }
 
+    private void initCaptionController(){
+        if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
+            mPlaybackController = (IPlaybackSettingsController) getActivity();
+
+        mCaptionController.setCompoundDrawablesWithIntrinsicBounds(0,
+                mPlaybackController.isCaptionControllerEnabled()
+                        ? R.drawable.ic_navigate_back_next_pressed:
+                         UiTools.getResourceFromAttribute(mActivity, R.attr.ic_caption_back_next),
+                0, 0);
+    }
+
     private void setViewReference(int id, TextView tv) {
         switch (id) {
             case ID_CHAPTER_TITLE:
@@ -439,6 +460,11 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 mShuffle = tv;
                 initShuffle();
                 break;
+            case ID_CAPTION_BACK_NEXT:
+                mCaptionController = tv;
+                initCaptionController();
+                break;
+
         }
     }
 
@@ -499,6 +525,10 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
             case ID_SHUFFLE:
                 mService.shuffle();
                 initShuffle();
+                break;
+            case ID_CAPTION_BACK_NEXT:
+                dismiss();
+                enableDisableCaptionControls();
                 break;
         }
     }
@@ -567,6 +597,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 mAdapter.addOption(new Option(ID_CHAPTER_TITLE, R.attr.ic_chapter_normal_style, getString(R.string.go_to_chapter)));
                 large_items++;
             }
+            mAdapter.addOption(new Option(ID_CAPTION_BACK_NEXT, R.attr.ic_caption_back_next, getString(R.string.caption_back_next)));
         } else {
             mAdapter.addOption(new Option(ID_EQUALIZER, R.attr.ic_equalizer_normal_style, getString(R.string.equalizer)));
             mAdapter.addOption(new Option(ID_SAVE_PLAYLIST, R.attr.ic_save, getString(R.string.playlist_save)));

@@ -29,4 +29,6 @@ public interface IPlaybackSettingsController {
     void showSubsDelaySetting();
     void showPlaybackSpeedSetting();
     void endPlaybackSetting();
+    void enableDisableCaptionControls();
+    boolean isCaptionControllerEnabled();
 }
