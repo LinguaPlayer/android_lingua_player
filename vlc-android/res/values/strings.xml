@@ -28,6 +28,7 @@
     <string name="play_as_audio_background">Play videos in background</string>
     <string name="play_as_audio_background_summary">Continue video playback in background when turning device screen off or clicking HOME button.</string>
     <string name="append">Append</string>
+    <string name="insert_next">Insert next</string>
     <string name="play_all">Play all</string>
     <string name="append_all">Append all</string>
     <string name="last_playlist">Last playlist</string>
@@ -88,7 +89,7 @@
     <string name="directories">Directories</string>
     <string name="loading">Loading</string>
     <string name="please_wait">Please wait…</string>
-    <string name="nomedia">No media files found, please select directories to add to your medialibrary</string>
+    <string name="nomedia">No media files found, please transfer some files to your device or adjust your preferences.</string>
     <string name="noplaylist">No playlist found.</string>
     <string name="mediafiles">Media files</string>
     <string name="notavailable">not available</string>
@@ -686,6 +687,7 @@
     <string name="list_languages_download_summary">Languages to download when fetching subtitles</string>
     <string name="list_languages_download_title">Subtitles download languages</string>
     <string name="service_unavailable">Service unavailable</string>
+    <string name="subs_dl_lang_fail">Failed to set subtitles language, try to set it in application settings</string>
     <string name="downloading_subtitles">Downloading subtitles</string>
     <string name="browse_folder">Browse folder</string>
     <string name="listen">Listen</string>
@@ -706,6 +708,7 @@
     <string name="ml_external_storage_title">New external storage detected</string>
     <string name="ml_external_storage_msg">Do you want VLC to add device %1$s to your medialibrary?</string>
     <string name="last_added_media">last added</string>
+    <string name="no">No</string>
 
     <string-array name="chroma_formats" translatable="false">
         <item>RGB 32-bit</item>

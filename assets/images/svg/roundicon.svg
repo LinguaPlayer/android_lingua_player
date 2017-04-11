@@ -15,7 +15,7 @@
    id="svg4826"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="icon.svg">
+   sodipodi:docname="roundIcon.svg">
   <defs
      id="defs4828">
     <clipPath
@@ -37,6 +37,15 @@
          inkscape:connector-curvature="0"
          sodipodi:nodetypes="szccccscccccsccscccccscccczsas" />
     </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath4239">
+      <path
+         style="fill:#ff8800"
+         d="m 255.99296,24.00989 c -10.00001,0 -16.55847,4.434001 -21.99716,9.989346 -7.51989,7.682363 -14.00568,30.009232 -14.00568,30.009232 l -83.9929,251.999282 -34.00496,0 c -1.52373,0 -3.007576,0.23857 -4.490067,0.5973 a 231.99999,231.99999 0 0 0 207.860797,129.223 231.99999,231.99999 0 0 0 145.63848,-51.53267 l -16.99218,-58.28834 c -3.28546,-10.69309 -13.37927,-19.99929 -24.01563,-19.99929 l -33.98437,0 L 291.9958,64.008468 c 0,0 -6.48579,-22.326869 -14.00568,-30.009232 -5.43869,-5.555345 -11.99716,-9.989346 -21.99716,-9.989346 z"
+         id="path4241"
+         inkscape:connector-curvature="0" />
+    </clipPath>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -45,9 +54,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="-60.1257"
-     inkscape:cy="-10.777654"
+     inkscape:zoom="16"
+     inkscape:cx="6.9159589"
+     inkscape:cy="22.558047"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -56,7 +65,23 @@
      inkscape:window-height="1056"
      inkscape:window-x="0"
      inkscape:window-y="24"
-     inkscape:window-maximized="1">
+     inkscape:window-maximized="1"
+     showguides="false"
+     inkscape:snap-global="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:object-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-others="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-text-baseline="true"
+     inkscape:snap-center="true">
     <inkscape:grid
        type="xygrid"
        id="grid4142" />
@@ -78,10 +103,22 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-1004.3622)">
+    <circle
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:18.75441551;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate"
+       id="path4162"
+       cx="24"
+       cy="1028.3622"
+       r="22"
+       inkscape:export-filename="/mnt/temp/pixel_2.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
     <g
-       transform="matrix(0.09482759,0,0,0.09482759,-0.27586304,1004.0863)"
+       transform="matrix(0.06034483,0,0,0.06034483,8.5517235,1010.9139)"
        id="g4807"
-       clip-path="url(#clipPath4813)">
+       clip-path="url(#clipPath4813)"
+       inkscape:export-filename="/mnt/temp/pixel_2.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
       <path
          id="path4795"
          d="m 256,24 c -10,0 -16.56131,4.444363 -22,10 -7.51989,7.681589 -14,30 -14,30 l -84,252 -34,0 c -10.63636,0 -20.71454,9.30699 -24,20 L 43,456 c -4.67669,16.03434 -3,31.99999 19,32 l 194,0 194,0 c 22,-10e-6 23.67669,-15.96566 19,-32 L 434,336 c -3.28546,-10.69301 -13.36364,-20 -24,-20 l -34,0 -84,-252 c 0,0 -6.48011,-22.318411 -14,-30 -5.43869,-5.555637 -12,-10 -22,-10 z"

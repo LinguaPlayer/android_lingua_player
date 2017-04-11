@@ -70,7 +70,7 @@
             android:layout="@layout/player_overlay_settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/progress_overlay"
+            android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_marginRight="@dimen/default_margin" />
 

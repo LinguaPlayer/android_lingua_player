@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -27,6 +28,9 @@ import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.Util;
 
 import java.io.File;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     public final static String TAG = "VLC/MediaParsingService";
@@ -43,22 +47,29 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     public final static String ACTION_RESUME_SCAN = "action_resume_scan";
     public final static String ACTION_PAUSE_SCAN = "action_pause_scan";
     public static final long NOTIFICATION_DELAY = 1000L;
+    private PowerManager.WakeLock mWakeLock;
 
     private final IBinder mBinder = new LocalBinder();
     private Medialibrary mMedialibrary;
     private int mParsing = 0, mReload = 0;
     private String mCurrentDiscovery = null;
-    String mFolderToDiscover = null;
     private long mLastNotificationTime = 0L;
+
+    private final ThreadPoolExecutor mThreadPool = new ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(), VLCApplication.THREAD_FACTORY);
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case ACTION_PAUSE_SCAN:
+                    if (mWakeLock.isHeld())
+                        mWakeLock.release();
                     mMedialibrary.pauseBackgroundOperations();
                     break;
                 case ACTION_RESUME_SCAN:
+                    if (!mWakeLock.isHeld())
+                        mWakeLock.acquire();
                     mMedialibrary.resumeBackgroundOperations();
                     break;
                 default:
@@ -71,6 +82,20 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
         }
     };
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mMedialibrary = VLCApplication.getMLInstance();
+        mMedialibrary.addDeviceDiscoveryCb(MediaParsingService.this);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_PAUSE_SCAN);
+        filter.addAction(ACTION_RESUME_SCAN);
+        registerReceiver(mReceiver, filter);
+        PowerManager pm = (PowerManager) VLCApplication.getAppContext().getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        mWakeLock.acquire();
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -79,16 +104,13 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mMedialibrary = VLCApplication.getMLInstance();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_PAUSE_SCAN);
-        filter.addAction(ACTION_RESUME_SCAN);
-        registerReceiver(mReceiver, filter);
-        mMedialibrary.addDeviceDiscoveryCb(MediaParsingService.this);
+        synchronized (this) {
+            if (mLastNotificationTime <= 0L)
+                mLastNotificationTime = System.currentTimeMillis();
+        }
         switch (intent.getAction()) {
             case ACTION_INIT:
-                setupMedialibrary(intent.getBooleanExtra(StartActivity.EXTRA_FIRST_RUN, false),
-                        intent.getBooleanExtra(StartActivity.EXTRA_UPGRADE, false));
+                setupMedialibrary(intent.getBooleanExtra(StartActivity.EXTRA_UPGRADE, false));
                 break;
             case ACTION_RELOAD:
                 reload();
@@ -103,17 +125,42 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
         return START_NOT_STICKY;
     }
 
-    private void discoverStorage(String path, String uuid) {
-        if (!TextUtils.isEmpty(uuid))
-            mMedialibrary.addDevice(uuid, path, true);
-        for (String folder : Medialibrary.getBlackList())
-            mMedialibrary.banFolder(path + folder);
-        discover(path);
+    private void discoverStorage(final String path, final String uuid) {
+        mThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (!TextUtils.isEmpty(uuid))
+                    mMedialibrary.addDevice(uuid, path, true);
+                for (String folder : Medialibrary.getBlackList())
+                    mMedialibrary.banFolder(path + folder);
+                mMedialibrary.discover(path);
+            }
+        });
     }
 
-    private void discover(String path) {
-        mFolderToDiscover = "";
-        mMedialibrary.discover(path);
+    private void discover(final String path) {
+        if (TextUtils.isEmpty(path))
+            return;
+        mThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                addDeviceIfNeeded(path);
+                mMedialibrary.discover(path);
+            }
+        });
+    }
+
+    private void addDeviceIfNeeded(String path) {
+        for (String devicePath : mMedialibrary.getDevices()) {
+            if (path.startsWith(devicePath))
+                return;
+        }
+        for (String storagePath : AndroidDevices.getExternalStorageDirectories()) {
+            if (path.startsWith(storagePath)) {
+                String uuid = FileUtils.getFileNameFromPath(path);
+                mMedialibrary.addDevice(uuid, path, true);
+            }
+        }
     }
 
     private void reload() {
@@ -122,14 +169,15 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
         mMedialibrary.reload();
     }
 
-    private void setupMedialibrary(final boolean firstRun, final boolean upgrade) {
+    private void setupMedialibrary(final boolean upgrade) {
         if (mMedialibrary.isInitiated())
             mMedialibrary.resumeBackgroundOperations();
         else
-            VLCApplication.runBackground(new Runnable() {
+            mThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
                     mMedialibrary.setup();
+                    boolean shouldInit = !(new File(MediaParsingService.this.getCacheDir()+Medialibrary.VLC_MEDIA_DB_NAME).exists());
                     String[] storages = AndroidDevices.getMediaDirectories();
                     for (String storage : storages) {
                         boolean isMainStorage = TextUtils.equals(storage, AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
@@ -137,13 +185,10 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                     }
                     if (mMedialibrary.init(MediaParsingService.this)) {
                         LocalBroadcastManager.getInstance(MediaParsingService.this).sendBroadcast(new Intent(VLCApplication.ACTION_MEDIALIBRARY_READY));
-                        if (firstRun) {
-                            for (String storage : storages)
-                                for (String folder : Medialibrary.getBlackList())
-                                    mMedialibrary.banFolder(storage + folder);
-                            for (File folder : Medialibrary.getDefaultFolders())
-                                if (folder.exists())
-                                    mMedialibrary.discover(folder.getPath());
+                        if (shouldInit) {
+                            for (String folder : Medialibrary.getBlackList())
+                                mMedialibrary.banFolder(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + folder);
+                            mMedialibrary.discover(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
                         } else if (upgrade) {
                             mMedialibrary.forceParserRetry();
                         }
@@ -224,21 +269,17 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     }
 
     @Override
-    public void onDiscoveryStarted(String entryPoint) {
-        if (mFolderToDiscover != null && mFolderToDiscover.isEmpty())
-            mFolderToDiscover = entryPoint;
-    }
+    public void onDiscoveryStarted(String entryPoint) {}
 
     @Override
     public void onDiscoveryProgress(String entryPoint) {
         mCurrentDiscovery = entryPoint;
-        if (mReload == 0)
-            showNotification();
+        showNotification();
     }
 
     @Override
     public void onDiscoveryCompleted(String entryPoint) {
-        if ((mParsing == 0 && mCurrentDiscovery != null && entryPoint.isEmpty()) || TextUtils.equals(mFolderToDiscover, entryPoint))
+        if (!mMedialibrary.isWorking())
             stopSelf();
     }
 
@@ -259,11 +300,10 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
 
     @Override
     public void onReloadCompleted(String entryPoint) {
-        if (TextUtils.isEmpty(entryPoint)) {
+        if (TextUtils.isEmpty(entryPoint))
             --mReload;
-            if (mCurrentDiscovery != null && mParsing == 0)
-                stopSelf();
-        }
+        if (!mMedialibrary.isWorking())
+            stopSelf();
     }
 
     @Override
@@ -271,6 +311,8 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
         hideNotification();
         mMedialibrary.removeDeviceDiscoveryCb(this);
         unregisterReceiver(mReceiver);
+        if (mWakeLock.isHeld())
+            mWakeLock.release();
         super.onDestroy();
     }
 

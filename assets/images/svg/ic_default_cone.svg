@@ -11,13 +11,24 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="48"
    height="48"
-   viewBox="0 0 48.000001 48.000001"
-   id="svg4826"
+   id="svg4682"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="icon.svg">
+   sodipodi:docname="ic_no_thumbnail_big.svg"
+   inkscape:export-filename="/home/corbax/Dev/android/Icons/Test 1/ic_play_normal.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
-     id="defs4828">
+     id="defs4684">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath4820">
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff8800"
+         d="m 1848.8208,4174.6353 c -22.8772,0 -41.3132,-3.6294 -59.407,-14.8936 -29.7107,-14.8548 -74.2971,-148.5088 -74.2971,-148.5088 l -29.7034,-89.1156 -104.0007,-312.0018 -118.8138,-356.5143 -59.484,-178.2182 -1.7745,0 -27.3889,0 -99.3715,0 c -19.8913,0 -73.1714,-29.6836 -85.947,-72.4462 -48.7849,-166.6948 -94.3393,-322.3327 -136.9444,-467.925 -8.7496,-29.8909 0.4018,-52.4323 15.8161,-68.2852 0.1685,0 0.3759,0 0.5444,0 l -0.5444,0 c 19.817,-20.3767 49.7921,-29.6966 64.4988,-29.6966 l 1438.6493,0 c 5.7565,0 15.662,2.3333 26.4631,7.1293 10.7937,4.9257 22.5178,12.3142 32.018,22.5284 15.3308,16.501 24.8608,40.3775 15.3531,72.835 -22.7139,77.657 -45.1293,154.3547 -67.7392,231.6099 l -69.2051,235.3948 c -11.5429,39.3664 -64.7581,69.2055 -87.7987,69.2055 l -125.2945,0 0,0.078 -59.4068,178.2183 -118.8137,356.5142 -104.0005,312.0019 -29.7035,89.1156 c 0,0 -44.5865,133.6539 -74.2972,148.5087 -18.1087,11.2772 -36.5593,14.8937 -59.4069,14.8937 z"
+         id="path4822" />
+    </clipPath>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath4813">
@@ -27,16 +38,6 @@
          style="fill:#ff8800"
          inkscape:connector-curvature="0" />
     </clipPath>
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath4792">
-      <path
-         style="fill:#ff8800"
-         d="m 48.196759,963.10825 c -1.65441,1.23855 -2.321076,3.2256 -3.761719,7.51954 -1.440643,4.29394 -1.503906,4.51171 -1.503906,4.51171 l -5.265625,15.79688 -6.015625,18.05082 -3.007812,9.0234 -6.34375,0 c -2,0 -3.860873,1.5107 -4.445313,3.5039 l -3.503906,11.9199 c -1.144783,3.9115 -2.279638,7.7947 -3.429687,11.7266 -0.481394,1.6434 0.0011,2.852 0.777343,3.6875 0.481014,0.5172 1.074588,0.8913 1.621094,1.1406 0.54688,0.2429 0.920775,0.3731 1.351562,0.3731 1.004345,0 18.539258,-0.01 36.572266,-0.01 l 0,0 c 18.033008,0 35.567921,0.01 36.572266,0.01 0.430787,0 0.804682,-0.1302 1.351562,-0.3731 0.546506,-0.2493 1.14008,-0.6234 1.621094,-1.1406 0.776228,-0.8355 1.258738,-2.0441 0.777344,-3.6875 -1.150049,-3.9319 -2.284905,-7.8151 -3.429688,-11.7266 l -3.503906,-11.9199 c -0.58444,-1.9932 -2.445313,-3.5039 -4.445313,-3.5039 l -6.34375,0 -3.007812,-9.0234 -6.015625,-18.05082 -5.265625,-15.79688 c 0,0 -0.06885,-0.23443 -1.503906,-4.51171 -1.435052,-4.27728 -2.097358,-6.25133 -3.761719,-7.51954 -0.831195,-0.63336 -1.999923,-0.74609 -3.044922,-0.74609 -1.044999,0 -2.208378,0.11982 -3.044922,0.74609 z"
-         id="path4794"
-         inkscape:connector-curvature="0"
-         sodipodi:nodetypes="szccccscccccsccscccccscccczsas" />
-    </clipPath>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -45,13 +46,12 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="-60.1257"
-     inkscape:cy="-10.777654"
+     inkscape:zoom="11.2"
+     inkscape:cx="-2.9581554"
+     inkscape:cy="27.939419"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     units="px"
      inkscape:window-width="1920"
      inkscape:window-height="1056"
      inkscape:window-x="0"
@@ -59,17 +59,17 @@
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
-       id="grid4142" />
+       id="grid4134" />
   </sodipodi:namedview>
   <metadata
-     id="metadata4831">
+     id="metadata4687">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -79,7 +79,7 @@
      id="layer1"
      transform="translate(0,-1004.3622)">
     <g
-       transform="matrix(0.09482759,0,0,0.09482759,-0.27586304,1004.0863)"
+       transform="matrix(0.07758621,0,0,0.07758621,4.1379302,1008.5001)"
        id="g4807"
        clip-path="url(#clipPath4813)">
       <path

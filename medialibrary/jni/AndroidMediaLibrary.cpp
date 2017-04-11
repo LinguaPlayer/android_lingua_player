@@ -405,7 +405,7 @@ AndroidMediaLibrary::onMediaAdded( std::vector<medialibrary::MediaPtr> mediaList
         JNIEnv *env = getEnv();
         if (env == NULL /*|| env->IsSameObject(weak_thiz, NULL)*/)
             return;
-        jobjectArray mediaRefs;
+        jobjectArray mediaRefs, results;
         int index;
         if (m_mediaAddedType & FLAG_MEDIA_ADDED_AUDIO_EMPTY)
         {
@@ -415,14 +415,17 @@ AndroidMediaLibrary::onMediaAdded( std::vector<medialibrary::MediaPtr> mediaList
         {
             mediaRefs = (jobjectArray) env->NewObjectArray(mediaList.size(), p_fields->MediaWrapper.clazz, NULL);
             index = -1;
+            jobject item;
             for (medialibrary::MediaPtr const& media : mediaList) {
                 medialibrary::IMedia::Type type = media->type();
-                if (!((type == medialibrary::IMedia::Type::Audio && m_mediaAddedType & FLAG_MEDIA_ADDED_AUDIO) ||
-                        (type == medialibrary::IMedia::Type::Video && m_mediaAddedType & FLAG_MEDIA_ADDED_VIDEO)))
-                    continue;
-                jobject item = mediaToMediaWrapper(env, p_fields, media);
+                if ((type == medialibrary::IMedia::Type::Audio && m_mediaAddedType & FLAG_MEDIA_ADDED_AUDIO) ||
+                        (type == medialibrary::IMedia::Type::Video && m_mediaAddedType & FLAG_MEDIA_ADDED_VIDEO))
+                    item = mediaToMediaWrapper(env, p_fields, media);
+                else
+                    item = nullptr;
                 env->SetObjectArrayElement(mediaRefs, ++index, item);
-                env->DeleteLocalRef(item);
+                if (item != nullptr)
+                    env->DeleteLocalRef(item);
             }
         }
 
@@ -431,12 +434,14 @@ AndroidMediaLibrary::onMediaAdded( std::vector<medialibrary::MediaPtr> mediaList
             jobject thiz = getWeakReference(env);
             if (thiz)
             {
-                env->CallVoidMethod(thiz, p_fields->MediaLibrary.onMediaAddedId, mediaRefs);
+                results = filteredArray(env, p_fields, mediaRefs, -1);
+                env->CallVoidMethod(thiz, p_fields->MediaLibrary.onMediaAddedId, results);
                 if (weak_compat)
                     env->DeleteLocalRef(thiz);
-            }
+                env->DeleteLocalRef(results);
+            } else
+                env->DeleteLocalRef(mediaRefs);
         }
-        env->DeleteLocalRef(mediaRefs);
     }
 }
 
@@ -447,7 +452,7 @@ void AndroidMediaLibrary::onMediaUpdated( std::vector<medialibrary::MediaPtr> me
         JNIEnv *env = getEnv();
         if (env == NULL)
             return;
-        jobjectArray mediaRefs;
+        jobjectArray mediaRefs, results;
         int index;
         if (m_mediaUpdatedType & FLAG_MEDIA_UPDATED_AUDIO_EMPTY)
         {
@@ -457,27 +462,32 @@ void AndroidMediaLibrary::onMediaUpdated( std::vector<medialibrary::MediaPtr> me
         {
             mediaRefs = (jobjectArray) env->NewObjectArray(mediaList.size(), p_fields->MediaWrapper.clazz, NULL);
             index = -1;
+            jobject item;
             for (medialibrary::MediaPtr const& media : mediaList) {
                 medialibrary::IMedia::Type type = media->type();
-                if (!((type == medialibrary::IMedia::Type::Audio && m_mediaUpdatedType & FLAG_MEDIA_UPDATED_AUDIO) ||
-                        (type == medialibrary::IMedia::Type::Video && m_mediaUpdatedType & FLAG_MEDIA_UPDATED_VIDEO)))
-                    continue;
-                jobject item = mediaToMediaWrapper(env, p_fields, media);
+                if ((type == medialibrary::IMedia::Type::Audio && m_mediaUpdatedType & FLAG_MEDIA_UPDATED_AUDIO) ||
+                        (type == medialibrary::IMedia::Type::Video && m_mediaUpdatedType & FLAG_MEDIA_UPDATED_VIDEO))
+                    item = mediaToMediaWrapper(env, p_fields, media);
+                else
+                    item = nullptr;
                 env->SetObjectArrayElement(mediaRefs, ++index, item);
-                env->DeleteLocalRef(item);
+                if (item != nullptr)
+                    env->DeleteLocalRef(item);
             }
         }
         if (index > -1)
         {
             jobject thiz = getWeakReference(env);
+            results = filteredArray(env, p_fields, mediaRefs, -1);
             if (thiz)
             {
-                env->CallVoidMethod(thiz, p_fields->MediaLibrary.onMediaUpdatedId, mediaRefs);
+                env->CallVoidMethod(thiz, p_fields->MediaLibrary.onMediaUpdatedId, results);
                 if (weak_compat)
                     env->DeleteLocalRef(thiz);
-            }
+                env->DeleteLocalRef(results);
+            } else
+                env->DeleteLocalRef(mediaRefs);
         }
-        env->DeleteLocalRef(mediaRefs);
     }
 }
 

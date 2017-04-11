@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
 
-import com.android.builder.core.DefaultManifestParser
-
 android {
     packagingOptions {
         pickFirst 'lib/armeabi-v7a/libc++_shared.so'
@@ -53,6 +51,11 @@ android {
         resValue "string", "build_revision", revision()
         resValue "string", "build_vlc_revision", vlcRevision()
 
+        minSdkVersion 9
+        targetSdkVersion 25
+        versionCode 2010400
+        versionName '2.1.4'
+
         tasks.whenTaskAdded { task ->
             if (task.name.startsWith('merge')) {
                 task.dependsOn luaPlaylistCopy
@@ -80,26 +83,9 @@ android {
             }
     }
 
-    signingConfigs {
-
-        release {
-            /*
-            To set this properties, create file gradle.properties with these 3 props.
-            e.g.
-            keyStoreFile=/home/<username>/.android/debug.keystore
-            storealias=androiddebugkey
-            storepwd=android
-             */
-            storeFile file(keyStoreFile)
-            keyAlias storealias
-            storePassword storepwd
-            keyPassword storepwd
-        }
-    }
-
     buildTypes {
         release {
-            signingConfig System.getenv('CLI') != null ? null : signingConfigs.release
+            signingConfig null
             minifyEnabled true
             shrinkResources false
             proguardFile 'proguard.cfg'
@@ -147,25 +133,18 @@ android {
 
     // make per-variant version code
     applicationVariants.all { variant ->
-        variant.getGenerateBuildConfig().doLast {
-            def manifestParser = new DefaultManifestParser(android.sourceSets.main.manifest.srcFile)
-            // get the version code of each flavor
-            def vlcVersion = manifestParser.getVersionName()
-            def targetVersion = variant.productFlavors.get(0).versionCode
-            def abiVersion = variant.productFlavors.get(1).versionCode
+        // set the composite code
+        variant.mergedFlavor.versionCode = variant.productFlavors.get(0).versionCode * 10000000 + defaultConfig.versionCode + variant.productFlavors.get(1).versionCode
+        println variant.mergedFlavor.versionCode
 
-            // set the composite code
-            variant.mergedFlavor.versionCode = targetVersion * 10000000 + manifestParser.versionCode + abiVersion
-            variant.mergedFlavor.versionName = vlcVersion
-
-            //Custom APK name
-            variant.outputs.each { output ->
-                def outputName = "VLC-Android-"
-                if (variant.productFlavors.get(0).name != "vanilla")
-                    outputName += variant.productFlavors.get(0).name.toUpperCase() + "-"
-                outputName += vlcVersion + "-" + variant.productFlavors.get(1).name + ".apk"
-                output.outputFile = new File(output.outputFile.parentFile, outputName);
-            }
+        //Custom APK name
+        variant.outputs.each { output ->
+            def outputName = "VLC-Android-"
+            if (variant.productFlavors.get(0).name != "vanilla")
+                outputName += variant.productFlavors.get(0).name.toUpperCase() + "-"
+            outputName += variant.versionName + "-" + variant.productFlavors.get(1).name + ".apk"
+            println outputName
+            output.outputFile = new File(output.outputFile.parentFile, outputName);
         }
     }
 

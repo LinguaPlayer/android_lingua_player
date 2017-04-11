@@ -24,11 +24,13 @@
 
 package org.videolan.vlc.util;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -42,13 +44,13 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.videolan.libvlc.util.AndroidUtil;
+import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.helpers.UiTools;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.media.MediaDatabase;
-import org.videolan.medialibrary.media.MediaWrapper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -98,19 +101,27 @@ public class SubtitlesDownloader {
         mContext = activity;
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void downloadSubs(final List<MediaWrapper> mediaList, Callback cb) {
         stop = false;
         mCallback = cb;
-        Set<String> languages =  Collections.singleton(Locale.getDefault().getISO3Language().toLowerCase());
+        Set<String> languages = null;
+        try {
+            languages = Collections.singleton(Locale.getDefault().getISO3Language().toLowerCase());
+        } catch (MissingResourceException ignored) {}
         if (AndroidUtil.isHoneycombOrLater) {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(VLCApplication.getAppContext());
-            languages =  pref.getStringSet("languages_download_list", languages);
+            languages = pref.getStringSet("languages_download_list", languages);
+        }
+        if (languages == null) { // In case getDefault().getISO3Language() fails
+            Toast.makeText(mContext, R.string.subs_dl_lang_fail, Toast.LENGTH_SHORT).show();
+            return;
         }
         final ArrayList<String> finalLanguages = new ArrayList<>(languages);
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                FileUtils.SUBTITLES_DIRECTORY.mkdirs();
+                AndroidDevices.SUBTITLES_DIRECTORY.mkdirs();
                 if (logIn()){
                     getSubtitles(mediaList, finalLanguages);
                 }
@@ -319,7 +330,7 @@ public class SubtitlesDownloader {
 
         StringBuilder sb = new StringBuilder();
         String name = fileName.lastIndexOf('.') > 0 ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-        sb.append(FileUtils.SUBTITLES_DIRECTORY.getPath()).append('/').append(name).append('.').append(language).append('.').append(subFormat);
+        sb.append(AndroidDevices.SUBTITLES_DIRECTORY.getPath()).append('/').append(name).append('.').append(language).append('.').append(subFormat);
         String srtUrl = sb.toString();
         FileOutputStream f = null;
         InputStream in = null;

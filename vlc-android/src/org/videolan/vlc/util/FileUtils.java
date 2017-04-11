@@ -57,7 +57,6 @@ public class FileUtils {
 
     public final static String TAG = "VLC/FileUtils";
 
-    public static final File SUBTITLES_DIRECTORY = new File(VLCApplication.getAppContext().getExternalFilesDir(null), "subs");
     /**
      * Size of the chunks that will be hashed in bytes (64 KB)
      */
@@ -71,7 +70,11 @@ public class FileUtils {
         if (path == null)
             return "";
         int index = path.lastIndexOf('/');
-        if (index> -1)
+        if (index == path.length()-1) {
+            path = path.substring(0, index);
+            index = path.lastIndexOf('/');
+        }
+        if (index > -1)
             return path.substring(index+1);
         else
             return path;

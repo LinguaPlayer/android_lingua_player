@@ -162,7 +162,7 @@
         <item name="ic_trash_small_normal">@drawable/ic_trash_small_normal_w</item>
         <item name="shadow_top_9patch">@drawable/shadow_top_dark</item>
         <item name="shadow_bottom_9patch">@drawable/shadow_bottom_dark</item>
-        <item name="gridview_progressbar">@drawable/gridview_progressbar</item>
+        <item name="gridview_progressbar">@drawable/gridview_progressbar_w</item>
         <item name="progress_mini_player">@drawable/progress_mini_player_dark</item>
         <item name="advanced_options_style">@style/Theme.AppCompat.Dialog</item>
         <item name="rounded_bg">@drawable/rounded_corners</item>
@@ -288,7 +288,7 @@
 
     <style name="Result.Title" parent="Base.TextAppearance.AppCompat.Subhead">
         <item name="textAllCaps">true</item>
-        <item name="android:textColor">@color/orange800</item>
+        <item name="android:textColor">@color/orange500</item>
     </style>
 
     <style name="Result.List" parent="Base.Widget.AppCompat.ListView">

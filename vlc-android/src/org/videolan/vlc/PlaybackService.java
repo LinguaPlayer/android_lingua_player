@@ -89,6 +89,7 @@ import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.media.MediaWrapperList;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
+import org.videolan.vlc.util.Permissions;
 import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.util.VLCOptions;
@@ -109,6 +110,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static android.R.attr.width;
 
 public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVout.Callback {
 
@@ -864,7 +867,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             String album = metaData.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
             Bitmap cover = coverOnLockscreen ?
                     metaData.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART) :
-                    AudioUtil.getCover(this, getCurrentMedia(), 512);
+                    AudioUtil.readCoverBitmap(Uri.decode(getCurrentMedia().getArtworkMrl()), width);
             if (cover == null)
                 cover = BitmapFactory.decodeResource(VLCApplication.getAppContext().getResources(), R.drawable.ic_no_media);
             Notification notification;
@@ -1294,7 +1297,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, MediaUtils.getMediaAlbum(this, media))
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, media.getLength());
         if (coverOnLockscreen) {
-            Bitmap cover = AudioUtil.getCover(this, media, 512);
+            Bitmap cover = AudioUtil.readCoverBitmap(Uri.decode(media.getArtworkMrl()), 512);
             if (cover != null && cover.getConfig() != null) //In case of format not supported
                 bob.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, cover.copy(cover.getConfig(), false));
         }
@@ -1440,10 +1443,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     private void updateWidgetCover() {
         Intent i = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER);
-
-        Bitmap cover = hasCurrentMedia() ? AudioUtil.getCover(this, getCurrentMedia(), 64) : null;
+        Bitmap cover = hasCurrentMedia() ? AudioUtil.readCoverBitmap(Uri.decode(getCurrentMedia().getArtworkMrl()), 64) : null;
         i.putExtra("cover", cover);
-
         sendBroadcast(i);
     }
 
@@ -1689,7 +1690,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     @MainThread
     public String getTitlePrev() {
-        if (mPrevIndex != -1)
+        if (isValidIndex(mPrevIndex))
             return mMediaList.getMedia(mPrevIndex).getTitle();
         else
             return null;
@@ -1697,7 +1698,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     @MainThread
     public String getTitleNext() {
-        if (mNextIndex != -1)
+        if (isValidIndex(mNextIndex))
             return mMediaList.getMedia(mNextIndex).getTitle();
         else
             return null;
@@ -1710,7 +1711,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     @MainThread
     public String getPrevCoverArt() {
-        if (mPrevIndex != -1)
+        if (isValidIndex(mPrevIndex))
             return mMediaList.getMedia(mPrevIndex).getArtworkMrl();
         else
             return null;
@@ -1718,7 +1719,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     @MainThread
     public String getNextCoverArt() {
-        if (mNextIndex != -1)
+        if (isValidIndex(mNextIndex))
             return mMediaList.getMedia(mNextIndex).getArtworkMrl();
         else
             return null;
@@ -2076,6 +2077,39 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         ArrayList<MediaWrapper> arrayList = new ArrayList<>();
         arrayList.add(media);
         append(arrayList);
+    }
+
+    /**
+     * Insert into the current existing playlist
+     */
+
+    @MainThread
+    public void insertNext(MediaWrapper[] mediaList) {
+        insertNext(Arrays.asList(mediaList));
+    }
+
+    @MainThread
+    public void insertNext(List<MediaWrapper> mediaList) {
+        if (!hasCurrentMedia()) {
+            load(mediaList, 0);
+            return;
+        }
+
+        int startIndex = mCurrentIndex + 1;
+
+        for (int i = 0; i < mediaList.size(); i++) {
+            MediaWrapper mediaWrapper = mediaList.get(i);
+            mMediaList.insert(startIndex + i, mediaWrapper);
+        }
+        onMediaListChanged();
+        updateMediaQueue();
+    }
+
+    @MainThread
+    public void insertNext(MediaWrapper media) {
+        ArrayList<MediaWrapper> arrayList = new ArrayList<>();
+        arrayList.add(media);
+        insertNext(arrayList);
     }
 
     /**
@@ -2486,12 +2520,17 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        return new BrowserRoot(BrowserProvider.ID_ROOT, null);
+        return Permissions.canReadStorage() ? new BrowserRoot(BrowserProvider.ID_ROOT, null) : null;
     }
 
+    boolean mMLInitializing = false;
     @Override
     public void onLoadChildren(@NonNull final String parentId, @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
         result.detach();
+        if (!mMLInitializing && !mMedialibrary.isInitiated() && BrowserProvider.ID_ROOT.equals(parentId)) {
+            startService(new Intent(MediaParsingService.ACTION_INIT, null, this, MediaParsingService.class));
+            mMLInitializing = true;
+        }
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
