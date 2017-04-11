@@ -2626,7 +2626,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         // B- to change the current caption when user switches the subtitle
         mLastSub = null;
         progressSubtitleCaption();
-        mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+        if(!mService.isPlaying())
+            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
     }
 
     private void parseSubtitle(String path){
