@@ -193,7 +193,7 @@ android {
     }
 }
 
-task generateSources (type: Jar) {
+task generateSources(type: Jar) {
     classifier = 'sources'
     from android.sourceSets.main.java.srcDirs
 }
@@ -211,7 +211,10 @@ dependencies {
     compile 'com.android.support:leanback-v17:25.2.0'
     compile 'com.android.support:preference-leanback-v17:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.github.johnkil.android-robototextview:robototextview:3.0.0'
     testCompile 'junit:junit:4.12'
+    compile files('../android-libs/juniversalchardet-1.0.3.jar')
 }
 
 static def buildTime() {
