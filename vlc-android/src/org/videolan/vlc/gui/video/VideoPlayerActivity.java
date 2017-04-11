@@ -1407,7 +1407,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     }
     private void showCaptionControls(){
-        if(!enableCaptionControls)
+        if(!enableCaptionControls || mSubs == null)
             return;
 
         ViewStubCompat vsc = (ViewStubCompat) findViewById(R.id.player_overlay_next_prev_subcaption_stub);
@@ -1676,8 +1676,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case MediaPlayer.Event.Paused:
                 updateOverlayPausePlay();
-                if(mSubs != null)
-                    mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
                 break;
             case MediaPlayer.Event.Stopped:
                 exitOK();
