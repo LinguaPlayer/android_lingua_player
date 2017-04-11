@@ -993,7 +993,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     //maybe content of file changed!!
                     parseSubtitle(subLocation.getPath());
             } else {
-                mCurrentSubtitlePath = subLocation.getPath();
                 parseSubtitle(subLocation.getPath());
             }
         } else
@@ -2654,8 +2653,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
 
     @Override
-    public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile) {
+    public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile, String subtitleFilePath) {
         mSubs = subtitleFile;
+        mCurrentSubtitlePath = subtitleFilePath;
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
@@ -2669,7 +2669,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
         mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
         String manualEncoding = mSettings.getString("subtitle_text_encoding","");
-        mSubtitleParser.parseSubtitle(new File(path),null, manualEncoding);
+        mSubtitleParser.parseSubtitle(path,null, manualEncoding);
 
 
     }
@@ -2694,7 +2694,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void onTrackClick(boolean isChecked, String path) {
                 //not unselected the subtitle track
                 if(isChecked){
-                    mCurrentSubtitlePath = path;
                     parseSubtitle(path);
                 }
                 else{
@@ -3532,7 +3531,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         @Override
         protected void onPostExecute(Wrapper w) {
-            mCurrentSubtitlePath = w.lastUsedSubtitle;
             if(w.lastUsedSubtitle != null)
                 parseSubtitle(w.lastUsedSubtitle);
             // Add any selected subtitle file from the file picker
@@ -3677,7 +3675,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 .setMessage(R.string.replace_subtitle)
                 .setPositiveButton(R.string.use_and_add_subtitle, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        mCurrentSubtitlePath = path;
                         parseSubtitle(path);
                         if(mWasPlaying)
                             play();
