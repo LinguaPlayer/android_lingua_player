@@ -356,6 +356,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     /*detect was medaiaplayer playing before opening dialog*/
     private boolean mWasPlaying;
 
+    private boolean enableCaptionControls = true;
+
     DisplayMetrics mScreen = new DisplayMetrics();
 
     private static LibVLC LibVLC() {
@@ -430,6 +432,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mScreenOrientation = Integer.valueOf(
                 mSettings.getString("screen_orientation", "99" /*SCREEN ORIENTATION SENSOR*/));
+
+        enableCaptionControls =  mSettings.getBoolean("enable_caption_controls",true);
 
         mSurfaceView = (SurfaceView) findViewById(R.id.player_surface);
         mSubtitleView = (StrokedRobotoTextView) findViewById(R.id.subtitles_surface);
@@ -1347,7 +1351,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         showDelayControls();
     }
 
-    private boolean enableCaptionControls = true;
 
     @Override
     public boolean isCaptionControllerEnabled(){
@@ -1356,15 +1359,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @Override
     public void enableDisableCaptionControls(){
+        SharedPreferences.Editor editor = mSettings.edit();
         if(enableCaptionControls) {
             enableCaptionControls = false;
             mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+
+            editor.putBoolean("enable_caption_controls", false);
         }
         else {
             enableCaptionControls = true;
             if(!mService.isPlaying())
                 mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+
+            editor.putBoolean("enable_caption_controls", true);
         }
+
+        editor.apply();
     }
 
     @Override
