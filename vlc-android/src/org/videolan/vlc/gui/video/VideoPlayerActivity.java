@@ -2653,19 +2653,27 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
 
     @Override
-    public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleFile, String subtitleFilePath) {
-        mSubs = subtitleFile;
+    public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleCaptions, String subtitleFilePath) {
+        removeCurrentSubtitle();
+        if((subtitleCaptions == null) || (subtitleCaptions.captions == null ) || (subtitleCaptions.captions.size() == 0)){
+            showInfo(R.string.subtitle_parse_fail, 2000);
+            return;
+        }
+
+
+        mSubs = subtitleCaptions;
         mCurrentSubtitlePath = subtitleFilePath;
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
-        mLastSub = null;
-        progressSubtitleCaption();
         if(!mService.isPlaying())
             mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+        progressSubtitleCaption();
+
     }
 
     private void parseSubtitle(String path){
+        removeCurrentSubtitle();
         SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
         mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
         String manualEncoding = mSettings.getString("subtitle_text_encoding","");
@@ -2697,10 +2705,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     parseSubtitle(path);
                 }
                 else{
-                    mCurrentSubtitlePath = null;
-                    //delete previous sub captions and hide current Caption
-                    mSubs = null;
-                    hideSubtitleCaption();
+                    removeCurrentSubtitle();
                     hideCaptionControls();
                 }
 
@@ -2720,10 +2725,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
                 mSubtitleFiles = newTracksList;
                 if(mCurrentSubtitlePath!=null && mCurrentSubtitlePath.equals(deletedPath)){
-                    mCurrentSubtitlePath = null;
-                    //delete previous sub captions and hide current Caption
-                    mSubs = null;
-                    hideSubtitleCaption();
+                    removeCurrentSubtitle();
                     hideCaptionControls();
 
                 }
@@ -2735,9 +2737,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void removeCurrentSubtitle(){
+        mCurrentSubtitlePath = null;
         mSubs = null;
         mLastSub = null;
         hideSubtitleCaption();
+        mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
 
     }
     private void hideSubtitleCaption(){
@@ -2782,6 +2786,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private Caption showNextSubtitleCaption(){
+        if(mSubs == null)
+            return null;
+        double currentTime = getTime() - mSubtitleDelay;
         Collection<Caption> subtitles = mSubs.captions.values();
         Caption caption = null;
         if(mLastSubIndex < subtitles.size()-1) {
@@ -2795,6 +2802,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private Caption showPrevSubtitleCaption(){
+        if(mSubs == null)
+            return null;
+
         double currentTime = getTime() - mSubtitleDelay;
         Collection<Caption> subtitles = mSubs.captions.values();
         Caption caption = null;

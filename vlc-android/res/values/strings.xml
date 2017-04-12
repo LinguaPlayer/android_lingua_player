@@ -134,6 +134,7 @@
     <string name="brightness">Brightness</string>
     <string name="navmenu">navigation menu</string>
     <string name="advanced">advanced options</string>
+    <string name="subtitle_parse_fail">Selected file is not a valid subtitle file</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 channel\n</item>
