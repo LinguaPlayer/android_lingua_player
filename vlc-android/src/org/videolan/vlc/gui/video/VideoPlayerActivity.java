@@ -39,7 +39,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
-import android.media.Image;
 import android.media.MediaRouter;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -334,6 +333,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private TimedTextObject mSubs;
     private String mCurrentSubtitlePath = null;
     private Caption mLastSub = null;
+    private Caption mSyncCaption = null;
     private int mLastSubIndex = 0;
 
     /**
@@ -1304,10 +1304,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             delayAudio(50000l);
             return true;
         case KeyEvent.KEYCODE_G:
-            delaySubs(-50000l);
+            delaySubsDelta(-50000l);
             return true;
         case KeyEvent.KEYCODE_H:
-            delaySubs(50000l);
+            delaySubsDelta(50000l);
             return true;
         case KeyEvent.KEYCODE_VOLUME_DOWN:
         case KeyEvent.KEYCODE_VOLUME_UP:
@@ -1387,6 +1387,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         showDelayControls();
     }
 
+    private void syncWithCurrentCaption(){
+        long currentVideoTime = getTime();
+        long delay;
+        if(mSyncCaption != null) {
+            delay = currentVideoTime - mSyncCaption.start.getMilliseconds();
+            mSyncCaption = null;
+            delaySubs(delay);
+        }
+    }
+
     @Override
     public void showPlaybackSpeedSetting() {
         mPlaybackSetting = DelayState.SPEED;
@@ -1425,7 +1435,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(mCaptionSettingsPrev != null)
             mCaptionSettingsPrev.setVisibility(View.INVISIBLE);
         if(mCaptionSettingsSync != null)
-            mCaptionSettingsSync.setVisibility(View.INVISIBLE);
+            mCaptionSettingsSync.setVisibility(View.GONE);
 
     }
 
@@ -1515,6 +1525,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(!enableCaptionControls || mSubs == null)
             hideCaptionControls();
 
+        mSyncCaption = null;
+
         UiTools.setViewVisibility(mOverlayInfo, View.INVISIBLE);
         mInfo.setText("");
 
@@ -1545,9 +1557,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         return mSubtitleDelay;
     }
 
-    public void delaySubs(long delta) {
-        initInfoOverlay();
+    public void delaySubsDelta(long delta){
         long delay = getSubtitleDelay()+delta;
+        delaySubs(delay);
+    }
+    public void delaySubs(long delay) {
+        initInfoOverlay();
         mInfo.setText(getString(R.string.spu_delay) + "\n" + delay + " ms");
         mSubtitleDelay = delay;
         if (mPlaybackSetting == DelayState.OFF) {
@@ -1682,6 +1697,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void fadeOutInfo() {
+        if(mPlaybackSetting != DelayState.OFF) {
+            initPlaybackSettingInfo();
+            return;
+        }
         if (mOverlayInfo != null && mOverlayInfo.getVisibility() == View.VISIBLE) {
             mOverlayInfo.startAnimation(AnimationUtils.loadAnimation(
                     VideoPlayerActivity.this, android.R.anim.fade_out));
@@ -2556,7 +2575,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 if (mPlaybackSetting == DelayState.AUDIO)
                     delayAudio(-50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
-                    delaySubs(-100);
+                    delaySubsDelta(-100);
                 else if (mPlaybackSetting == DelayState.SPEED)
                     changeSpeed(-0.05f);
                 break;
@@ -2564,7 +2583,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 if (mPlaybackSetting == DelayState.AUDIO)
                     delayAudio(50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
-                    delaySubs(100);
+                    delaySubsDelta(100);
                 else if (mPlaybackSetting == DelayState.SPEED)
                     changeSpeed(0.05f);
                 break;
@@ -2583,6 +2602,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             case R.id.player_sync_done:
                 if (mPlaybackSetting != DelayState.OFF)
                     endPlaybackSetting();
+                break;
+            case R.id.player_sync_caption:
+                syncWithCurrentCaption();
                 break;
         }
     }
@@ -2798,7 +2820,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private void progressSubtitleCaption() {
         if ( mService != null && mSubs != null) {
             Collection<Caption> subtitles = mSubs.captions.values();
-            double currentTime = getTime() - mSubtitleDelay;
+            long currentTime = getTime() - mSubtitleDelay;
             if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
                 showTimedCaptionText(mLastSub);
             } else {
@@ -2829,14 +2851,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private Caption showNextSubtitleCaption(){
         if(mSubs == null)
             return null;
-        double currentTime = getTime() - mSubtitleDelay;
         Collection<Caption> subtitles = mSubs.captions.values();
         Caption caption = null;
         if(mLastSubIndex < subtitles.size()-1) {
             caption = (subtitles.toArray(new Caption[subtitles.size()]))[++mLastSubIndex];
             showTimedCaptionText(caption);
         }
-
+        if(mPlaybackSetting == DelayState.SUBS)
+            mSyncCaption = caption;
         return caption;
 
 
@@ -2846,13 +2868,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(mSubs == null)
             return null;
 
-        double currentTime = getTime() - mSubtitleDelay;
         Collection<Caption> subtitles = mSubs.captions.values();
         Caption caption = null;
         if(mLastSubIndex > 0) {
             caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
             showTimedCaptionText(caption);
         }
+
+        if(mPlaybackSetting == DelayState.SUBS)
+            mSyncCaption = caption;
+
         return caption;
     }
 
