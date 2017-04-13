@@ -143,7 +143,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
@@ -330,6 +332,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private MediaPlayer.TrackDescription[] mAudioTracksList;
 
     private volatile ArrayList<String> mSubtitleFiles = new ArrayList<>();
+    private volatile Map<String,Long> mSubtitleFileMapDelay = new HashMap<String,Long>();
     private TimedTextObject mSubs;
     private String mCurrentSubtitlePath = null;
     private Caption mLastSub = null;
@@ -1389,12 +1392,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private void syncWithCurrentCaption(){
         long currentVideoTime = getTime();
-        long delay;
+        long delay = 0;
         if(mSyncCaption != null) {
             delay = currentVideoTime - mSyncCaption.start.getMilliseconds();
             mSyncCaption = null;
             delaySubs(delay);
         }
+
     }
 
     @Override
@@ -1535,6 +1539,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public void run() {
                 if(mCaptionSettingsSync != null)
                     mCaptionSettingsSync.setVisibility(View.GONE);
+            }
+        });
+
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+                MediaDatabase.getInstance().saveSubtitle(mCurrentSubtitlePath, mUri.getLastPathSegment(), mSubtitleDelay);
+                Log.d("saveDelay","hey " + mSubtitleDelay);
             }
         });
 
@@ -2727,6 +2739,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mSubs = subtitleCaptions;
         mCurrentSubtitlePath = subtitleFilePath;
+
+        Boolean enableSaveSubDelay = mSettings.getBoolean("save_individual_subtitle_delay",true);
+        if(enableSaveSubDelay && mSubtitleFileMapDelay.containsKey(subtitleFilePath))
+            mSubtitleDelay = mSubtitleFileMapDelay.get(subtitleFilePath);
+
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
@@ -3575,10 +3592,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
 
         mSubtitleFiles.add(subLocation.getPath());
+        mSubtitleFileMapDelay.put(subLocation.getPath(),0L);
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment());
+                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment(),0);
             }
         });
 
@@ -3589,11 +3607,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         public class Wrapper{
             public String lastUsedSubtitle;
-            public ArrayList<String> prefsList;
+            public ArrayList<MediaDatabase.SubtitleWithDelay> prefsList;
         }
         @Override
         protected Wrapper doInBackground(String... strings) {
-            ArrayList<String> prefsList = new ArrayList<>();
+            ArrayList<MediaDatabase.SubtitleWithDelay> prefsList = new ArrayList<>();
 
             final String lastUsedSubtitle = MediaDatabase.getInstance().getLastUsedSubtitle(mUri.getLastPathSegment());
             if (!TextUtils.equals(mUri.getScheme(), "content"))
@@ -3612,10 +3630,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 parseSubtitle(w.lastUsedSubtitle);
             // Add any selected subtitle file from the file picker
             if (w.prefsList.size() > 0) {
-                for (String file : w.prefsList) {
-                    if (!mSubtitleFiles.contains(file)) {
-                        mSubtitleFiles.add(file);
-                        Log.i(TAG, "Adding user-selected subtitle " + file);
+                for (MediaDatabase.SubtitleWithDelay fileWithDelay : w.prefsList) {
+                    String url = fileWithDelay.subtitleUrl;
+                    if (!mSubtitleFiles.contains(url)) {
+                        mSubtitleFiles.add(url);
+                        mSubtitleFileMapDelay.put(url,fileWithDelay.subtitleDelay);
                     }
                 }
             }

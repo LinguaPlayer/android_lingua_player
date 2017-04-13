@@ -29,6 +29,12 @@
         android:summary="@string/save_audiodelay_summary"
         android:title="@string/save_audiodelay_title" />
 
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="save_individual_subtitle_delay"
+        android:summary="@string/save_subtitledelay_summary"
+        android:title="@string/save_subtitledelay_title" />
+
     <PreferenceCategory android:title="@string/controls_prefs_category">
         <CheckBoxPreference
             android:defaultValue="false"

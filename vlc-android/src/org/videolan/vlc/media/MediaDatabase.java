@@ -105,6 +105,7 @@ public class MediaDatabase {
     private static final String EXTERNAL_SUBTITLES_TABLE_NAME = "external_subtitles_table";
     private static final String EXTERNAL_SUBTITLES_MEDIA_NAME = "media_name";
     private static final String EXTERNAL_SUBTITLES_URI = "uri";
+    private static final String EXTERNAL_SUBTITLES_Delay= "subtiel_delay";
 
     private static final String LAST_USED_SUBTITLES_TABLE_NAME = "last_used_subtitles_table";
 
@@ -355,6 +356,7 @@ public class MediaDatabase {
             String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
                     EXTERNAL_SUBTITLES_TABLE_NAME + " (" +
                     EXTERNAL_SUBTITLES_URI + " TEXT NOT NULL, " +
+                    EXTERNAL_SUBTITLES_Delay+ " INTEGER NOT NULL , " +
                     EXTERNAL_SUBTITLES_MEDIA_NAME + " TEXT NOT NULL, " +
                     " PRIMARY KEY" + " ( " + EXTERNAL_SUBTITLES_URI + " , " +  EXTERNAL_SUBTITLES_MEDIA_NAME + " )" +
                     ");";
@@ -1265,31 +1267,41 @@ public class MediaDatabase {
      * External subtitles management
      */
 
-    public synchronized void saveSubtitle(String path, String mediaName) {
+    public synchronized void saveSubtitle(String path, String mediaName, long delay) {
         if (TextUtils.isEmpty(path) || TextUtils.isEmpty(mediaName))
             return;
         ContentValues values = new ContentValues();
         values.put(EXTERNAL_SUBTITLES_URI, path);
         values.put(EXTERNAL_SUBTITLES_MEDIA_NAME, mediaName);
+        values.put(EXTERNAL_SUBTITLES_Delay, delay);
         mDb.replace(EXTERNAL_SUBTITLES_TABLE_NAME, null, values);
     }
 
-    public synchronized ArrayList<String> getSubtitles(String mediaName) {
+    public class SubtitleWithDelay{
+        public String subtitleUrl;
+        public long subtitleDelay;
+        SubtitleWithDelay(String url, long delay){
+            subtitleUrl = url;
+            subtitleDelay = delay;
+        }
+    }
+    public synchronized ArrayList<SubtitleWithDelay> getSubtitles(String mediaName) {
         if (TextUtils.isEmpty(mediaName))
             return new ArrayList<>();
         Cursor cursor = mDb.query(EXTERNAL_SUBTITLES_TABLE_NAME,
-                new String[] {EXTERNAL_SUBTITLES_MEDIA_NAME, EXTERNAL_SUBTITLES_URI },
+                new String[] {EXTERNAL_SUBTITLES_MEDIA_NAME, EXTERNAL_SUBTITLES_URI, EXTERNAL_SUBTITLES_Delay },
                 EXTERNAL_SUBTITLES_MEDIA_NAME + "=?",
                 new String[] { mediaName },
                 null, null, null);
-        ArrayList<String> list = new ArrayList<>(cursor.getCount());
+        ArrayList<SubtitleWithDelay> list = new ArrayList<>(cursor.getCount());
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 String url = cursor.getString(1);
+                long delay = cursor.getLong(2);
                 if (!TextUtils.isEmpty(url)) {
                     String fileUrl = Uri.decode(url);
                     if (new File(fileUrl).exists())
-                        list.add(fileUrl);
+                        list.add(new SubtitleWithDelay(url,delay));
                     else
                         deleteSubtitle(url,mediaName);
                 }
