@@ -1533,7 +1533,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mCaptionSettingsSync.setVisibility(View.GONE);
+                if(mCaptionSettingsSync != null)
+                    mCaptionSettingsSync.setVisibility(View.GONE);
             }
         });
 
