@@ -18,4 +18,13 @@
         android:src="@drawable/ic_minus_circle"
         android:focusable="true"
         android:visibility="invisible"/>
+
+    <ImageView
+        android:id="@+id/player_sync_done"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/ic_sync_done_circle"
+        android:focusable="true"
+        android:visibility="invisible"/>
 </LinearLayout>

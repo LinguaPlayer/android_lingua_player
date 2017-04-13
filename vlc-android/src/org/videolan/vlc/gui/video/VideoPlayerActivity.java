@@ -39,6 +39,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
+import android.media.Image;
 import android.media.MediaRouter;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -139,7 +140,6 @@ import org.videolan.vlc.util.SubtitlesDownloader;
 import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.widget.StrokedRobotoTextView;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -229,6 +229,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private static final int LOADING_ANIMATION = 8;
     private static final int SHOW_CAPTION_CONTROLS = 9;
     private static final int HIDE_CAPTION_CONTROLS = 10;
+    private static final int SHOW_CAPTION_CONTROLS_WITH_SYNC = 11;
+    private static final int HIDE_CAPTION_CONTROLS_WITH_SYNC = 12;
 
     private static final int LOADING_ANIMATION_DELAY = 1000;
 
@@ -256,8 +258,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mAdvOptions;
     private ImageView mPlaybackSettingPlus;
     private ImageView mPlaybackSettingMinus;
+    private ImageView mPlaybackSettingSyncDone;
     private ImageView mCaptionSettingsNext;
     private ImageView mCaptionSettingsPrev;
+    private ImageView mCaptionSettingsSync;
     private View mObjectFocused;
     private boolean mEnableBrightnessGesture;
     protected boolean mEnableCloneMode;
@@ -1361,8 +1365,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         SharedPreferences.Editor editor = mSettings.edit();
         if(enableCaptionControls) {
             enableCaptionControls = false;
-            mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
-
+            if(mPlaybackSetting != DelayState.SUBS){
+                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+            }
             editor.putBoolean("enable_caption_controls", false);
         }
         else {
@@ -1397,15 +1402,21 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             vsc.inflate();
             mPlaybackSettingPlus = (ImageView) findViewById(R.id.player_delay_plus);
             mPlaybackSettingMinus = (ImageView) findViewById(R.id.player_delay_minus);
+            mPlaybackSettingSyncDone = (ImageView) findViewById(R.id.player_sync_done);
 
         }
         mPlaybackSettingMinus.setOnClickListener(this);
         mPlaybackSettingPlus.setOnClickListener(this);
+        mPlaybackSettingSyncDone.setOnClickListener(this);
         mPlaybackSettingMinus.setOnTouchListener(new OnRepeatListener(this));
         mPlaybackSettingPlus.setOnTouchListener(new OnRepeatListener(this));
         mPlaybackSettingMinus.setVisibility(View.VISIBLE);
         mPlaybackSettingPlus.setVisibility(View.VISIBLE);
+        mPlaybackSettingSyncDone.setVisibility(View.VISIBLE);
         mPlaybackSettingPlus.requestFocus();
+        if(!mService.isPlaying())
+            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+
         initPlaybackSettingInfo();
     }
     private void hideCaptionControls(){
@@ -1413,27 +1424,42 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mCaptionSettingsNext.setVisibility(View.INVISIBLE);
         if(mCaptionSettingsPrev != null)
             mCaptionSettingsPrev.setVisibility(View.INVISIBLE);
+        if(mCaptionSettingsSync != null)
+            mCaptionSettingsSync.setVisibility(View.INVISIBLE);
 
     }
-    private void showCaptionControls(){
-        if(!enableCaptionControls || mSubs == null)
+
+    private void showCaptionControls() {
+        if(mSubs == null)
             return;
+        else if(!enableCaptionControls)
+            if(mPlaybackSetting != DelayState.SUBS)
+                return;
 
         ViewStubCompat vsc = (ViewStubCompat) findViewById(R.id.player_overlay_next_prev_subcaption_stub);
         if (vsc != null) {
             vsc.inflate();
             mCaptionSettingsPrev = (ImageView) findViewById(R.id.player_prev_caption);
             mCaptionSettingsNext = (ImageView) findViewById(R.id.player_next_caption);
+            mCaptionSettingsSync = (ImageView) findViewById(R.id.player_sync_caption);
         }
 
-        mCaptionSettingsPrev.setOnClickListener(this);
-        mCaptionSettingsNext.setOnClickListener(this);
-        mCaptionSettingsPrev.setOnLongClickListener(this);
         mCaptionSettingsNext.setOnLongClickListener(this);
-        if(mCaptionSettingsNext !=null)
+        if (mCaptionSettingsNext != null){
+            mCaptionSettingsPrev.setOnClickListener(this);
+            mCaptionSettingsNext.setOnClickListener(this);
             mCaptionSettingsNext.setVisibility(View.VISIBLE);
-        if(mCaptionSettingsPrev != null)
+        }
+        if(mCaptionSettingsPrev != null) {
+            mCaptionSettingsSync.setOnClickListener(this);
+            mCaptionSettingsPrev.setOnLongClickListener(this);
             mCaptionSettingsPrev.setVisibility(View.VISIBLE);
+        }
+        if(mCaptionSettingsSync !=null && mPlaybackSetting == DelayState.SUBS){
+            mCaptionSettingsSync.setOnClickListener(this);
+            mCaptionSettingsSync.setVisibility(View.VISIBLE);
+        }
+
 
     }
 
@@ -1482,8 +1508,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mPlaybackSettingPlus.setOnClickListener(null);
             mPlaybackSettingPlus.setVisibility(View.INVISIBLE);
         }
+        if(mPlaybackSettingSyncDone !=null){
+            mPlaybackSettingSyncDone.setOnClickListener(null);
+            mPlaybackSettingSyncDone.setVisibility(View.INVISIBLE);
+        }
+        if(!enableCaptionControls || mSubs == null)
+            hideCaptionControls();
+
         UiTools.setViewVisibility(mOverlayInfo, View.INVISIBLE);
         mInfo.setText("");
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCaptionSettingsSync.setVisibility(View.GONE);
+            }
+        });
+
         if (mPlayPause != null)
             mPlayPause.requestFocus();
     }
@@ -2135,11 +2176,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         if (mFov != 0f && mScaleGestureDetector == null)
             mScaleGestureDetector = new ScaleGestureDetector(this, this);
-        if (mPlaybackSetting != DelayState.OFF) {
-            if (event.getAction() == MotionEvent.ACTION_UP)
-                endPlaybackSetting();
-            return true;
-        } else if (mPlaylist.getVisibility() == View.VISIBLE) {
+        if (mPlaylist.getVisibility() == View.VISIBLE) {
             togglePlaylist();
             return true;
         }
@@ -2543,6 +2580,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             case R.id.player_next_caption:
                 showNextSubtitleCaption();
                 break;
+            case R.id.player_sync_done:
+                if (mPlaybackSetting != DelayState.OFF)
+                    endPlaybackSetting();
+                break;
         }
     }
 
@@ -2706,7 +2747,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
                 else{
                     removeCurrentSubtitle();
-                    hideCaptionControls();
+                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
                 }
 
             }
@@ -2726,7 +2767,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mSubtitleFiles = newTracksList;
                 if(mCurrentSubtitlePath!=null && mCurrentSubtitlePath.equals(deletedPath)){
                     removeCurrentSubtitle();
-                    hideCaptionControls();
+                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
 
                 }
 

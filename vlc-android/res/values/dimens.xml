@@ -75,4 +75,7 @@
     <!--subtitle-->
     <dimen name="player_subtitle_padding">16dp</dimen>
     <dimen name="player_subtitle_margin">16dp</dimen>
+    <dimen name="subtitle_caption_icon">35dp</dimen>
+
+
 </resources>
