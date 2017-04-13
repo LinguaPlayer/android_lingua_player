@@ -3,6 +3,7 @@
     android:id="@+id/captionSettingsLayout"
     android:orientation="horizontal"
     android:layout_width="match_parent"
+    android:layoutDirection="ltr"
     android:layout_height="match_parent">
 
     <ImageView
