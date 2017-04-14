@@ -40,6 +40,7 @@ import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -583,8 +584,13 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
         if (mMode == MODE_VIDEO) {
             if (!tvUi)
                 mAdapter.addOption(new Option(ID_PLAY_AS_AUDIO, R.attr.ic_playasaudio_on, getString(R.string.play_as_audio)));
-            mAdapter.addOption(new Option(ID_SPU_DELAY, R.attr.ic_subtitledelay, getString(R.string.spu_delay)));
-            mAdapter.addOption(new Option(ID_AUDIO_DELAY, R.attr.ic_audiodelay, getString(R.string.audio_delay)));
+
+            String currentSubtitlePath = ((VideoPlayerActivity)getActivity()).getCurrentSubtitlePath();
+            if(currentSubtitlePath != null)
+                mAdapter.addOption(new Option(ID_SPU_DELAY, R.attr.ic_subtitledelay, getString(R.string.spu_delay)));
+            if(mService.getAudioTracksCount() > 0 && (mService.getAudioTrack() != -1))
+                mAdapter.addOption(new Option(ID_AUDIO_DELAY, R.attr.ic_audiodelay, getString(R.string.audio_delay)));
+
             if (!tvUi || AndroidDevices.isAndroidTv() && AndroidUtil.isNougatOrLater)
                 mAdapter.addOption(new Option(ID_POPUP_VIDEO, R.attr.ic_popup_dim, getString(R.string.popup_playback_title)));
             mAdapter.addOption(new Option(ID_REPEAT, R.attr.ic_repeat, getString(R.string.repeat_title)));

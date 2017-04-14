@@ -1569,6 +1569,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public long getSubtitleDelay(){
         return mSubtitleDelay;
     }
+    public String getCurrentSubtitlePath(){
+        return mCurrentSubtitlePath;
+    }
 
     public void delaySubsDelta(long delta){
         long delay = getSubtitleDelay()+delta;
