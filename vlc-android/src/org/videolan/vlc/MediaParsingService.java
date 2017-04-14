@@ -7,17 +7,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.medialibrary.interfaces.DevicesDiscoveryCb;
@@ -25,7 +24,6 @@ import org.videolan.vlc.gui.DialogActivity;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Strings;
-import org.videolan.vlc.util.Util;
 
 import java.io.File;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -119,18 +117,17 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                 discover(intent.getStringExtra(EXTRA_PATH));
                 break;
             case ACTION_DISCOVER_DEVICE:
-                discoverStorage(intent.getStringExtra(EXTRA_PATH), intent.getStringExtra(EXTRA_UUID));
+                discoverStorage(intent.getStringExtra(EXTRA_PATH));
                 break;
         }
         return START_NOT_STICKY;
     }
 
-    private void discoverStorage(final String path, final String uuid) {
+    private void discoverStorage(final String path) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "discoverStorage: "+path);
         mThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                if (!TextUtils.isEmpty(uuid))
-                    mMedialibrary.addDevice(uuid, path, true);
                 for (String folder : Medialibrary.getBlackList())
                     mMedialibrary.banFolder(path + folder);
                 mMedialibrary.discover(path);
@@ -144,7 +141,6 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
         mThreadPool.execute(new Runnable() {
             @Override
             public void run() {
-                addDeviceIfNeeded(path);
                 mMedialibrary.discover(path);
             }
         });
@@ -181,7 +177,13 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                     String[] storages = AndroidDevices.getMediaDirectories();
                     for (String storage : storages) {
                         boolean isMainStorage = TextUtils.equals(storage, AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
-                        mMedialibrary.addDevice(isMainStorage ? "main-storage" : FileUtils.getFileNameFromPath(storage), storage, !isMainStorage);
+                        boolean isNew = mMedialibrary.addDevice(isMainStorage ? "main-storage" : FileUtils.getFileNameFromPath(storage), storage, !isMainStorage);
+                        if (!isMainStorage && isNew) {
+                            startActivity(new Intent(MediaParsingService.this, DialogActivity.class)
+                                        .setAction(DialogActivity.KEY_STORAGE)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        .putExtra(EXTRA_PATH, storage));
+                        }
                     }
                     if (mMedialibrary.init(MediaParsingService.this)) {
                         LocalBroadcastManager.getInstance(MediaParsingService.this).sendBroadcast(new Intent(VLCApplication.ACTION_MEDIALIBRARY_READY));
@@ -191,18 +193,6 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                             mMedialibrary.discover(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
                         } else if (upgrade) {
                             mMedialibrary.forceParserRetry();
-                        }
-                        final String[] foldersList = mMedialibrary.getFoldersList();
-                        final SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(MediaParsingService.this);
-                        for (String externalStorage : AndroidDevices.getExternalStorageDirectories()) {
-                            if (!TextUtils.equals(externalStorage, AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY)
-                                    && !Util.arrayContains(foldersList, "file://" + externalStorage + "/")
-                                    && !mSettings.getBoolean("ignore_"+FileUtils.getFileNameFromPath(externalStorage), false)) {
-                                startActivity(new Intent(MediaParsingService.this, DialogActivity.class)
-                                        .setAction(DialogActivity.KEY_STORAGE)
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        .putExtra(EXTRA_PATH, externalStorage));
-                            }
                         }
                     }
                 }
@@ -269,22 +259,27 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     }
 
     @Override
-    public void onDiscoveryStarted(String entryPoint) {}
+    public void onDiscoveryStarted(String entryPoint) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onDiscoveryStarted: "+entryPoint);
+    }
 
     @Override
     public void onDiscoveryProgress(String entryPoint) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onDiscoveryProgress: "+entryPoint);
         mCurrentDiscovery = entryPoint;
         showNotification();
     }
 
     @Override
     public void onDiscoveryCompleted(String entryPoint) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onDiscoveryCompleted: "+entryPoint);
         if (!mMedialibrary.isWorking())
             stopSelf();
     }
 
     @Override
     public void onParsingStatsUpdated(int percent) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onParsingStatsUpdated: "+percent);
         mParsing = percent;
         if (mParsing == 100)
             stopSelf();
@@ -294,6 +289,7 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
 
     @Override
     public void onReloadStarted(String entryPoint) {
+        if (BuildConfig.DEBUG) Log.d(TAG, "onReloadStarted: "+entryPoint);
         if (TextUtils.isEmpty(entryPoint))
             ++mReload;
     }

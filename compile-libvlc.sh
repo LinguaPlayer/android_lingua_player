@@ -16,7 +16,7 @@ checkfail()
 # ARGUMENTS #
 #############
 
-MEDIALIBRARY_HASH=b44c41ad
+MEDIALIBRARY_HASH=b9e157ca
 
 RELEASE=0
 ASAN=0
@@ -517,8 +517,6 @@ echo "EXTRA_LDFLAGS=${EXTRA_LDFLAGS}" >> config.mak
 make $MAKEFLAGS fetch
 checkfail "contribs: make fetch failed"
 
-# We already have zlib available in the NDK
-[ -e .zlib ] || (mkdir -p zlib; touch .zlib)
 # gettext
 which autopoint >/dev/null || make $MAKEFLAGS .gettext
 #export the PATH
