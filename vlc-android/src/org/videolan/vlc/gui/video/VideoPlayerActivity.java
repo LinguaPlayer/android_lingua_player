@@ -2741,6 +2741,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mCurrentSubtitlePath = subtitleFilePath;
 
         Boolean enableSaveSubDelay = mSettings.getBoolean("save_individual_subtitle_delay",true);
+        mSubtitleDelay = 0;
         if(enableSaveSubDelay && mSubtitleFileMapDelay.containsKey(subtitleFilePath))
             mSubtitleDelay = mSubtitleFileMapDelay.get(subtitleFilePath);
 
@@ -2787,6 +2788,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
                 else{
                     removeCurrentSubtitle();
+                    mSubtitleDelay = 0;
                     mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
                 }
 
@@ -2807,6 +2809,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mSubtitleFiles = newTracksList;
                 if(mCurrentSubtitlePath!=null && mCurrentSubtitlePath.equals(deletedPath)){
                     removeCurrentSubtitle();
+                    mSubtitleDelay = 0;
                     mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
 
                 }
