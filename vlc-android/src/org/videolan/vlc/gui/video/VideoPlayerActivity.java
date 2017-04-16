@@ -2728,6 +2728,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     public boolean onTrackSelected(int trackID) {
                         if (trackID < -1 || mService == null)
                             return false;
+                        if(trackID == -1 && mPlaybackSetting == DelayState.AUDIO){
+                            endPlaybackSetting();
+                        }
                         mService.setAudioTrack(trackID);
                         return true;
                     }
@@ -2828,6 +2831,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void removeCurrentSubtitle(){
+        if(mPlaybackSetting == DelayState.SUBS) {
+            mSubtitleDelay = 0;
+            endPlaybackSetting();
+        }
+
         mCurrentSubtitlePath = null;
         mSubs = null;
         mLastSub = null;
