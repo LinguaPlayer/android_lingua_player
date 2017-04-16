@@ -1428,7 +1428,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mPlaybackSettingPlus.setVisibility(View.VISIBLE);
         mPlaybackSettingSyncDone.setVisibility(View.VISIBLE);
         mPlaybackSettingPlus.requestFocus();
-        if(!mService.isPlaying())
+        if(mPlaybackSetting != DelayState.SUBS)
+            if(mCaptionSettingsSync != null)
+                mCaptionSettingsSync.setVisibility(View.GONE);
+
+        if(!mService.isPlaying() && mPlaybackSetting == DelayState.SUBS )
             mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
 
         initPlaybackSettingInfo();
