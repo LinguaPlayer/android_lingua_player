@@ -3689,9 +3689,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private int getScreenOrientation(int mode){
         switch(mode) {
             case 99: //screen orientation user
-                return AndroidUtil.isJellyBeanMR2OrLater ?
-                        ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR :
-                        ActivityInfo.SCREEN_ORIENTATION_SENSOR;
+                return ActivityInfo.SCREEN_ORIENTATION_USER;
             case 101: //screen orientation landscape
                 return ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
             case 102: //screen orientation portrait
