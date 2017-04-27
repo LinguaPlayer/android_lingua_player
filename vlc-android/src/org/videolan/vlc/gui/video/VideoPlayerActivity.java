@@ -340,7 +340,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private volatile Map<String,Long> mSubtitleFileMapDelay = new HashMap<String,Long>();
     private TimedTextObject mSubs;
     private String mCurrentSubtitlePath = null;
-    private Caption mLastSub = null;
+    private Caption mLastCaption = null;
     private Caption mSyncCaption = null;
     private int mLastSubIndex = 0;
 
@@ -2873,7 +2873,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mCurrentSubtitlePath = null;
         mSubs = null;
-        mLastSub = null;
+        mLastCaption = null;
         hideSubtitleCaption();
         mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
 
@@ -2893,29 +2893,36 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if ( mService != null && mSubs != null) {
             Collection<Caption> subtitles = mSubs.captions.values();
             long currentTime = getTime() - mSubtitleDelay;
-            if (mLastSub != null && currentTime >= mLastSub.start.getMilliseconds() && currentTime <= mLastSub.end.getMilliseconds()) {
-                showTimedCaptionText(mLastSub);
+            if (mLastCaption != null && currentTime >= mLastCaption.start.getMilliseconds() && currentTime <= mLastCaption.end.getMilliseconds()) {
+                showTimedCaptionText(mLastCaption);
             } else {
                 int index = 0;
                 for (Caption caption : subtitles) {
-                    index++;
                     if (currentTime >= caption.start.getMilliseconds() && currentTime <= caption.end.getMilliseconds()) {
-                        mLastSub = caption;
+                        mLastCaption = caption;
                         mLastSubIndex = index;
                         showTimedCaptionText(caption);
                         return;
                     } else if (currentTime > caption.end.getMilliseconds()) {
+                        mLastCaption = null;
                         showTimedCaptionText(null);
                     }
                     else if(caption.start.getMilliseconds() > currentTime ) {
-                        mLastSubIndex = index;
-                        //we don't need to check other captions
+                        //this should be here to set mLastSubIndex to correct one
+                        //when there is no caption for a while and user uses nex and prev buttons
+                        mLastSubIndex = index-1;
+
+                        //for begin of the video when there is no caption yet and user use next button
+                        //then plays again so I should hide the caption
+                        mLastCaption = null;
+                        showTimedCaptionText(null);
+                        //  we don't need to check other captions
                         return;
                     }
-
+                    index++;
                 }
                 //reached to end of captions and didn't find the caption
-                mLastSubIndex = index;
+                mLastSubIndex = index-1;
             }
         }
     }
@@ -2927,6 +2934,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         Caption caption = null;
         if(mLastSubIndex < subtitles.size()-1) {
             caption = (subtitles.toArray(new Caption[subtitles.size()]))[++mLastSubIndex];
+            mLastCaption = caption;
             showTimedCaptionText(caption);
         }
         if(mPlaybackSetting == DelayState.SUBS)
@@ -2943,7 +2951,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         Collection<Caption> subtitles = mSubs.captions.values();
         Caption caption = null;
         if(mLastSubIndex > 0) {
-            caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
+            if(mLastCaption == null){
+                //there is no dialog at current position so I should show latest
+                caption = (subtitles.toArray(new Caption[subtitles.size()]))[mLastSubIndex];
+            }
+            else
+                caption = (subtitles.toArray(new Caption[subtitles.size()]))[--mLastSubIndex];
+
+            mLastCaption = caption;
+
+
             showTimedCaptionText(caption);
         }
 
@@ -2992,7 +3009,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private class SubTouchSpan extends ClickableSpan {
         private final String mText;
         //TODO: Fix this currentyl if I use showNextSubtitleCaption and showPrevSubtitleCaption
-        //mLastSub is not set so I can't use mLastSub and I added mDialog property here
+        //mLastCaption is not set so I can't use mLastCaption and I added mDialog property here
         private final String mDialog;
         private SubTouchSpan(final String text, final String dialog) {
             mText = text;
