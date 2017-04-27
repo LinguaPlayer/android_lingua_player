@@ -270,4 +270,14 @@
         <item>#ffffff</item>
         <item>#000000</item>
     </string-array>
+
+    <string-array name="dictionaries_entries">
+        <item>English "\u2192" Persian</item>
+        <item>English "\u2192" English</item>
+    </string-array>
+    <string-array name="dictionaries_values">
+        <item>ENG_PER</item>
+        <item>gcide</item>
+    </string-array>
+
 </resources>

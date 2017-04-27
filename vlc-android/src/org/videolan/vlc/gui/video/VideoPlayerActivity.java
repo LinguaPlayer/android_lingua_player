@@ -66,8 +66,11 @@ import android.support.v7.widget.ViewStubCompat;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -119,6 +122,7 @@ import org.videolan.vlc.gui.audio.PlaylistAdapter;
 import org.videolan.vlc.gui.browser.FilePickerActivity;
 import org.videolan.vlc.gui.browser.FilePickerFragment;
 import org.videolan.vlc.gui.dialogs.AdvOptionsDialog;
+import org.videolan.vlc.gui.dialogs.DictionaryDialog;
 import org.videolan.vlc.gui.dialogs.SubtitleSelectorDialog;
 import org.videolan.vlc.gui.helpers.OnRepeatListener;
 import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback;
@@ -146,6 +150,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
@@ -339,6 +344,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private Caption mSyncCaption = null;
     private int mLastSubIndex = 0;
 
+    //subtitles styles
+    private int mSubtitleColor;
+
     /**
      * Flag to indicate whether the media should be paused once loaded
      * (e.g. lock screen, or to restore the pause state)
@@ -364,6 +372,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private boolean mWasPlaying;
 
     private boolean enableCaptionControls = true;
+    private boolean enableTouchSub = true;
 
     DisplayMetrics mScreen = new DisplayMetrics();
 
@@ -441,6 +450,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mSettings.getString("screen_orientation", "99" /*SCREEN ORIENTATION SENSOR*/));
 
         enableCaptionControls =  mSettings.getBoolean("enable_caption_controls",true);
+        enableTouchSub =  mSettings.getBoolean("enable_touch_sub",true);
 
         mSurfaceView = (SurfaceView) findViewById(R.id.player_surface);
         mSubtitleView = (StrokedRobotoTextView) findViewById(R.id.subtitles_surface);
@@ -509,10 +519,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         //config subtitle view
         //TODO get them from preference
-        mSubtitleView.setTextColor(Color.parseColor(mSettings.getString("subtitles_color","#ffffff")));
+        mSubtitleColor = Color.parseColor(mSettings.getString("subtitles_color","#ffffff"));
+
+        mSubtitleView.setTextColor(mSubtitleColor);
         mSubtitleView.setTextSize(Integer.parseInt(mSettings.getString("subtitles_size","30")));
         mSubtitleView.setStrokeColor(Color.parseColor(mSettings.getString("subtitles_outline_color","#000000")));
         mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP,Integer.parseInt(mSettings.getString("subtitles_outline_width","4")));
+        mSubtitleView.setMovementMethod(LinkMovementMethod.getInstance());
+
         //set layout_marginBottom
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)mSubtitleView.getLayoutParams();
         layoutParams.bottomMargin = Integer.parseInt(mSettings.getString("subtitles_bottom_margins","25"));
@@ -1357,10 +1371,31 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         showDelayControls();
     }
 
-
+    @Override
+    public boolean isTouchSubEnabled(){
+        return enableTouchSub;
+    }
     @Override
     public boolean isCaptionControllerEnabled(){
         return enableCaptionControls;
+    }
+
+    @Override
+    public void enableDisableTouchSub(){
+        SharedPreferences.Editor editor = mSettings.edit();
+        if(enableTouchSub) {
+            enableTouchSub = false;
+            editor.putBoolean("enable_touch_sub", false);
+        }
+        else {
+            enableTouchSub = true;
+            editor.putBoolean("enable_touch_sub", true);
+        }
+        editor.apply();
+        //to load caption again with new enableTouchSub option
+        hideSubtitleCaption();
+        progressSubtitleCaption();
+
     }
 
     @Override
@@ -2853,6 +2888,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     }
 
+
     private void progressSubtitleCaption() {
         if ( mService != null && mSubs != null) {
             Collection<Caption> subtitles = mSubs.captions.values();
@@ -2929,6 +2965,62 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             seekWithOutCaption(caption.start.getMilliseconds());
     }
 
+    private SpannableStringBuilder makeClickable(String text){
+        SpannableStringBuilder ss = new SpannableStringBuilder("");
+        String pattern = "[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+]";
+        Pattern r = Pattern.compile(pattern);
+        String[] words = text.split("(?=[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+])|(?<=[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+])");
+        int start,end;
+        start = end =  0;
+        int index = 0;
+        for(final String word : words){
+            index++;
+            ss.append(word);
+            end = start + word.length();
+
+            if(!r.matcher(word).find()) {
+                ClickableSpan clickableSpan = new SubTouchSpan(word, text);
+                ss.setSpan(clickableSpan, start, end, 0);
+            }
+
+            start = end;
+        }
+
+        return ss;
+    }
+
+    private class SubTouchSpan extends ClickableSpan {
+        private final String mText;
+        //TODO: Fix this currentyl if I use showNextSubtitleCaption and showPrevSubtitleCaption
+        //mLastSub is not set so I can't use mLastSub and I added mDialog property here
+        private final String mDialog;
+        private SubTouchSpan(final String text, final String dialog) {
+            mText = text;
+            mDialog = dialog;
+        }
+        @Override
+        public void onClick(final View widget) {
+            mWasPlaying = mService.isPlaying();
+            pause();
+            SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(mDialog);
+            FragmentManager fm = getSupportFragmentManager();
+            final DictionaryDialog dictionaryDialog = DictionaryDialog.newInstance(styledString.toString(), mText);
+            dictionaryDialog.show(fm,"sub_Touch");
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds) {
+            ds.linkColor = mSubtitleColor;
+            ds.setUnderlineText(false);
+        }
+    }
+
+    public void onDictionaryDialogDismissed(){
+        if(mWasPlaying){
+            play();
+        }
+    }
+
     protected void showTimedCaptionText(final Caption text) {
         mHandler.post(new Runnable() {
             @Override
@@ -2941,14 +3033,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 }
                 SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(text.content);
 
-                ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
-                for (ForegroundColorSpan remove : toRemoveSpans) {
-                    styledString.removeSpan(remove);
+                  /*currently I use styledString.toString for clickable sub and I don't use the tags in it
+                   */
+                if(enableTouchSub){
+                    ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
+                    for (ForegroundColorSpan remove : toRemoveSpans) {
+                        styledString.removeSpan(remove);
+                    }
                 }
 
                 if (!mSubtitleView.getText().toString().equals(styledString.toString())) {
                     mSubtitleView.setVisibility(View.VISIBLE);
-                    mSubtitleView.setText(styledString);
+                    if(enableTouchSub) {
+                        SpannableStringBuilder clickableString = makeClickable(styledString.toString());
+                        mSubtitleView.setText(clickableString);
+                    }
+                    else
+                        mSubtitleView.setText(styledString);
                 }
             }
         });

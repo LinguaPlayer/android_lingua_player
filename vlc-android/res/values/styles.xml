@@ -83,6 +83,7 @@
         <item name="ic_audiodelay">@drawable/ic_audiodelay</item>
         <item name="ic_subtitledelay">@drawable/ic_subtitledelay</item>
         <item name="ic_caption_back_next">@drawable/ic_navigate_back_next</item>
+        <item name="ic_touch_sub">@drawable/ic_touch_sub</item>
     </style>
 
     <style name="Theme.VLC.PickerDialog" parent="Theme.AppCompat.Light.Dialog">
@@ -178,6 +179,7 @@
         <item name="ic_audiodelay">@drawable/ic_audiodelay_w</item>
         <item name="ic_subtitledelay">@drawable/ic_subtitledelay_w</item>
         <item name="ic_caption_back_next">@drawable/ic_navigate_back_next_w</item>
+        <item name="ic_touch_sub">@drawable/ic_touch_sub_w</item>
     </style>
    <style name="Theme.VLC.TV" parent="Theme.Leanback">
        <item name="imageCardViewInfoAreaStyle">@style/VLCardViewInfoStyle</item>
@@ -248,6 +250,7 @@
         <item name="ic_audiodelay">@drawable/ic_audiodelay_w</item>
         <item name="ic_subtitledelay">@drawable/ic_subtitledelay_w</item>
         <item name="ic_caption_back_next">@drawable/ic_navigate_back_next_w</item>
+        <item name="ic_touch_sub">@drawable/ic_touch_sub_w</item>
         <item name="ic_repeat">@drawable/ic_repeat_w</item>
         <item name="ic_shuffle">@drawable/ic_shuffle_w</item>
 

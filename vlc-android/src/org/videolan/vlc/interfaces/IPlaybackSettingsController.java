@@ -31,4 +31,6 @@ public interface IPlaybackSettingsController {
     void endPlaybackSetting();
     void enableDisableCaptionControls();
     boolean isCaptionControllerEnabled();
+    void enableDisableTouchSub();
+    boolean isTouchSubEnabled();
 }
