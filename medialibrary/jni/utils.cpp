@@ -250,15 +250,17 @@ filteredArray(JNIEnv* env, fields *fields, jobjectArray array, int removalCount)
         size = env->GetArrayLength(array);
         for (int i = 0; i<size; ++i)
         {
-            if (env->GetObjectArrayElement(array, i) == nullptr)
+            jobject item = env->GetObjectArrayElement(array, i);
+            if (item == nullptr)
                 ++removalCount;
+            env->DeleteLocalRef(item);
         }
     }
     if (removalCount == 0)
         return array;
     if (size == -1)
         size = env->GetArrayLength(array);
-    jobjectArray mediaRefs = (jobjectArray) env->NewObjectArray(size, fields->MediaWrapper.clazz, NULL);
+    jobjectArray mediaRefs = (jobjectArray) env->NewObjectArray(size-removalCount, fields->MediaWrapper.clazz, NULL);
     for (int i = 0; i<size; ++i)
     {
         jobject item = env->GetObjectArrayElement(array, i);

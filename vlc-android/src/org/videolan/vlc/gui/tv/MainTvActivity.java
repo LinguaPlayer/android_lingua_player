@@ -59,7 +59,6 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.medialibrary.Tools;
-import org.videolan.medialibrary.interfaces.DevicesDiscoveryCb;
 import org.videolan.medialibrary.interfaces.MediaUpdatedCb;
 import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.BuildConfig;
@@ -87,7 +86,7 @@ import java.util.List;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class MainTvActivity extends BaseTvActivity implements OnItemViewSelectedListener,
-        OnItemViewClickedListener, OnClickListener, PlaybackService.Callback, MediaUpdatedCb, DevicesDiscoveryCb {
+        OnItemViewClickedListener, OnClickListener, PlaybackService.Callback, MediaUpdatedCb {
 
     private static final int NUM_ITEMS_PREVIEW = 5;
 
@@ -170,7 +169,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         /*
          * skip browser and show directly Audio Player if a song is playing
          */
-        if (mMediaLibrary.isInitiated() && (mRowsAdapter == null || mRowsAdapter.size() == 0) && Permissions.canReadStorage())
+        if (mMediaLibrary.isInitiated() && !mMediaLibrary.isWorking() && (mRowsAdapter == null || mRowsAdapter.size() == 0) && Permissions.canReadStorage())
             update();
         else {
             updateBrowsers();
@@ -214,18 +213,18 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             mService.addCallback(this);
         if (mMediaLibrary.isInitiated()) {
             setmedialibraryListeners();
-            update();
         } else
             setupMediaLibraryReceiver();
     }
 
     @Override
     protected void onPause() {
+        if (mUpdateTask != null)
+            mUpdateTask.cancel(true);
         super.onPause();
         if (mService != null)
             mService.removeCallback(this);
         mMediaLibrary.removeMediaUpdatedCb();
-        mMediaLibrary.removeDeviceDiscoveryCb(this);
     }
 
     @Override
@@ -371,30 +370,13 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
     }
 
     @Override
-    public void onDiscoveryStarted(String entryPoint) {}
-
-    @Override
-    public void onDiscoveryProgress(String entryPoint) {}
-
-    @Override
-    public void onDiscoveryCompleted(String entryPoint) {}
-
-    @Override
-    public void onParsingStatsUpdated(int percent) {
-        if (percent == 100)
-            update();
-        else if (mProgressBar.getVisibility() != View.VISIBLE)
-            mHandler.sendEmptyMessage(SHOW_LOADING);
+    protected void onParsingServiceStarted() {
+        mHandler.sendEmptyMessageDelayed(SHOW_LOADING, 300);
     }
 
     @Override
-    public void onReloadStarted(String entryPoint) {
-            mHandler.sendEmptyMessage(SHOW_LOADING);
-    }
-
-    @Override
-    public void onReloadCompleted(String entryPoint) {
-            mHandler.sendEmptyMessage(HIDE_LOADING);
+    protected void onParsingServiceFinished() {
+        update();
     }
 
     private static final int SHOW_LOADING = 0;
@@ -415,7 +397,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         }
     };
 
-    public class AsyncUpdate extends AsyncTask<Void, Void, Void> {
+    private class AsyncUpdate extends AsyncTask<Void, Void, Void> {
         boolean showHistory;
         MediaWrapper[] history, videoList;
 
@@ -427,7 +409,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             if (mRowsAdapter != null)
                 mRowsAdapter.clear();
             mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
-            mHandler.sendEmptyMessage(SHOW_LOADING);
+            mHandler.sendEmptyMessageDelayed(SHOW_LOADING, 300);
             mHistoryIndex.clear();
 
             //Video Section
@@ -436,10 +418,17 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
 
         @Override
         protected Void doInBackground(Void... params) {
+            if (isCancelled())
+                return null;
             videoList = mMediaLibrary.getVideos();
-            if (showHistory)
+            if (showHistory && !isCancelled())
                 history = VLCApplication.getMLInstance().lastMediaPlayed();
             return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            mUpdateTask = null;
         }
 
         @Override
@@ -501,6 +490,8 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             mOtherAdapter.add(new CardPresenter.SimpleCard(ID_LICENCE, getString(R.string.licence), R.drawable.ic_default_cone));
             mRowsAdapter.add(new ListRow(miscHeader, mOtherAdapter));
             mBrowseFragment.setSelectedPosition(Math.min(mBrowseFragment.getSelectedPosition(), mRowsAdapter.size()-1));
+            if (!isVisible())
+                return;
             mBrowseFragment.setAdapter(mRowsAdapter);
         }
     }
@@ -550,11 +541,6 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
 
     @Override
     protected void onNetworkUpdated() {
-        updateBrowsers();
-    }
-
-    @Override
-    protected void onExternelDeviceChange() {
         updateBrowsers();
     }
 
@@ -611,7 +597,6 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
 
     private void setmedialibraryListeners() {
         mMediaLibrary.setMediaUpdatedCb(this, Medialibrary.FLAG_MEDIA_UPDATED_VIDEO);
-        mMediaLibrary.addDeviceDiscoveryCb(this);
     }
 
     private void setupMediaLibraryReceiver() {

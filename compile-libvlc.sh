@@ -16,7 +16,7 @@ checkfail()
 # ARGUMENTS #
 #############
 
-MEDIALIBRARY_HASH=b9e157ca
+MEDIALIBRARY_HASH=1b6ac171
 
 RELEASE=0
 ASAN=0
@@ -269,6 +269,10 @@ else
     exit 2
 fi
 
+SRC_DIR=$PWD
+VLC_SRC_DIR="$SRC_DIR/vlc"
+VLC_CONTRIB="$VLC_SRC_DIR/contrib/$TARGET_TUPLE"
+
 # try to detect NDK version
 REL=$(grep -o '^Pkg.Revision.*[0-9]*.*' $ANDROID_NDK/source.properties |cut -d " " -f 3 | cut -d "." -f 1)
 
@@ -317,7 +321,6 @@ if [ ! -z "${NDK_FORCE_ARG}" ];then
     cp "$ANDROID_NDK/source.properties" "${NDK_TOOLCHAIN_PROPS}"
 fi
 
-SRC_DIR=$PWD
 # Add the NDK toolchain to the PATH, needed both for contribs and for building
 # stub libraries
 CROSS_TOOLS=${NDK_TOOLCHAIN_PATH}/${TARGET_TUPLE}-
@@ -392,8 +395,7 @@ EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -D__STDC_FORMAT_MACROS=1 -D__STDC_CONSTANT_MAC
 # Setup LDFLAGS #
 #################
 
-VLC_LDFLAGS=""
-EXTRA_LDFLAGS=""
+EXTRA_LDFLAGS="${VLC_LDFLAGS}"
 if [ ${ANDROID_ABI} = "armeabi-v7a" ]; then
         EXTRA_PARAMS=" --enable-neon"
         EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -Wl,--fix-cortex-a8"
@@ -408,7 +410,6 @@ if [ "${ANDROID_ABI}" = "armeabi-v7a" ];then
     NDK_LIB_UNWIND="-lunwind"
 fi
 
-EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L${NDK_LIB_DIR} -lc++abi ${NDK_LIB_UNWIND}"
 VLC_LDFLAGS="${EXTRA_LDFLAGS}"
 
 # Release or not?
@@ -450,7 +451,6 @@ cd vlc
 ###########################
 # Build buildsystem tools #
 ###########################
-VLC_SRC_DIR="$SRC_DIR/vlc"
 
 export PATH=`pwd`/extras/tools/build/bin:$PATH
 echo "Building tools"
@@ -513,6 +513,11 @@ checkfail "contribs: bootstrap failed"
 echo "EXTRA_CFLAGS=${EXTRA_CFLAGS}" >> config.mak
 echo "EXTRA_CXXFLAGS=${EXTRA_CXXFLAGS}" >> config.mak
 echo "EXTRA_LDFLAGS=${EXTRA_LDFLAGS}" >> config.mak
+echo "CC=${NDK_TOOLCHAIN_PATH}/clang" >> config.mak
+echo "CXX=${NDK_TOOLCHAIN_PATH}/clang++" >> config.mak
+echo "AR=${NDK_TOOLCHAIN_PATH}/${TARGET_TUPLE}-ar" >> config.mak
+echo "RANLIB=${NDK_TOOLCHAIN_PATH}/${TARGET_TUPLE}-ranlib" >> config.mak
+echo "LD=${NDK_TOOLCHAIN_PATH}/${TARGET_TUPLE}-ld" >> config.mak
 
 make $MAKEFLAGS fetch
 checkfail "contribs: make fetch failed"
@@ -520,7 +525,6 @@ checkfail "contribs: make fetch failed"
 # gettext
 which autopoint >/dev/null || make $MAKEFLAGS .gettext
 #export the PATH
-export PATH="$PATH:$PWD/../$TARGET_TUPLE/bin"
 # Make
 make $MAKEFLAGS
 checkfail "contribs: make failed"
@@ -681,7 +685,6 @@ rm ${REDEFINED_VLC_MODULES_DIR}/syms
 LIBVLC_LIBS="libvlcjni"
 VLC_MODULES=$(find_modules ${REDEFINED_VLC_MODULES_DIR})
 ANDROID_SYS_HEADERS="$SRC_DIR/android-headers"
-VLC_CONTRIB="$VLC_SRC_DIR/contrib/$TARGET_TUPLE"
 VLC_CONTRIB_LDFLAGS=`for i in $(/bin/ls $VLC_CONTRIB/lib/pkgconfig/*.pc); do PKG_CONFIG_PATH="$VLC_CONTRIB/lib/pkgconfig/" pkg-config --libs $i; done |xargs`
 
 if [ "${CHROME_OS}" != "1" ];then
@@ -904,8 +907,7 @@ if [ "$RELEASE" = 1 ]; then
     checkfail "stripping"
 fi
 
-VERSION=$(grep "android:versionName" vlc-android/AndroidManifest.xml|cut -d\" -f 2)
-OUT_DBG_DIR=.dbg/${ANDROID_ABI}/$VERSION
+OUT_DBG_DIR=.dbg/${ANDROID_ABI}
 
 echo "Dumping dbg symbols info ${OUT_DBG_DIR}"
 
