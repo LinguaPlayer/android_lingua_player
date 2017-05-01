@@ -215,7 +215,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private int mCurrentSize;
 
     private SharedPreferences mSettings;
-    private int mTouchControls = 0;
+    /*
+        0 => disable in both lock and unlock mode.
+        1 => enable just in unlock mode
+        2 => enable just in lock mode
+        3 => enable in both lock mode and unlock mode
+    */
+    private int mTouchVolumeControl = 0;
+    private int mTouchBrightnessControl = 0;
+    private int mTouchSeekControl = 0;
+    private int mDoubleTapControl = 0;
 
     /** Overlay */
     private ActionBar mActionBar;
@@ -410,8 +419,19 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (!VLCApplication.showTvUi()) {
-            mTouchControls = (mSettings.getBoolean("enable_volume_gesture", true) ? 1 : 0)
-                    + (mSettings.getBoolean("enable_brightness_gesture", true) ? 2 : 0);
+
+            mTouchVolumeControl = (mSettings.getBoolean("enable_volume_gesture", true) ? 1 : 0)
+                    + (mSettings.getBoolean("enable_volume_gesture_lock", true) ? 2 : 0);
+
+            mTouchBrightnessControl = (mSettings.getBoolean("enable_brightness_gesture", true) ? 1 : 0)
+                    + (mSettings.getBoolean("enable_brightness_gesture_lock", true) ? 2 : 0);
+
+            mTouchSeekControl = (mSettings.getBoolean("enable_seek_gesture", true) ? 1 : 0)
+                    + (mSettings.getBoolean("enable_seek_gesture_lock", true) ? 2 : 0);
+
+            mDoubleTapControl = (mSettings.getBoolean("enable_doubletap_gesture", true) ? 1 : 0)
+                    + (mSettings.getBoolean("enable_doubletap_gesture_lock", true) ? 2 : 0);
+
         }
 
         /* Services and miscellaneous */
@@ -2254,17 +2274,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             togglePlaylist();
             return true;
         }
-        if (mTouchControls == 0 || mIsLocked) {
-            // locked or swipe disabled, only handle show/hide & ignore all actions
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (!mShowing) {
-                    showOverlay();
-                } else {
-                    hideOverlay(true);
-                }
-            }
-            return false;
-        }
         if (mFov != 0f && mScaleGestureDetector != null)
             mScaleGestureDetector.onTouchEvent(event);
         if ((mScaleGestureDetector != null && mScaleGestureDetector.isInProgress()) ||
@@ -2314,17 +2323,31 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         mTouchY = event.getRawY();
                         mTouchX = event.getRawX();
                         // Volume (Up or Down - Right side)
-                        if (mTouchControls == 1 || (mTouchControls == 3 && (int)mTouchX > (4 * mScreen.widthPixels / 7f))){
+                        if ((int)mTouchX > (4 * mScreen.widthPixels / 7f)){
+                            if(!mIsLocked && mTouchVolumeControl % 2 == 0 /* == 2 || == 0 */)
+                                return true;
+                            if(mIsLocked && mTouchVolumeControl < 2)
+                                return true;
+
                             doVolumeTouch(y_changed);
                             hideOverlay(true);
                         }
                         // Brightness (Up or Down - Left side)
-                        if (mTouchControls == 2 || (mTouchControls == 3 && (int)mTouchX < (3 * mScreen.widthPixels / 7f))){
+                        if ((int)mTouchX < (3 * mScreen.widthPixels / 7f)){
+                            if(!mIsLocked && mTouchBrightnessControl % 2 == 0 /* == 2 || == 0 */)
+                                return true;
+                            if(mIsLocked && mTouchBrightnessControl < 2)
+                                return true;
+
                             doBrightnessTouch(y_changed);
                             hideOverlay(true);
                         }
                     } else {
                         // Seek (Right or Left move)
+                        if(!mIsLocked && mTouchSeekControl % 2 == 0 /* == 2 || == 0 */)
+                            return true;
+                        if(mIsLocked && mTouchSeekControl < 2)
+                            return true;
                         doSeekTouch(Math.round(delta_y), xgesturesize, false);
                     }
                 } else {
@@ -4164,11 +4187,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         public boolean onDoubleTap(MotionEvent e) {
             if (mService == null)
                 return false;
-            if (!mIsLocked) {
-                doPlayPause();
-                return true;
-            }
-            return false;
+
+            if(!mIsLocked && mDoubleTapControl % 2 == 0 /* == 2 || == 0 */)
+                return false;
+            if(mIsLocked && mDoubleTapControl < 2)
+                return false;
+
+            doPlayPause();
+            return true;
         }
     };
 

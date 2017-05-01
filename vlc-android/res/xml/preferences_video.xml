@@ -35,12 +35,7 @@
         android:summary="@string/save_subtitledelay_summary"
         android:title="@string/save_subtitledelay_title" />
 
-    <PreferenceCategory android:title="@string/controls_prefs_category">
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="force_play_all"
-            android:summary="@string/force_play_all_summary"
-            android:title="@string/force_play_all_title" />
+    <PreferenceCategory android:title="@string/gesture_controls_prefs_category">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="enable_volume_gesture"
@@ -51,6 +46,48 @@
             android:key="enable_brightness_gesture"
             android:summary="@string/enable_brightness_gesture_summary"
             android:title="@string/enable_brightness_gesture_title" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_seek_gesture"
+            android:summary="@string/enable_seek_gesture_summary"
+            android:title="@string/enable_seek_gesture_title" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_doubletap_gesture"
+            android:summary="@string/enable_doubletap_gesture_summary"
+            android:title="@string/enable_doubletap_gesture_title" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/gesture_controls_prefs_category_lock">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enable_volume_gesture_lock"
+            android:summary="@string/enable_volume_gesture_summary_lock"
+            android:title="@string/enable_volume_gesture_title_lock" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enable_brightness_gesture_lock"
+            android:summary="@string/enable_brightness_gesture_summary_lock"
+            android:title="@string/enable_brightness_gesture_title_lock" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enable_seek_gesture_lock"
+            android:summary="@string/enable_seek_gesture_summary_lock"
+            android:title="@string/enable_seek_gesture_title_lock" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_doubletap_gesture_lock"
+            android:summary="@string/enable_doubletap_gesture_summary_lock"
+            android:title="@string/enable_doubletap_gesture_title_lock" />
+    </PreferenceCategory>
+
+
+    <PreferenceCategory android:title="@string/other_controls_prefs_category">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="force_play_all"
+            android:summary="@string/force_play_all_summary"
+            android:title="@string/force_play_all_title" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="dialog_confirm_resume"

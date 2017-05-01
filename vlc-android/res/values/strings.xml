@@ -298,8 +298,20 @@
     <string name="save_subtitledelay_title">Save subtitle delay</string>
     <string name="enable_brightness_gesture_title">Brightness gesture</string>
     <string name="enable_brightness_gesture_summary">Control brightness by gesture during video playback</string>
+    <string name="enable_brightness_gesture_title_lock">Brightness gesture lock mode</string>
+    <string name="enable_brightness_gesture_summary_lock">Control brightness in lock mode by gesture during video playback</string>
     <string name="enable_volume_gesture_title">Volume gesture</string>
     <string name="enable_volume_gesture_summary">Control volume by gesture during video playback</string>
+    <string name="enable_volume_gesture_title_lock">Volume gesture lock mode</string>
+    <string name="enable_volume_gesture_summary_lock">Control volume in lock mode by gesture during video playback</string>
+    <string name="enable_seek_gesture_title">Seek gesture</string>
+    <string name="enable_seek_gesture_summary">Seek by gesture during video playback</string>
+    <string name="enable_seek_gesture_title_lock">Seek gesture lock mode</string>
+    <string name="enable_seek_gesture_summary_lock">Seek in lock mode by gesture during video playback</string>
+    <string name="enable_doubletap_gesture_title">Double tap</string>
+    <string name="enable_doubletap_gesture_summary">Double tap to pause and resume video playback</string>
+    <string name="enable_doubletap_gesture_title_lock">Double tap lock mode</string>
+    <string name="enable_doubletap_gesture_summary_lock">Double tap in lock mode to pause and resume video playback</string>
     <string name="enable_seek_buttons">Enable seek buttons</string>
     <string name="enable_seek_buttons_summary">Show rewind and forward buttons on the video interface</string>
 
@@ -343,7 +355,9 @@
     <string name="aout_audiotrack" translatable="false">AudioTrack</string>
     <string name="aout_opensles" translatable="false">OpenSL ES</string>
 
-    <string name="controls_prefs_category">Controls</string>
+    <string name="gesture_controls_prefs_category">Gesture controls</string>
+    <string name="gesture_controls_prefs_category_lock">Gesture controls lock mode</string>
+    <string name="other_controls_prefs_category">Other controls</string>
 
     <string name="performance_prefs_category">Performance</string>
     <string name="chroma_format">Force video chroma</string>
