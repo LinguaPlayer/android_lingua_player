@@ -1424,14 +1424,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(enableCaptionControls) {
             enableCaptionControls = false;
             if(mPlaybackSetting != DelayState.SUBS){
-                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+//                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+                  hideCaptionControls();
             }
             editor.putBoolean("enable_caption_controls", false);
         }
         else {
             enableCaptionControls = true;
             if(!mService.isPlaying())
-                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+//                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+                showCaptionControls();
 
             editor.putBoolean("enable_caption_controls", true);
         }
@@ -1488,7 +1490,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mCaptionSettingsSync.setVisibility(View.GONE);
 
         if(!mService.isPlaying() && mPlaybackSetting == DelayState.SUBS )
-            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+//            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+            showCaptionControls();
 
         initPlaybackSettingInfo();
     }
@@ -1533,6 +1536,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mCaptionSettingsSync.setVisibility(View.VISIBLE);
         }
 
+        //hack:to force show this icons on screen (some times they are not shown until
+        //show next subtitle caption or tap the screen
+
+        dimStatusBar(false);
 
     }
 
@@ -1832,11 +1839,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case MediaPlayer.Event.Playing:
                 onPlaying();
-                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+//                mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+                hideCaptionControls();
                 break;
             case MediaPlayer.Event.Paused:
                 updateOverlayPausePlay();
-                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+//                mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+                showCaptionControls();
                 break;
             case MediaPlayer.Event.Stopped:
                 exitOK();
@@ -1933,12 +1942,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 case LOADING_ANIMATION:
                     startLoading();
                     break;
-                case SHOW_CAPTION_CONTROLS:
-                    showCaptionControls();
-                    break;
-                case HIDE_CAPTION_CONTROLS:
-                    hideCaptionControls();
-                    break;
+//                case SHOW_CAPTION_CONTROLS:
+//                    showCaptionControls();
+//                    break;
+//                case HIDE_CAPTION_CONTROLS:
+//                    hideCaptionControls();
+//                    break;
             }
             return true;
         }
@@ -2835,9 +2844,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
-        if(!mService.isPlaying())
-            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
         progressSubtitleCaption();
+        if(!mService.isPlaying())
+//            mHandler.sendEmptyMessage(SHOW_CAPTION_CONTROLS);
+            showCaptionControls();
 
     }
 
@@ -2876,7 +2886,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 else{
                     removeCurrentSubtitle();
                     mSubtitleDelay = 0;
-                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+//                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+                    hideCaptionControls();
                 }
 
             }
@@ -2897,8 +2908,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 if(mCurrentSubtitlePath!=null && mCurrentSubtitlePath.equals(deletedPath)){
                     removeCurrentSubtitle();
                     mSubtitleDelay = 0;
-                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
-
+//                    mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+                    hideCaptionControls();
                 }
 
             }
@@ -2917,7 +2928,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSubs = null;
         mLastCaption = null;
         hideSubtitleCaption();
-        mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+//        mHandler.sendEmptyMessage(HIDE_CAPTION_CONTROLS);
+        hideCaptionControls();
 
     }
     private void hideSubtitleCaption(){
@@ -3307,7 +3319,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     mSubtitleView.setLayoutParams(params);
                 }
             }
-
             dimStatusBar(false);
             mOverlayProgress.setVisibility(View.VISIBLE);
             if (mPresentation != null) mOverlayBackground.setVisibility(View.VISIBLE);
