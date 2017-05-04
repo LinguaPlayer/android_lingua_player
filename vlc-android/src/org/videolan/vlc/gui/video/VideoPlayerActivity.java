@@ -1682,6 +1682,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mPlaylistNext.setEnabled(false);
         if (mPlaylistPrevious != null)
             mPlaylistPrevious.setEnabled(false);
+
+        RelativeLayout.LayoutParams layoutParams =
+                (RelativeLayout.LayoutParams) mOverlayProgress.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP,RelativeLayout.TRUE);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,0);
+        mOverlayProgress.setLayoutParams(layoutParams);
+        mOverlayProgress.getBackground().setAlpha(0);
+
         hideOverlay(true);
         mLockBackButton = true;
         mIsLocked = true;
@@ -1705,6 +1713,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mPlaylistPrevious.setEnabled(true);
         mShowing = false;
         mIsLocked = false;
+
+        RelativeLayout.LayoutParams layoutParams =
+                (RelativeLayout.LayoutParams) mOverlayProgress.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP,0);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,RelativeLayout.TRUE);
+        mOverlayProgress.setLayoutParams(layoutParams);
+        mOverlayProgress.getBackground().setAlpha(255);
+
         showOverlay();
         mLockBackButton = false;
     }
@@ -2409,6 +2425,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     coef > 1 ? String.format(" x%.1g", 1.0/coef) : ""), 50);
         else
             showInfo(R.string.unseekable_stream, 1000);
+        //to show seekbar update when it's paused
+        if(mShowing)
+            setOverlayProgress();
     }
 
     private void doVolumeTouch(float y_changed) {
@@ -3268,12 +3287,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         }
 
-        if(mOverlayProgress !=null){
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
-            params.addRule(RelativeLayout.ABOVE, R.id.progress_overlay);
-            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,0); // remove the ALIGN_PARENT_BOTTOM rull
-            mSubtitleView.setLayoutParams(params);
-        }
         mHandler.sendEmptyMessage(SHOW_PROGRESS);
         if (!mShowing) {
             mShowing = true;
@@ -3286,7 +3299,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 UiTools.setViewVisibility(mForward, View.VISIBLE);
                 UiTools.setViewVisibility(mPlaylistNext, View.VISIBLE);
                 UiTools.setViewVisibility(mPlaylistPrevious, View.VISIBLE);
+
+                if(mOverlayProgress !=null){
+                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
+                    params.addRule(RelativeLayout.ABOVE, R.id.progress_overlay);
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,0); // remove the ALIGN_PARENT_BOTTOM rule
+                    mSubtitleView.setLayoutParams(params);
+                }
             }
+
             dimStatusBar(false);
             mOverlayProgress.setVisibility(View.VISIBLE);
             if (mPresentation != null) mOverlayBackground.setVisibility(View.VISIBLE);
@@ -3353,9 +3374,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mObjectFocused = getCurrentFocus();
             UiTools.setViewVisibility(mOverlayTips, View.INVISIBLE);
 
-            if(mOverlayProgress !=null){
+            if(mOverlayProgress !=null && !mIsLocked){
+                if(mOverlayProgress !=null){
+                    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
+                    params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rule
+                    params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    mSubtitleView.setLayoutParams(params);
+                }
                 RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
-                params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rull
+                params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rule
                 params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                 mSubtitleView.setLayoutParams(params);
             }
@@ -4192,6 +4219,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 return false;
             if(mIsLocked && mDoubleTapControl < 2)
                 return false;
+
 
             doPlayPause();
             return true;
