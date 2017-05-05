@@ -284,6 +284,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private int mScreenOrientation;
     private int mScreenOrientationLock;
     private ImageView mLock;
+    private ImageView mUnlock;
     private ImageView mSize;
     private String KEY_REMAINING_TIME_DISPLAY = "remaining_time_display";
     private String KEY_BLUETOOTH_DELAY = "key_bluetooth_delay";
@@ -463,6 +464,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mPlaylistToggle = (ImageView) findViewById(R.id.playlist_toggle);
         mPlaylist = (RecyclerView) findViewById(R.id.video_playlist);
+
+
+        mUnlock = (ImageView) findViewById(R.id.unlock_overlay_button);
+        mUnlock.setOnClickListener(this);
 
 
 
@@ -1680,7 +1685,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 setRequestedOrientation(getScreenOrientation(100));
         }
         showInfo(R.string.locked, 1000);
-        mLock.setImageResource(R.drawable.ic_locked_circle);
         mTime.setEnabled(false);
         mSeekbar.setEnabled(false);
         mLength.setEnabled(false);
@@ -1709,7 +1713,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(mScreenOrientation != 100)
             setRequestedOrientation(mScreenOrientationLock);
         showInfo(R.string.unlocked, 1000);
-        mLock.setImageResource(R.drawable.ic_lock_circle);
+        mUnlock.setVisibility(View.INVISIBLE);
         mTime.setEnabled(true);
         mSeekbar.setEnabled(mService == null || mService.isSeekable());
         mLength.setEnabled(true);
@@ -2660,10 +2664,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 seekDelta(-10000);
                 break;
             case R.id.lock_overlay_button:
-                if (mIsLocked)
-                    unlockScreen();
-                else
-                    lockScreen();
+                lockScreen();
+                break;
+            case R.id.unlock_overlay_button:
+                unlockScreen();
                 break;
             case R.id.player_overlay_size:
                 resizeVideo();
@@ -3303,14 +3307,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (!mShowing) {
             mShowing = true;
             if (!mIsLocked) {
-                mPlayPause.setVisibility(View.VISIBLE);
-                UiTools.setViewVisibility(mTracks, View.VISIBLE);
-                UiTools.setViewVisibility(mAdvOptions, View.VISIBLE);
-                UiTools.setViewVisibility(mSize, View.VISIBLE);
-                UiTools.setViewVisibility(mRewind, View.VISIBLE);
-                UiTools.setViewVisibility(mForward, View.VISIBLE);
-                UiTools.setViewVisibility(mPlaylistNext, View.VISIBLE);
-                UiTools.setViewVisibility(mPlaylistPrevious, View.VISIBLE);
+                mOverlayProgress.setVisibility(View.VISIBLE);
 
                 if(mOverlayProgress !=null){
                     RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
@@ -3319,8 +3316,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     mSubtitleView.setLayoutParams(params);
                 }
             }
+            else{
+                mUnlock.setVisibility(View.VISIBLE);
+            }
             dimStatusBar(false);
-            mOverlayProgress.setVisibility(View.VISIBLE);
             if (mPresentation != null) mOverlayBackground.setVisibility(View.VISIBLE);
         }
         mHandler.removeMessages(FADE_OUT);
@@ -3386,16 +3385,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             UiTools.setViewVisibility(mOverlayTips, View.INVISIBLE);
 
             if(mOverlayProgress !=null && !mIsLocked){
-                if(mOverlayProgress !=null){
+                if(mSubtitleView !=null){
                     RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
                     params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rule
                     params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                     mSubtitleView.setLayoutParams(params);
                 }
-                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSubtitleView.getLayoutParams();
-                params.addRule(RelativeLayout.ABOVE, 0); //remove layout_above rule
-                params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                mSubtitleView.setLayoutParams(params);
             }
 
             if (!fromUser && !mIsLocked) {
@@ -3420,14 +3415,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mOverlayBackground.setVisibility(View.INVISIBLE);
             }
             mOverlayProgress.setVisibility(View.INVISIBLE);
-            mPlayPause.setVisibility(View.INVISIBLE);
-                UiTools.setViewVisibility(mTracks, View.INVISIBLE);
-                UiTools.setViewVisibility(mAdvOptions, View.INVISIBLE);
-                UiTools.setViewVisibility(mSize, View.INVISIBLE);
-                UiTools.setViewVisibility(mRewind, View.INVISIBLE);
-                UiTools.setViewVisibility(mForward, View.INVISIBLE);
-                UiTools.setViewVisibility(mPlaylistNext, View.INVISIBLE);
-                UiTools.setViewVisibility(mPlaylistPrevious, View.INVISIBLE);
+
+            UiTools.setViewVisibility(mUnlock, View.INVISIBLE);
             mShowing = false;
             dimStatusBar(true);
         } else if (!fromUser) {

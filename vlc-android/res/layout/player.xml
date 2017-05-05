@@ -41,6 +41,18 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true" >
 
+        <ImageView
+            android:id="@+id/unlock_overlay_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_locked_circle"
+            android:scaleType="center"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="10dp"
+            android:visibility="invisible"
+            android:focusable="true"/>
+
         <android.support.v7.widget.ViewStubCompat
             android:id="@+id/player_overlay_tips"
             android:layout_width="match_parent"
