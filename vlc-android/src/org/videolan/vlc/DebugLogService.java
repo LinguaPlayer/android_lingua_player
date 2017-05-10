@@ -169,7 +169,7 @@ public class DebugLogService extends Service implements Logcat.Callback, Runnabl
     public void run() {
         final CharSequence timestamp = DateFormat.format(
                 "yyyyMMdd_kkmmss", System.currentTimeMillis());
-        final String filename = AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + "/vlc_logcat_" + timestamp + ".log";
+        final String filename = AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + "/lingua_player_logcat_" + timestamp + ".log";
         boolean saved = true;
         FileOutputStream fos = null;
         OutputStreamWriter output = null;
