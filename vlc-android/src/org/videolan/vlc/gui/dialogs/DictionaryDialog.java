@@ -31,11 +31,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.util.Dictionary;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -180,7 +182,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
 
     private DictionaryLoader mDictionaryLoadertask = null;
-    private class DictionaryLoader extends AsyncTask<String, Void, Dictionary> {
+    private class DictionaryLoader extends AsyncTask<String, String, Dictionary> {
 
         private String word;
         @Override
@@ -188,6 +190,10 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             String dbName = params[0];
             word = params[1];
             try {
+                boolean databaseExist = doesDatabaseExist(dbName + ".dict");
+                if(!databaseExist){
+                    publishProgress("First Run Initialization");
+                }
                 mDictionary = Dictionary.getInstance(getContext(),dbName);
                 return mDictionary;
             } catch (IOException e) {
@@ -208,6 +214,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         protected void onPreExecute() {
             mDictionaryLoading.setVisibility(View.VISIBLE);
             mTranslationTextView.setVisibility(View.GONE);
+        }
+
+        @Override
+        protected void onProgressUpdate(String ...messages){
+            Toast.makeText(getContext(),messages[0],Toast.LENGTH_LONG).show();
+        }
+
+        private boolean doesDatabaseExist(String dbName) {
+            File dbFile = getContext().getDatabasePath(dbName);
+            return dbFile.exists();
         }
 
     }
