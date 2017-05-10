@@ -44,7 +44,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "org.videolan.vlc"
+        applicationId "com.lingua.player"
 
         resConfigs "en"
 
