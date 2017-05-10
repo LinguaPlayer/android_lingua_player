@@ -46,6 +46,8 @@ android {
     defaultConfig {
         applicationId "org.videolan.vlc"
 
+        resConfigs "en"
+
         resValue "string", "build_time", buildTime()
         resValue "string", "build_host", hostName()
         resValue "string", "build_revision", revision()
