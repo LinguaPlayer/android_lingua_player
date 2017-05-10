@@ -70,18 +70,18 @@
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/main_link"
+            android:id="@+id/vlc_link"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_weight="0.27"
             android:autoLink="web"
             android:gravity="center"
-            android:text="@string/about_link"
+            android:text="@string/vlc_link"
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/main_revision"
+            android:id="@+id/flavor_abi"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -90,21 +90,24 @@
             android:textSize="12sp" />
 
         <TextView
+            android:id="@+id/developed_by"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center"
-            android:text="@string/compiled_by"
-            android:textSize="12sp" />
+            android:text="@string/developed_by"
+            android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/main_compiled"
+            android:id="@+id/linguaPlayer_link"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="15dp"
+            android:layout_weight="0.27"
+            android:autoLink="web"
             android:gravity="center"
-            android:text=""
-            android:textSize="12sp" />
+            android:text="@string/lingua_player_link"
+            android:textSize="14sp" />
 
     </LinearLayout>
 

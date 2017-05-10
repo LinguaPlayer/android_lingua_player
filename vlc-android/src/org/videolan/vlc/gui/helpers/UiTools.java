@@ -205,17 +205,18 @@ public class UiTools {
     }
 
     public static void fillAboutView(View v) {
-        TextView link = (TextView) v.findViewById(R.id.main_link);
-        link.setText(Html.fromHtml(VLCApplication.getAppResources().getString(R.string.about_link)));
+        TextView vlcLink = (TextView) v.findViewById(R.id.vlc_link);
+        vlcLink.setText(Html.fromHtml(VLCApplication.getAppResources().getString(R.string.vlc_link)));
+
+        TextView linguaPlayerLink = (TextView) v.findViewById(R.id.linguaPlayer_link);
+        linguaPlayerLink.setText(Html.fromHtml(VLCApplication.getAppResources().getString(R.string.lingua_player_link)));
 
         String revision = VLCApplication.getAppResources().getString(R.string.build_revision)+" VLC: "+VLCApplication.getAppResources().getString(R.string.build_vlc_revision);
         String builddate = VLCApplication.getAppResources().getString(R.string.build_time);
         String builder = VLCApplication.getAppResources().getString(R.string.build_host);
 
-        TextView compiled = (TextView) v.findViewById(R.id.main_compiled);
-        compiled.setText(builder + " (" + builddate + ")");
-        TextView textview_rev = (TextView) v.findViewById(R.id.main_revision);
-        textview_rev.setText(VLCApplication.getAppResources().getString(R.string.revision) + " " + revision + " (" + builddate + ") " + BuildConfig.FLAVOR_abi);
+        TextView textview_abi = (TextView) v.findViewById(R.id.flavor_abi);
+        textview_abi.setText(BuildConfig.FLAVOR_abi);
 
         final ImageView logo = (ImageView) v.findViewById(R.id.logo);
         logo.setOnClickListener(new View.OnClickListener() {

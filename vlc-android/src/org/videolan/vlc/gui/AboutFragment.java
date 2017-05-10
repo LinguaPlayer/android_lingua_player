@@ -49,7 +49,7 @@ public class AboutFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() instanceof AppCompatActivity)
-            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("VLC " + BuildConfig.VERSION_NAME);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Lingua Player " + BuildConfig.VERSION_NAME);
         View v = inflater.inflate(R.layout.about, container, false);
 
         View aboutMain = v.findViewById(R.id.about_main);

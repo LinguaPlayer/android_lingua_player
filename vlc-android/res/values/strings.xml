@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Main VLC Interface -->
-    <string name="app_name" translatable="false">VLC</string>
+    <string name="app_name" translatable="false">Lingua Player</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="other">Other</string>
@@ -43,7 +43,7 @@
     <string name="ringtone_error">An error occurred while setting the ringtone.</string>
     <string name="pause">Pause</string>
     <string name="not_show_again">Don\'t show this message again.</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">Unknown Artist</string>
     <string name="unknown_album">Unknown Album</string>
     <string name="unknown_genre">Unknown Genre</string>
@@ -177,8 +177,8 @@
     <string name="open_mrl">Stream</string>
     <string name="open_mrl_dialog_title">Open network stream</string>
     <string name="open_mrl_dialog_msg">Enter network address: e.g. http://, mms:// or rtsp://</string>
-    <string name="error_not_compatible">Sorry, your device is currently not supported by this version of VLC for Android™.</string>
-    <string name="error_problem">Sorry, VLC for Android had a problem loading and had to close.</string>
+    <string name="error_not_compatible">Sorry, your device is currently not supported by this version of Lingua Player.</string>
+    <string name="error_problem">Sorry, Lingua Player had a problem loading and had to close.</string>
     <string name="error_message_is">The error message is (please mention this when debugging):\n</string>
     <string name="empty" translatable="false"></string>
     <string name="time_0" translatable="false">0:00</string>
@@ -191,7 +191,7 @@
     <string name="minus" translatable="false">&#8722;</string>
 
     <string name="encountered_error_title">Playback error</string>
-    <string name="encountered_error_message">VLC encountered an error with this media.\nPlease try refreshing the media library.</string>
+    <string name="encountered_error_message">Lingua Player encountered an error with this media.\nPlease try refreshing the media library.</string>
     <string name="invalid_location">The location %1$s cannot be played.</string>
 
     <string name="search">Search</string>
@@ -225,14 +225,15 @@
     <string name="hold_to_stop">Hold to stop</string>
 
     <!-- About -->
-    <string name="app_name_full">VLC for Android</string>
+    <string name="app_name_full">Lingua Player</string>
     <string name="licence">License</string>
     <string name="revision">Revision</string>
     <string name="about">About</string>
-    <string name="about_text">VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
-    <string name="compiled_by">This version of VLC is compiled by:</string>
+    <string name="about_text">Lingua Player is based on VLC for Android™ \n VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
+    <string name="developed_by">Developer: Habib Kazemi</string>
     <string name="vlc_authors">VLC Authors.</string>
-    <string name="about_link" translatable="false">        &lt;a href=&quot;http://www.videolan.org/vlc/&quot;&gt;http://www.videolan.org/vlc/&lt;/a&gt;</string>
+    <string name="vlc_link" translatable="false">        &lt;a href=&quot;http://www.videolan.org/vlc/&quot;&gt;http://www.videolan.org/vlc/&lt;/a&gt;</string>
+    <string name="lingua_player_link" translatable="false">        &lt;a href=&quot;https://github.com/LinguaPlayer/android_lingua_player&quot;&gt;https://github.com/LinguaPlayer/android_lingua_player&lt;/a&gt;</string>
     <string name="about_copyright" translatable="false">Copyleft &#169; 1996&#8211;2017 by VideoLAN.\n</string>
     <string name="authors" translatable="false">Edward&#160;Wang, Sébastien&#160;Toque, Adrien&#160;Maglo, Jean-Baptiste&#160;Kempf, Ludovic&#160;Fauvet, Rafaël&#160;Carré, Alexandre&#160;Perraud, Michael&#160;Merg, Martin&#160;Storsjö, Rémi&#160;Duraffort, Dominique&#160;Martinet, Jean-Philippe&#160;André, Felix&#160;Abecassis, Christoph&#160;Miebach, Hugo&#160;Beauzée-Luyssen, Felix&#160;Paul&#160;Kühne, John&#160;Mooring, Pavol&#160;Rusnak, Rohit&#160;Yadav, Tanguy&#160;Pruvot, Thomas&#160;Clavier, Asad&#160;Mehmood, Garret&#160;Kelly, Philipp&#160;Dreimann, Walter&#160;Heck, Thomas&#160;Guillem, Geoffrey&#160;Métais.</string>
 
@@ -351,7 +352,7 @@
     <string name="enable_steal_remote_control">Exclusive headset remote control</string>
     <string name="enable_steal_remote_control_summary">Avoid conflicts by stealing the remote control from other apps. This prevents dialing on double click on HTC phones.</string>
     <string name="aout">Audio output</string>
-    <string name="aout_summary">Change the method that VLC uses to output audio.</string>
+    <string name="aout_summary">Change the method that Lingua Player uses to output audio.</string>
     <string name="aout_audiotrack" translatable="false">AudioTrack</string>
     <string name="aout_opensles" translatable="false">OpenSL ES</string>
 
@@ -380,12 +381,12 @@
     <string name="auto_rescan">Auto rescan</string>
     <string name="auto_rescan_summary">Automatically scan device for new or deleted media at application startup</string>
     <string name="clear_media_db">Clear media database</string>
-    <string name="clear_media_db_summary">Access Android VLC info to clear data</string>
+    <string name="clear_media_db_summary">Access Android Lingua Player info to clear data</string>
     <string name="clear_history">Clear search history</string>
     <string name="media_db_cleared">Media database cleared!</string>
     <string name="set_locale">Set locale</string>
     <string name="set_locale_detail">Leave blank to reset</string>
-    <string name="set_locale_popup">Quit and restart VLC for changes to take effect.</string>
+    <string name="set_locale_popup">Quit and restart Lingua Player for changes to take effect.</string>
     <string name="network_caching">Network caching value</string>
     <string name="network_caching_summary">The amount of time to buffer network media (in ms). Does not work with hardware decoding. Leave blank to reset.</string>
     <string name="resume_playback_title">Resume playback after a call</string>
@@ -400,7 +401,7 @@
     <string name="start_logging">Start logging</string>
     <string name="stop_logging">Stop logging</string>
     <string name="clear_log">Clear log</string>
-    <string name="log_service_title">VLC logs recording</string>
+    <string name="log_service_title">Lingua Player logs recording</string>
     <string name="log_service_text">Open the log console</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="copied_to_clipboard">Copied log to clipboard.</string>
@@ -408,9 +409,9 @@
     <string name="dump_logcat_success">Logcat successfully dumped to %1$s!</string>
     <string name="dump_logcat_failure">Failed to dump logcat.</string>
 
-    <string name="serious_crash">Unfortunately, a serious error has occurred and VLC had to close.</string>
-    <string name="help_us_send_log">Help us improving VLC by sending the following crash log:</string>
-    <string name="restart_vlc">Restart VLC</string>
+    <string name="serious_crash">Unfortunately, a serious error has occurred and Lingua Player had to close.</string>
+    <string name="help_us_send_log">Help us improving Lingua Player by sending the following crash log:</string>
+    <string name="restart_vlc">Restart Lingua Player</string>
     <string name="send_log">Send the log</string>
     <string name="sending_log">Sending the log…</string>
 
@@ -461,19 +462,19 @@
     <string name="music_now_playing">Now Playing</string>
 
     <!--Widget-->
-    <string name="widget_default_text" translatable="false">VLC mini player</string>
-    <string name="widget_name_w">VLC White Widget</string>
-    <string name="widget_name_b">VLC Dark Widget</string>
-    <string name="allow_storage_access_title">Allow VLC to access video and audio files</string>
-    <string name="allow_storage_access_description">VLC needs you to grant this permission to access the media files on this device.</string>
-    <string name="allow_settings_access_ringtone_title">Allow VLC to set the ringtone</string>
-    <string name="allow_settings_access_ringtone_description">VLC needs you to grant this permission to set up this song as your ringtone.</string>
-    <string name="allow_settings_access_brightness_title">Allow VLC to change brightness mode</string>
-    <string name="allow_settings_access_brightness_description">VLC needs you to grant this permission to change your brightness mode.</string>
-    <string name="allow_draw_overlays_title">Allow VLC player popup over other apps</string>
-    <string name="allow_sdraw_overlays_description">VLC needs you to grant this permission display your video in a popup over other applications.</string>
+    <string name="widget_default_text" translatable="false">Lingua mini player</string>
+    <string name="widget_name_w">Lingua Player White Widget</string>
+    <string name="widget_name_b">Lingua Player Dark Widget</string>
+    <string name="allow_storage_access_title">Allow Lingua Player to access video and audio files</string>
+    <string name="allow_storage_access_description">Lingua Player needs you to grant this permission to access the media files on this device.</string>
+    <string name="allow_settings_access_ringtone_title">Allow Lingua Player to set the ringtone</string>
+    <string name="allow_settings_access_ringtone_description">Lingua Player needs you to grant this permission to set up this song as your ringtone.</string>
+    <string name="allow_settings_access_brightness_title">Allow Lingua Player to change brightness mode</string>
+    <string name="allow_settings_access_brightness_description">Lingua Player needs you to grant this permission to change your brightness mode.</string>
+    <string name="allow_draw_overlays_title">Allow Lingua Player player popup over other apps</string>
+    <string name="allow_sdraw_overlays_description">Lingua Player needs you to grant this permission display your video in a popup over other applications.</string>
     <string name="permission_ask_again">Grant permission</string>
-    <string name="exit_app">Close VLC</string>
+    <string name="exit_app">Close Lingua Player</string>
 
     <!-- fast scroller -->
     <string name="fastscroller_track">FastScroller track</string>
@@ -724,7 +725,7 @@
     <string name="length">Length</string>
     <string name="tv_settings_hint">Long press OK button to check/uncheck directories</string>
     <string name="ml_external_storage_title">New external storage detected</string>
-    <string name="ml_external_storage_msg">Do you want VLC to add device %1$s to your medialibrary?</string>
+    <string name="ml_external_storage_msg">Do you want Lingua Player to add device %1$s to your medialibrary?</string>
     <string name="last_added_media">last added</string>
     <string name="no">No</string>
 
