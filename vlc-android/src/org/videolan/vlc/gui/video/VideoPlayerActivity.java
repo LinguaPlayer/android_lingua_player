@@ -422,13 +422,13 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (!VLCApplication.showTvUi()) {
 
             mTouchVolumeControl = (mSettings.getBoolean("enable_volume_gesture", true) ? 1 : 0)
-                    + (mSettings.getBoolean("enable_volume_gesture_lock", true) ? 2 : 0);
+                    + (mSettings.getBoolean("enable_volume_gesture_lock", false) ? 2 : 0);
 
             mTouchBrightnessControl = (mSettings.getBoolean("enable_brightness_gesture", true) ? 1 : 0)
-                    + (mSettings.getBoolean("enable_brightness_gesture_lock", true) ? 2 : 0);
+                    + (mSettings.getBoolean("enable_brightness_gesture_lock", false) ? 2 : 0);
 
             mTouchSeekControl = (mSettings.getBoolean("enable_seek_gesture", true) ? 1 : 0)
-                    + (mSettings.getBoolean("enable_seek_gesture_lock", true) ? 2 : 0);
+                    + (mSettings.getBoolean("enable_seek_gesture_lock", false) ? 2 : 0);
 
             mDoubleTapControl = (mSettings.getBoolean("enable_doubletap_gesture", true) ? 1 : 0)
                     + (mSettings.getBoolean("enable_doubletap_gesture_lock", true) ? 2 : 0);
