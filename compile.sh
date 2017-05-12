@@ -143,7 +143,7 @@ else
         exit 1
     fi
     rm -f gradle.properties
-    STOREALIAS="vlc"
+    STOREALIAS="lingua"
 fi
 
 if [ ! -f gradle.properties ]; then
