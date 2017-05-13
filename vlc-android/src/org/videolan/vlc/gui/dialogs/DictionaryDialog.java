@@ -78,6 +78,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     public View onCreateView(LayoutInflater inflater, ViewGroup container , Bundle savedInstanceState){
         getDialog().setCancelable(true);
         getDialog().setCanceledOnTouchOutside(true);
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View v = inflater.inflate(R.layout.dictionary,container);
         return v;
