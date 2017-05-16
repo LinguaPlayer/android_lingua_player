@@ -44,7 +44,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.lingua.player"
+        applicationId "ir.habibkazemi.linguaplayer"
 
         resConfigs "en"
 
