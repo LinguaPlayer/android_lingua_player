@@ -40,7 +40,6 @@ import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -285,14 +284,23 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
         mPlaybackController.enableDisableCaptionControls();
-        dismiss();
+        mCaptionController.setCompoundDrawablesWithIntrinsicBounds(0,
+                mPlaybackController.isCaptionControllerEnabled()
+                        ? R.drawable.ic_navigate_back_next_pressed_selected :
+                        UiTools.getResourceFromAttribute(mActivity, R.attr.ic_caption_back_next),
+                0, 0);
     }
 
     private void enableDisableTouchSub(){
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
         mPlaybackController.enableDisableTouchSub();
-        dismiss();
+
+        mTouchSub.setCompoundDrawablesWithIntrinsicBounds(0,
+                mPlaybackController.isTouchSubEnabled()
+                        ? R.drawable.ic_touch_sub_pressed_selected :
+                        UiTools.getResourceFromAttribute(mActivity, R.attr.ic_touch_sub),
+                0, 0);
     }
 
     public void initPlaybackSpeed () {
@@ -431,7 +439,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
 
         mCaptionController.setCompoundDrawablesWithIntrinsicBounds(0,
                 mPlaybackController.isCaptionControllerEnabled()
-                        ? R.drawable.ic_navigate_back_next_pressed:
+                        ? R.drawable.ic_navigate_back_next_pressed_selected :
                          UiTools.getResourceFromAttribute(mActivity, R.attr.ic_caption_back_next),
                 0, 0);
     }
@@ -442,7 +450,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
 
         mTouchSub.setCompoundDrawablesWithIntrinsicBounds(0,
                 mPlaybackController.isTouchSubEnabled()
-                        ? R.drawable.ic_touch_sub_pressed:
+                        ? R.drawable.ic_touch_sub_pressed_selected :
                         UiTools.getResourceFromAttribute(mActivity, R.attr.ic_touch_sub),
                 0, 0);
     }
