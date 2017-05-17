@@ -429,7 +429,9 @@
     <string name="file_size">File size:</string>
 
     <string name="audio_delay">Audio delay</string>
+    <string name="audio_sync">Audio synchronization</string>
     <string name="spu_delay">Subtitle delay</string>
+    <string name="spu_sync">Subtitle synchronization</string>
     <string name="caption_back_next">Subtitle controller</string>
     <string name="ic_touch_sub">Subtitle touch</string>
     <string name="sleep_time_not_set">none set</string>

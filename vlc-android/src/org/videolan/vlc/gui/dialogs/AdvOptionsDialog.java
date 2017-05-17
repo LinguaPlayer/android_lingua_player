@@ -621,9 +621,9 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
 
             String currentSubtitlePath = ((VideoPlayerActivity)getActivity()).getCurrentSubtitlePath();
             if(currentSubtitlePath != null)
-                mAdapter.addOption(new Option(ID_SPU_DELAY, R.attr.ic_subtitledelay, getString(R.string.spu_delay)));
+                mAdapter.addOption(new Option(ID_SPU_DELAY, R.attr.ic_subtitledelay, getString(R.string.spu_sync)));
             if(mService.getAudioTracksCount() > 0 && (mService.getAudioTrack() != -1))
-                mAdapter.addOption(new Option(ID_AUDIO_DELAY, R.attr.ic_audiodelay, getString(R.string.audio_delay)));
+                mAdapter.addOption(new Option(ID_AUDIO_DELAY, R.attr.ic_audiodelay, getString(R.string.audio_sync)));
 
             if (!tvUi || AndroidDevices.isAndroidTv() && AndroidUtil.isNougatOrLater)
                 mAdapter.addOption(new Option(ID_POPUP_VIDEO, R.attr.ic_popup_dim, getString(R.string.popup_playback_title)));
