@@ -4237,9 +4237,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             //seek if it's on edge else play/pause
             float x = e.getX();
-            if (x < range/4f)
+            if (x < range/10f /*range * 0.1*/ )
                 seekDelta(-10000);
-            else if (x > range*0.75)
+            else if (x > range * 0.90f)
                 seekDelta(10000);
             else
                 doPlayPause();
