@@ -56,6 +56,12 @@
             android:key="enable_doubletap_gesture"
             android:summary="@string/enable_doubletap_gesture_summary"
             android:title="@string/enable_doubletap_gesture_title" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_edge_seek"
+            android:summary="@string/enable_edge_seek_summary"
+            android:title="@string/enable_edge_seek_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/gesture_controls_prefs_category_lock">
@@ -79,6 +85,11 @@
             android:key="enable_doubletap_gesture_lock"
             android:summary="@string/enable_doubletap_gesture_summary_lock"
             android:title="@string/enable_doubletap_gesture_title_lock" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_edge_seek_lock"
+            android:summary="@string/enable_edge_seek_summary_lock"
+            android:title="@string/enable_edge_seek_title_lock"/>
     </PreferenceCategory>
 
 

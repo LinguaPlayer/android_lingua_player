@@ -313,6 +313,12 @@
     <string name="enable_doubletap_gesture_summary">Double tap to pause and resume video playback</string>
     <string name="enable_doubletap_gesture_title_lock">Double tap lock mode</string>
     <string name="enable_doubletap_gesture_summary_lock">Double tap in lock mode to pause and resume video playback</string>
+
+    <string name="enable_edge_seek_title">Edge seek</string>
+    <string name="enable_edge_seek_summary">Double tap on edges to seek 10 second</string>
+    <string name="enable_edge_seek_title_lock">Edge seek lock mode</string>
+    <string name="enable_edge_seek_summary_lock">Double tap on edges to seek 10 second in lock mode</string>
+
     <string name="enable_seek_buttons">Enable seek buttons</string>
     <string name="enable_seek_buttons_summary">Show rewind and forward buttons on the video interface</string>
 

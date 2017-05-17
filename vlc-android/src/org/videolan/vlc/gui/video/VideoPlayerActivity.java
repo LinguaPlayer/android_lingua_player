@@ -226,6 +226,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private int mTouchBrightnessControl = 0;
     private int mTouchSeekControl = 0;
     private int mDoubleTapControl = 0;
+    private int mEdgeSeekControl = 0;
 
     /** Overlay */
     private ActionBar mActionBar;
@@ -434,6 +435,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             mDoubleTapControl = (mSettings.getBoolean("enable_doubletap_gesture", true) ? 1 : 0)
                     + (mSettings.getBoolean("enable_doubletap_gesture_lock", true) ? 2 : 0);
+
+            mEdgeSeekControl = (mSettings.getBoolean("enable_edge_seek", true) ? 1 : 0)
+                    + (mSettings.getBoolean("enable_edge_seek_lock", true) ? 2 : 0);
 
         }
 
@@ -4229,21 +4233,26 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if (mService == null)
                 return false;
 
-
-            if(!mIsLocked && mDoubleTapControl % 2 == 0 /* == 2 || == 0 */)
-                return false;
-            if(mIsLocked && mDoubleTapControl < 2)
-                return false;
-
             //seek if it's on edge else play/pause
             float x = e.getX();
-            if (x < range/10f /*range * 0.1*/ )
-                seekDelta(-10000);
-            else if (x > range * 0.90f)
-                seekDelta(10000);
-            else
+            if (x < range/10f /*range * 0.1*/ ) {
+                if((!mIsLocked && mEdgeSeekControl % 2 == 1) ||(mIsLocked && mEdgeSeekControl >= 2) ) {
+                    seekDelta(-10000);
+                    return true;
+                }
+            }
+            else if (x > range * 0.90f){
+                if((!mIsLocked && mEdgeSeekControl % 2 == 1 ) || (mIsLocked && mEdgeSeekControl >= 2 )){
+                    seekDelta(10000);
+                    return true;
+                }
+            }
+
+            if ((!mIsLocked && mDoubleTapControl % 2 == 1 ) || (mIsLocked && mDoubleTapControl >= 2)){
                 doPlayPause();
-            return true;
+                return true;
+            }
+            return false;
         }
     };
 
