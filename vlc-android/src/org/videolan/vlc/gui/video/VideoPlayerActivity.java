@@ -1408,6 +1408,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     @Override
+    public DelayState getPlaybackSetting() {
+        return mPlaybackSetting;
+    }
+
+    @Override
     public void showAudioDelaySetting() {
         mPlaybackSetting = DelayState.AUDIO;
         showDelayControls();
@@ -1476,12 +1481,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             delaySubs(delay);
         }
 
-    }
-
-    @Override
-    public void showPlaybackSpeedSetting() {
-        mPlaybackSetting = DelayState.SPEED;
-        showDelayControls();
     }
 
     public void showDelayControls(){
@@ -1575,10 +1574,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         } else if (mPlaybackSetting == DelayState.SUBS) {
             text += getString(R.string.spu_delay);
             mEditDelayText.setText(Long.toString(getSubtitleDelay()));
-        } else if (mPlaybackSetting == DelayState.SPEED) {
-            text += getString(R.string.playback_speed)+"\n";
-            text += mService.getRate();
-            text += " x";
         } else
             text += "0";
         mInfo.setText(text);
@@ -1588,7 +1583,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void endPlaybackSetting() {
         //hide soft keyboard
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(mEditDelayText.getWindowToken(), 0);
+        if(inputMethodManager != null && mEditDelayText != null)
+            inputMethodManager.hideSoftInputFromWindow(mEditDelayText.getWindowToken(), 0);
         mTouchAction = TOUCH_NONE;
         mService.saveMediaMeta();
         if (mBtReceiver != null && mPlaybackSetting == DelayState.AUDIO
@@ -1620,8 +1616,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         UiTools.setViewVisibility(mOverlayInfo, View.INVISIBLE);
         UiTools.setViewVisibility(mEditDelayLayout, View.VISIBLE);
-        mInfo.setText("");
-        mEditDelayText.setText("");
+        if(mInfo != null)
+            mInfo.setText("");
+        if(mEditDelayText != null)
+            mEditDelayText.setText("");
 
         mHandler.post(new Runnable() {
             @Override
@@ -1683,18 +1681,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         progressSubtitleCaption();
     }
 
-    public void changeSpeed(float delta){
-        initInfoOverlay();
-        float rate = Math.round((mService.getRate()+delta)*100f)/100f;
-        if (rate < 0.25f || rate > 4f)
-            return;
-        mService.setRate(rate, false);
-        mInfo.setText(getString(R.string.playback_speed) + "\n" +rate + " x");
-        if (mPlaybackSetting == DelayState.OFF) {
-            mPlaybackSetting = DelayState.SPEED;
-            initPlaybackSettingInfo();
-        }
-    }
 
     /**
      * Lock screen rotation
@@ -2733,16 +2719,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     delayAudioDelta(-50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
                     delaySubsDelta(-100);
-                else if (mPlaybackSetting == DelayState.SPEED)
-                    changeSpeed(-0.05f);
                 break;
             case R.id.player_delay_plus:
                 if (mPlaybackSetting == DelayState.AUDIO)
                     delayAudioDelta(50000);
                 else if (mPlaybackSetting == DelayState.SUBS)
                     delaySubsDelta(100);
-                else if (mPlaybackSetting == DelayState.SPEED)
-                    changeSpeed(0.05f);
                 break;
             case R.id.player_overlay_adv_function:
                 showAdvancedOptions();

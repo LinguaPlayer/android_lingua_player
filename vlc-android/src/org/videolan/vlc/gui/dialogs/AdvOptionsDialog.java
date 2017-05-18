@@ -218,6 +218,11 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
         String tag;
         switch (id) {
             case ID_PLAYBACK_SPEED:
+                if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
+                    mPlaybackController = (IPlaybackSettingsController) getActivity();
+                //To hide audio sync and subtitle sync
+                if(mPlaybackController.getPlaybackSetting() != IPlaybackSettingsController.DelayState.OFF)
+                    mPlaybackController.endPlaybackSetting();
                 newFragment = PlaybackSpeedDialog.newInstance(mTheme);
                 tag = "playback_speed";
                 break;
@@ -256,10 +261,6 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
             case ACTION_SPU_DELAY:
                 if (mPlaybackController != null)
                     mPlaybackController.showSubsDelaySetting();
-                break;
-            case ACTION_PLAYBACK_SPEED:
-                if (mPlaybackController != null)
-                    mPlaybackController.showPlaybackSpeedSetting();
                 break;
             default:
                 return;

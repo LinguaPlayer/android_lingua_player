@@ -23,11 +23,11 @@
 package org.videolan.vlc.interfaces;
 
 public interface IPlaybackSettingsController {
-    enum DelayState {OFF, AUDIO, SUBS, SPEED};
+    enum DelayState {OFF, AUDIO, SUBS, SPEED}
 
+    DelayState getPlaybackSetting();
     void showAudioDelaySetting();
     void showSubsDelaySetting();
-    void showPlaybackSpeedSetting();
     void endPlaybackSetting();
     void enableDisableCaptionControls();
     boolean isCaptionControllerEnabled();
