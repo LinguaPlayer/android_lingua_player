@@ -22,18 +22,13 @@ AndroidMediaLibrary *MediaLibrary_getInstance(JNIEnv *env, jobject thiz);
 static void
 MediaLibrary_setInstance(JNIEnv *env, jobject thiz, AndroidMediaLibrary *p_obj);
 
-void
-setup(JNIEnv* env, jobject thiz) {
-    AndroidMediaLibrary *aml = new  AndroidMediaLibrary(myVm, &ml_fields, thiz);
-    MediaLibrary_setInstance(env, thiz, aml);
-}
-
 jboolean
 init(JNIEnv* env, jobject thiz, jstring dbPath, jstring thumbsPath)
 {
+    AndroidMediaLibrary *aml = new  AndroidMediaLibrary(myVm, &ml_fields, thiz);
+    MediaLibrary_setInstance(env, thiz, aml);
     const char *db_utfchars = env->GetStringUTFChars(dbPath, JNI_FALSE);
     const char *thumbs_utfchars = env->GetStringUTFChars(thumbsPath, JNI_FALSE);
-    AndroidMediaLibrary *aml = MediaLibrary_getInstance(env, thiz);
     m_IsInitialized = aml->initML(db_utfchars, thumbs_utfchars);
     env->ReleaseStringUTFChars(dbPath, db_utfchars);
     env->ReleaseStringUTFChars(thumbsPath, thumbs_utfchars);
@@ -65,12 +60,12 @@ banFolder(JNIEnv* env, jobject thiz, jstring folderPath)
 }
 
 jboolean
-addDevice(JNIEnv* env, jobject thiz, jstring uuid, jstring storagePath, jboolean removable)
+addDevice(JNIEnv* env, jobject thiz, jstring uuid, jstring storagePath, jboolean removable, jboolean notify)
 {
     AndroidMediaLibrary *aml = MediaLibrary_getInstance(env, thiz);
     const char *uuidChar = env->GetStringUTFChars(uuid, JNI_FALSE);
     const char *path = env->GetStringUTFChars(storagePath, JNI_FALSE);
-    jboolean isNew = aml->addDevice(uuidChar, path, removable);
+    jboolean isNew = aml->addDevice(uuidChar, path, removable, notify);
     env->ReleaseStringUTFChars(uuid, uuidChar);
     env->ReleaseStringUTFChars(storagePath, path);
     return isNew;
@@ -741,11 +736,10 @@ playlistDelete(JNIEnv* env, jobject thiz, jobject medialibrary, jlong playlistId
   * JNI stuff
   */
 static JNINativeMethod methods[] = {
-    {"nativeSetup", "()V", (void*)setup },
     {"nativeInit", "(Ljava/lang/String;Ljava/lang/String;)Z", (void*)init },
     {"nativeStart", "()V", (void*)start },
     {"nativeRelease", "()V", (void*)release },
-    {"nativeAddDevice", "(Ljava/lang/String;Ljava/lang/String;Z)Z", (void*)addDevice },
+    {"nativeAddDevice", "(Ljava/lang/String;Ljava/lang/String;ZZ)Z", (void*)addDevice },
     {"nativeDevices", "()[Ljava/lang/String;", (void*)devices },
     {"nativeDiscover", "(Ljava/lang/String;)V", (void*)discover },
     {"nativeRemoveEntryPoint", "(Ljava/lang/String;)V", (void*)removeEntryPoint },
