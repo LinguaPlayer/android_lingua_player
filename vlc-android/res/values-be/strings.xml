@@ -32,7 +32,7 @@
     <string name="ringtone_error">Не ўдалося змяніць рынгтон.</string>
     <string name="pause">Паўза</string>
     <string name="not_show_again">Не паказваць зноў.</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">Невядомы артыст</string>
     <string name="unknown_album">Невядомы альбом</string>
     <string name="unknown_genre">Невядомы жанр</string>
@@ -164,7 +164,6 @@
     <string name="show_playlist">Паказаць плэйліст</string>
     <string name="hold_to_stop">Утрымлівайце, каб спыніць</string>
     <!-- About -->
-    <string name="app_name_full">VLC для Android™</string>
     <string name="licence">Ліцэнзія</string>
     <string name="revision">Рэвізія</string>
     <string name="about">Апісанне праграмы</string>

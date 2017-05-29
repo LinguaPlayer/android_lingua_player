@@ -128,7 +128,6 @@
     <string name="previous_next_song">Cançó anterior/següent</string>
     <string name="show_playlist">Mostra la llista de reproducció</string>
     <!-- About -->
-    <string name="app_name_full">VLC per a l\'Android™</string>
     <string name="licence">Llicència</string>
     <string name="revision">Revisió</string>
     <string name="about">Quant a</string>

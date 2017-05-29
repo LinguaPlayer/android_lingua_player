@@ -39,7 +39,7 @@
     <string name="ringtone_error">Dogodila se greška tokom postavljanja zvona.</string>
     <string name="pause">Pauziraj</string>
     <string name="not_show_again">Ne prikazuj ovu poruku ponovo.</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">Nepoznat Izvođač</string>
     <string name="unknown_album">Nepoznat Album</string>
     <string name="unknown_genre">Nepoznat Žanr</string>
@@ -173,7 +173,6 @@
     <string name="show_playlist">Prikaži listu izvođenja</string>
     <string name="hold_to_stop">Drži za zaustavljanje</string>
     <!-- About -->
-    <string name="app_name_full">VLC za Android™</string>
     <string name="licence">Licenca</string>
     <string name="revision">Revizija</string>
     <string name="about">O nama</string>

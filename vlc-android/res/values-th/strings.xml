@@ -178,7 +178,6 @@
     <string name="show_playlist">แสดงผังเล่น</string>
     <string name="hold_to_stop">ค้างไว้เพื่อหยุด</string>
     <!-- About -->
-    <string name="app_name_full">VLC สำหรับ Android™</string>
     <string name="licence">สัญญาอนุญาต</string>
     <string name="revision">การปรับปรุง</string>
     <string name="about">เกี่ยวกับ</string>

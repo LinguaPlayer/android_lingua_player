@@ -30,7 +30,7 @@
     <string name="ringtone_error">Hebo un fallu al afitar el tonu de llamada</string>
     <string name="pause">Posar</string>
     <string name="not_show_again">Nun amosar más esti mensaxe.</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">Artista desconocíu</string>
     <string name="unknown_album">Álbum desconocíu</string>
     <string name="unknown_genre">Xéneru desconocíu</string>
@@ -142,7 +142,6 @@
     <string name="show_playlist">Amosar llista de reproducción</string>
     <string name="hold_to_stop">Caltener pa parar</string>
     <!-- About -->
-    <string name="app_name_full">VLC p\'Android™</string>
     <string name="licence">Llicencia</string>
     <string name="revision">Revisión</string>
     <string name="about">Tocante a</string>

@@ -190,7 +190,6 @@
     <string name="show_playlist">Lejátszólista megjelenítése</string>
     <string name="hold_to_stop">Tartsd a leállításhoz</string>
     <!-- About -->
-    <string name="app_name_full">VLC Android™-ra</string>
     <string name="licence">Licenc</string>
     <string name="revision">Javítás</string>
     <string name="about">Névjegy</string>

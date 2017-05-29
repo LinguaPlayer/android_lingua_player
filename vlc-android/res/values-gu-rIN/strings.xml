@@ -82,7 +82,6 @@
     <string name="error_message_is"> ભૂલ સંદેશ (કૃપા કરીને આ ઉલ્લેખ છે જ્યારે ડિબગીંગ હોય)છે:⏎ </string>
     <!--Tips-->
     <!-- About -->
-    <string name="app_name_full">  Android™ માટે VLC</string>
     <string name="licence">લાઇસન્સ</string>
     <string name="revision">પુનરાવર્તન</string>
     <string name="about">લગભગ</string>

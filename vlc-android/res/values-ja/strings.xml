@@ -184,7 +184,6 @@
     <string name="show_playlist">プレイリストの表示</string>
     <string name="hold_to_stop">停止を保持</string>
     <!-- About -->
-    <string name="app_name_full">VLC for Android™</string>
     <string name="licence">ライセンス</string>
     <string name="revision">リビジョン</string>
     <string name="about">VLCについて</string>

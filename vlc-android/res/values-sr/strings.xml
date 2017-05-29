@@ -144,7 +144,6 @@
     <string name="show_playlist">Прикажи плејлисту</string>
     <string name="hold_to_stop">Држите да зауставите</string>
     <!-- About -->
-    <string name="app_name_full">VLC за Android</string>
     <string name="licence">Лиценца</string>
     <string name="revision">Ревизија</string>
     <string name="about">О апликацији</string>

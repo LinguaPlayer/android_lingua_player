@@ -43,7 +43,7 @@
     <string name="ringtone_error">An error occurred while setting the ringtone.</string>
     <string name="pause">Pause</string>
     <string name="not_show_again">Don\'t show this message again.</string>
-    <string name="info_title">Lingua Player</string>
+    <string name="info_title" translatable="false">Lingua Player</string>
     <string name="unknown_artist">Unknown Artist</string>
     <string name="unknown_album">Unknown Album</string>
     <string name="unknown_genre">Unknown Genre</string>

@@ -205,7 +205,6 @@
     <string name="show_playlist">Pokaż listę odtwarzania</string>
     <string name="hold_to_stop">Przytrzymaj, aby zatrzymać</string>
     <!-- About -->
-    <string name="app_name_full">VLC dla Androida™</string>
     <string name="licence">Licencja</string>
     <string name="revision">Rewizja</string>
     <string name="about">O VLC</string>

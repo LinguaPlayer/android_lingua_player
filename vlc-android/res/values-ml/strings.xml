@@ -100,7 +100,6 @@
     <string name="error_not_compatible">ക്ഷമിക്കുക, ആന്‍ഡ്രോയിഡ്™ ഇല്‍ ഉള്ള VLC ഇപ്പോള്‍ നിങ്ങളുടെ ഉപകരണത്തെ അനുകൂലിക്കുന്നില്ല. </string>
     <!--Tips-->
     <!-- About -->
-    <string name="app_name_full">ആൻഡ്രോയഡിന്™ വേണ്ടിയ VLC</string>
     <string name="licence">ലൈസന്‍സ്‌</string>
     <string name="revision">പരിഷ്‌കരണം</string>
     <string name="about">കുറിച്ച്‌</string>

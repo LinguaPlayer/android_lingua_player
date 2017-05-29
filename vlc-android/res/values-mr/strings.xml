@@ -166,7 +166,6 @@
     <string name="show_playlist">प्लेलिस्ट दाखवा</string>
     <string name="hold_to_stop">थांबवण्यासाठी दाबून ठेवा</string>
     <!-- About -->
-    <string name="app_name_full">Android साठी VLC</string>
     <string name="licence">परवाना</string>
     <string name="revision">पुनरावृत्ती</string>
     <string name="about">VLC विषयी</string>

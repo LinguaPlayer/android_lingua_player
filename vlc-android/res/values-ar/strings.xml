@@ -42,7 +42,7 @@
     <string name="ringtone_error">حدث خطأ أثناء ضبطها للرّنين.</string>
     <string name="pause">ألبِث</string>
     <string name="not_show_again">لا تُظهر هذه الرّسالة مجددًا.</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">مؤدّ غير معروف</string>
     <string name="unknown_album">مجموعة غير معروفة</string>
     <string name="unknown_genre">أسلوب غير معروف</string>
@@ -215,7 +215,6 @@
     <string name="show_playlist">أظهِر قائمة التشغيل</string>
     <string name="hold_to_stop">أبقِ للتوقيف</string>
     <!-- About -->
-    <string name="app_name_full">VLC للأندرويد™</string>
     <string name="licence">الرّخصة</string>
     <string name="revision">التّنقيح</string>
     <string name="about">حول</string>

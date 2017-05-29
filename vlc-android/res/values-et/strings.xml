@@ -116,7 +116,6 @@
     <string name="search_history">Otsingu ajalugu</string>
     <!--Tips-->
     <!-- About -->
-    <string name="app_name_full">VLC Androidile™</string>
     <string name="licence">Litsents</string>
     <string name="revision">Revisioon</string>
     <string name="about">Programmist</string>

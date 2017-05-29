@@ -191,7 +191,6 @@
     <string name="show_playlist">Vis spilleliste</string>
     <string name="hold_to_stop">Hold for å stoppe</string>
     <!-- About -->
-    <string name="app_name_full">VLC for Android™</string>
     <string name="licence">Lisens</string>
     <string name="revision">Revisjon</string>
     <string name="about">Om</string>

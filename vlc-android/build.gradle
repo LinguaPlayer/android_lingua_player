@@ -46,7 +46,6 @@ android {
     defaultConfig {
         applicationId "ir.habibkazemi.linguaplayer"
 
-        resConfigs "en"
 
         resValue "string", "build_time", buildTime()
         resValue "string", "build_host", hostName()

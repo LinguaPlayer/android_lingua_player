@@ -183,7 +183,6 @@
     <string name="show_playlist">显示播放列表</string>
     <string name="hold_to_stop">按住可停止</string>
     <!-- About -->
-    <string name="app_name_full">VLC for Android</string>
     <string name="licence">授权许可</string>
     <string name="revision">修订版本</string>
     <string name="about">关于</string>

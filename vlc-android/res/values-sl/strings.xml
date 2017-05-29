@@ -205,7 +205,6 @@
     <string name="show_playlist">Pokaži seznam predvajanja</string>
     <string name="hold_to_stop">Zadržite pritisk za ustavitev</string>
     <!-- About -->
-    <string name="app_name_full">VLC za Android™</string>
     <string name="licence">Dovoljenje</string>
     <string name="revision">Predelava</string>
     <string name="about">O programu</string>

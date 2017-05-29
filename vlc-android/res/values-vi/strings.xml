@@ -103,7 +103,6 @@
     <string name="encountered_error_title">Lỗi xảy ra khi phát lại</string>
     <!--Tips-->
     <!-- About -->
-    <string name="app_name_full">VLC dành cho </string>
     <string name="licence">Bản quyền</string>
     <string name="revision">Duyệt lại</string>
     <string name="about">Thông tin</string>

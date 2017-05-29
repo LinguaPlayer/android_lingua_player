@@ -190,7 +190,6 @@
     <string name="show_playlist">Birta spilunarlista</string>
     <string name="hold_to_stop">Halda til að stöðva</string>
     <!-- About -->
-    <string name="app_name_full">VLC fyrir Android™</string>
     <string name="licence">Notkunarleyfi</string>
     <string name="revision">Útgáfuauðkenni</string>
     <string name="about">Um</string>

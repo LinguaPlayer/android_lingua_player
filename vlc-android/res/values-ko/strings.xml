@@ -184,7 +184,6 @@
     <string name="show_playlist">재생목록 보기</string>
     <string name="hold_to_stop">멈추려면 길게 누르기</string>
     <!-- About -->
-    <string name="app_name_full">안드로이드용 VLC</string>
     <string name="licence">라이센스</string>
     <string name="revision">리비전</string>
     <string name="about">정보</string>

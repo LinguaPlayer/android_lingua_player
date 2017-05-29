@@ -191,7 +191,6 @@
     <string name="show_playlist">Προβολή λίστας αναπαραγωγής</string>
     <string name="hold_to_stop">Κρατείστε για να σταματήσει</string>
     <!-- About -->
-    <string name="app_name_full">Το VLC για το Android™</string>
     <string name="licence">Άδεια</string>
     <string name="revision">Αναθεώρηση</string>
     <string name="about">Σχετικά</string>

@@ -90,7 +90,6 @@
     <string name="error_problem">দুঃখিত, Android এর জন্য VLC একটি সমস্যা লোড হয় এবং বন্ধ ছিল.</string>
     <!--Tips-->
     <!-- About -->
-    <string name="app_name_full">Android এর জন্য VLC ™</string>
     <string name="licence">লাইসেন্স</string>
     <string name="revision">সংস্করণ</string>
     <string name="about">সম্পর্কে</string>
@@ -112,4 +111,5 @@
     <string name="set_locale_detail">রিসেট করতে ফাঁকা ছেড়ে চলে যান</string>
     <string name="enable_verbose_mode">বাগ্বহুল</string>
     <string name="enable_verbose_mode_summary">ভার্বোসিটি (logcat) বাড়ান</string>
+    <string name="info_title">Lingua Player</string>
 </resources>

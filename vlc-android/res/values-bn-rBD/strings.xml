@@ -34,7 +34,7 @@
     <string name="confirm_delete_folder">ফোল্ডার \'%1$s\' ও এতে থাকা সব বিষয়বস্তু মুছে ফেলবেন?</string>
     <string name="pause">বিরতি</string>
     <string name="not_show_again">এই বার্তাটি পুনরায় দেখাবেন না।</string>
-    <string name="info_title">VLC</string>
+    <string name="info_title">Lingua Player</string>
     <string name="unknown_artist">অজানা শিল্পী</string>
     <string name="unknown_album">অজানা অ্যালবাম</string>
     <string name="unknown_genre">অজানা ধরণ</string>
@@ -136,7 +136,6 @@
     <string name="lock">তালাবদ্ধ</string>
     <string name="ok_got_it">বুঝেছি, এটি খারিজ করুন</string>
     <!-- About -->
-    <string name="app_name_full">Android-এর জন্য VLC</string>
     <string name="licence">লাইসেন্স</string>
     <string name="revision">সংশোধন</string>
     <string name="about">সম্পর্কিত</string>

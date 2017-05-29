@@ -204,7 +204,6 @@
     <string name="show_playlist">Показать плейлист</string>
     <string name="hold_to_stop">Удержание — останов</string>
     <!-- About -->
-    <string name="app_name_full">VLC для Android™</string>
     <string name="licence">Лицензия</string>
     <string name="revision">Ревизия</string>
     <string name="about">О программе</string>
