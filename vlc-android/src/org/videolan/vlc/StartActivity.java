@@ -29,6 +29,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.vlc.gui.AudioPlayerContainerActivity;
@@ -39,6 +40,7 @@ import org.videolan.vlc.gui.tv.audioplayer.AudioPlayerActivity;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.AndroidDevices;
+import org.videolan.vlc.util.Dictionary;
 import org.videolan.vlc.util.Permissions;
 
 public class StartActivity extends Activity {
@@ -48,6 +50,7 @@ public class StartActivity extends Activity {
     private static final String PREF_FIRST_RUN = "first_run";
     public static final String EXTRA_FIRST_RUN = "extra_first_run";
     public static final String EXTRA_UPGRADE = "extra_upgrade";
+    public static final String DICTIONARY_IS_READY = "dictionary_is_ready";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,22 @@ public class StartActivity extends Activity {
         boolean upgrade = firstRun || savedVersionNumber != currentVersionNumber;
         if (upgrade)
             settings.edit().putInt(PREF_FIRST_RUN, currentVersionNumber).apply();
+
+        final boolean dictionaryIsReady = settings.getBoolean(DICTIONARY_IS_READY, false);
+        Log.d("dictionary",dictionaryIsReady+"");
+        if(upgrade || !dictionaryIsReady){
+            final SharedPreferences fSettings = PreferenceManager.getDefaultSharedPreferences(this);
+            VLCApplication.runBackground(new Runnable() {
+                @Override
+                public void run() {
+                    String[] dictionaryValues = getResources().getStringArray(R.array.dictionaries_values);
+                    Dictionary.unpackZip(getApplicationContext(),dictionaryValues[0]);
+                    Dictionary.unpackZip(getApplicationContext(),dictionaryValues[1]);
+                    fSettings.edit().putBoolean(DICTIONARY_IS_READY, true).apply();
+                }
+            });
+        }
+
         startMedialibrary(firstRun, upgrade);
         // Route search query
         if (Intent.ACTION_SEARCH.equals(action) || "com.google.android.gms.actions.SEARCH_ACTION".equals(action)) {

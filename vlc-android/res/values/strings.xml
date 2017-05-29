@@ -748,4 +748,6 @@
     <string name="use_and_add_subtitle">use this subtitle</string>
     <string name="just_add_to_list">just add to list</string>
 
+    <string name="dictionary_is_not_ready">Dictionary is not ready at this moment try again in a few seconds</string>
+
 </resources>

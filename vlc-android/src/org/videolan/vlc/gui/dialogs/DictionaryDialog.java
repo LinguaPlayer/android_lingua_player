@@ -16,6 +16,7 @@ import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -29,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,7 +39,6 @@ import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.util.Dictionary;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -49,6 +50,7 @@ import java.util.regex.Pattern;
 public class DictionaryDialog extends DialogFragment implements AdapterView.OnItemSelectedListener{
 
     private EditText mWordToTranslateEditText;
+    private ScrollView mainScrollView;
     private TextView mCaptionTextView;
     private TextView mTranslationTextView;
     private Dictionary mDictionary;
@@ -56,6 +58,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     private ImageView mSpeakButton;
 
 
+    public final static String TAG = "VLC/DictionaryDialog";
     String[] dictionaryValues = null;
 
 
@@ -63,13 +66,11 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
     }
 
-
     public static DictionaryDialog newInstance (String dialog,String wordToTranslate){
-        DictionaryDialog dictionaryFragment = new DictionaryDialog();
+       DictionaryDialog dictionaryFragment = new DictionaryDialog();
         Bundle args = new Bundle();
         args.putString("word",wordToTranslate);
         args.putString("dialog",dialog);
-
         dictionaryFragment.setArguments(args);
         return dictionaryFragment;
     }
@@ -96,17 +97,15 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     public void onViewCreated(View view , Bundle savedInstanceState){
         super.onViewCreated(view, savedInstanceState);
         final String word = (String) getArguments().get("word");
-        String dialog = (String) getArguments().get("dialog");
-        SpannableStringBuilder clickableCaption = makeClickable(dialog);
+        final String dialog = (String) getArguments().get("dialog");
+        SpannableStringBuilder clickableCaption = makeWordsClickable(dialog);
 
         mWordToTranslateEditText = (EditText) view.findViewById(R.id.edit_text);
         mCaptionTextView = (TextView) view.findViewById(R.id.caption);
         mTranslationTextView = (TextView) view.findViewById(R.id.translation);
         mDictionaryLoading = (ProgressBar) view.findViewById(R.id.dictionary_loading);
         mSpeakButton = (ImageView) view.findViewById(R.id.speak);
-
-
-
+        mainScrollView = (ScrollView) view.findViewById(R.id.main_scroll_view);
 
         mWordToTranslateEditText.setText(word);
         mWordToTranslateEditText.setSelection(word.length());
@@ -114,6 +113,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         mCaptionTextView.setText(clickableCaption);
         mCaptionTextView.setMovementMethod(new LinkTouchMovementMethod());
         mCaptionTextView.setHighlightColor(getResources().getColor(R.color.orange500));
+
+        mTranslationTextView.setMovementMethod(new LinkTouchMovementMethod());
 
         mSpeakButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,8 +130,6 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     // Perform action on key press
-//                    Toast.makeText(getActivity(), mWordToTranslateEditText.getText(), Toast.LENGTH_SHORT).show();
-                    SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml("");
                     translate(mWordToTranslateEditText.getText().toString());
                     return false;
                 }
@@ -144,14 +143,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         dictionaryValues = getResources().getStringArray(R.array.dictionaries_values);
         adapter.setDropDownViewResource(R.layout.language_list_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        spinner.setSelection(0);
+        spinner.setSelection(lastSelectedItem);
 
     }
     private Translate mTranslateTask = null;
 
+    private static int lastSelectedItem = 0;
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         String dbName = dictionaryValues[position];
+        lastSelectedItem = position;
         mDictionaryLoadertask = new DictionaryLoader();
         mDictionaryLoadertask.execute(new String[]{dbName, mWordToTranslateEditText.getText().toString()});
 
@@ -162,24 +163,49 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
     }
 
-    private class Translate extends AsyncTask<String, Void, SpannableStringBuilder> {
+    private class Translate extends AsyncTask<String, Void, String> {
 
         @Override
-        protected SpannableStringBuilder doInBackground(String... params) {
+        protected String doInBackground(String... params) {
             String translation = "";
             if(mDictionary != null)
                 translation = mDictionary.getTranslation(params[0]);
-
-            SpannableStringBuilder styledTranslation = (SpannableStringBuilder) Html.fromHtml(translation.replaceAll("\n","<br />"));
-            return styledTranslation;
+            return translation;
         }
 
         @Override
-        protected void onPostExecute (SpannableStringBuilder styledTranslation) {
-            mTranslationTextView.setText(styledTranslation);
+        protected void onPostExecute (String translation) {
+            SpannableStringBuilder translationWithLinks = getTranslationWithLinks(translation);
+            mTranslationTextView.setText(translationWithLinks);
             mTranslationTextView.setVisibility(View.VISIBLE);
+            mainScrollView.fullScroll(ScrollView.FOCUS_UP);
         }
 
+    }
+
+    private void makeLinkClickable(SpannableStringBuilder strBuilder, final URLSpan span, String url)
+    {
+        int start = strBuilder.getSpanStart(span);
+        int end = strBuilder.getSpanEnd(span);
+        int flags = strBuilder.getSpanFlags(span);
+        //prevent Error : not attached to Activity
+        if(!isAdded())
+            return;
+        ClickableSpan clickableLinkSpan = new SubTouchSpan(url,true,Color.BLUE,Color.RED,getResources().getColor(R.color.white),getResources().getColor(R.color.white));
+        strBuilder.setSpan(clickableLinkSpan, start, end, flags);
+        strBuilder.removeSpan(span);
+    }
+
+    private SpannableStringBuilder getTranslationWithLinks (String html)
+    {
+        SpannableStringBuilder styledTranslation = (SpannableStringBuilder) Html.fromHtml(html);
+        SpannableStringBuilder strBuilder = new SpannableStringBuilder(styledTranslation);
+        URLSpan[] urls = strBuilder.getSpans(0, styledTranslation.length(), URLSpan.class);
+        for(URLSpan span : urls) {
+            makeLinkClickable(strBuilder, span, span.getURL().replaceAll("bword:\\/\\/","").replace("EP_","").replaceAll("_"," "));
+        }
+
+        return strBuilder;
     }
 
     private DictionaryLoader mDictionaryLoadertask = null;
@@ -191,11 +217,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             String dbName = params[0];
             word = params[1];
             try {
-                boolean databaseExist = doesDatabaseExist(dbName + ".dict");
-                if(!databaseExist){
-                    publishProgress("First Run Initialization");
-                }
-                mDictionary = Dictionary.getInstance(getContext(),dbName);
+                mDictionary = Dictionary.getInstance(getContext(), dbName);
                 return mDictionary;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -222,18 +244,14 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             Toast.makeText(getContext(),messages[0],Toast.LENGTH_LONG).show();
         }
 
-        private boolean doesDatabaseExist(String dbName) {
-            File dbFile = getContext().getDatabasePath(dbName);
-            return dbFile.exists();
-        }
-
     }
 
     @Override
     public void onDismiss(final DialogInterface dialog) {
         super.onDismiss(dialog);
         final Activity activity = getActivity();
-        ((VideoPlayerActivity) activity).onDictionaryDialogDismissed();
+        if(activity != null)
+            ((VideoPlayerActivity) activity).onDictionaryDialogDismissed();
     }
 
     @SuppressWarnings("deprecation")
@@ -264,7 +282,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
 
 
-    private SpannableStringBuilder makeClickable(String text){
+    private SpannableStringBuilder makeWordsClickable(String text){
         SpannableStringBuilder ss = new SpannableStringBuilder("");
         String pattern = "[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+]";
         Pattern r = Pattern.compile(pattern);
@@ -278,7 +296,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             end = start + word.length();
 
             if(!r.matcher(word).find()) {
-                ClickableSpan clickableSpan = new SubTouchSpan(word,Color.BLACK,getResources().getColor(R.color.orange500),Color.parseColor("#ffdfae"));
+                ClickableSpan clickableSpan = new SubTouchSpan(word,false,Color.BLACK,getResources().getColor(R.color.orange500),Color.parseColor("#ffdfae"),Color.parseColor("#ffdfae"));
                 ss.setSpan(clickableSpan, start, end, 0);
             }
 
@@ -349,12 +367,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         private int mPressedBackgroundColor;
         private int mNormalTextColor;
         private int mPressedTextColor;
+        private int bgColor;
+        private boolean underlineText;
 
-        private SubTouchSpan(final String text, int normalTextColor, int pressedTextColor, int pressedBackgroundColor) {
+        private SubTouchSpan(final String text,boolean underlineText, int normalTextColor, int pressedTextColor,int normalBgColor, int pressedBackgroundColor) {
             mText = text;
             mNormalTextColor = normalTextColor;
             mPressedTextColor = pressedTextColor;
             mPressedBackgroundColor = pressedBackgroundColor;
+            this.underlineText = underlineText;
+            this.bgColor = normalBgColor;
         }
 
         public void setPressed(boolean isSelected) {
@@ -369,9 +391,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         @Override
         public void updateDrawState(TextPaint ds) {
             ds.setColor(mIsPressed ? mPressedTextColor : mNormalTextColor);
-            ds.bgColor = mIsPressed ? mPressedBackgroundColor :Color.parseColor("#ffdfae") ;
-//            ds.linkColor = Color.BLACK;
-            ds.setUnderlineText(false);
+            ds.bgColor = mIsPressed ? mPressedBackgroundColor : this.bgColor ;
+            ds.setUnderlineText(underlineText);
         }
     }
 

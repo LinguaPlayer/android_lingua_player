@@ -26,50 +26,42 @@ import java.util.zip.ZipInputStream;
 
 public class Dictionary {
 
-    private String DB_PATH = "/data/data/org.videolan.vlc.debug/databases/";
-
     private static Dictionary dictionaryInstance;
     private SQLiteDatabase db  = null;
     private TextToSpeech tts;
 
+    private static String lastDbName = null;
+
     private Dictionary(){
 
     }
-    private Dictionary(Context context){
+    private static String getDatabaseDirectory(Context context){
         String packageName = context.getPackageName();
-        DB_PATH = "/data/data/"+ packageName + "/databases/";
+        return "/data/data/"+ packageName + "/databases/dictionaries";
+    }
+    private Dictionary(Context context, String dbName){
+        db = openDatabase(dbName, context);
+        //TODO:get local from dictionary type
+        initTts(context,Locale.US);
     }
     public static Dictionary getInstance(Context context, String dbName) throws IOException {
 
-        if (dictionaryInstance == null)
-            dictionaryInstance = new Dictionary(context);
-
-        boolean databaseExist = dictionaryInstance.doesDatabaseExist(context, dbName + ".dict");
-
-        if(!databaseExist){
-            dictionaryInstance.unpackZip(context,dbName);
-        }
-        dictionaryInstance.openDatabase(dbName);
-        //TODO:get local from dictionary type
-        dictionaryInstance.initTts(context,Locale.US);
+        if (dictionaryInstance == null || !dbName.equals(getDbName()))
+            dictionaryInstance = new Dictionary(context, dbName);
 
         return dictionaryInstance;
     }
 
 
-    public String getDbName(){
-        if(db!= null) {
-            String dbName = Uri.parse(db.getPath()).getLastPathSegment();
-            return dbName;
-        }
-        return null;
+    private static String getDbName(){
+        return lastDbName;
     }
 
-    private boolean unpackZip(Context context, String dbName)
+    public static boolean unpackZip(Context context, String dbName)
     {
         InputStream is;
         ZipInputStream zis;
-        String outFileName = DB_PATH + dbName + ".dict";
+        String outFileName = getDatabaseDirectory(context) + dbName + ".dict";
         try
         {
             is = context.getAssets().open(dbName + ".zip");
@@ -83,6 +75,7 @@ public class Dictionary {
                 int count;
 
                 String filename = ze.getName();
+                context.openOrCreateDatabase(dbName+".dict",Context.MODE_PRIVATE,null);
                 FileOutputStream fout = new FileOutputStream(outFileName);
 
                 // reading and writing
@@ -109,30 +102,13 @@ public class Dictionary {
         return true;
     }
 
-    private void copyDataBase(Context context, String dbName) throws IOException
-    {
-        InputStream mInput = context.getAssets().open(dbName);
-        String outFileName = DB_PATH+dbName;
-
-        OutputStream mOutput = new FileOutputStream(outFileName);
-        byte[] mBuffer = new byte[1024];
-        int mLength;
-        while ((mLength = mInput.read(mBuffer))>0)
-        {
-            mOutput.write(mBuffer, 0, mLength);
+    private SQLiteDatabase openDatabase(String dbName, Context context){
+        try {
+            return SQLiteDatabase.openDatabase(getDatabaseDirectory(context) + dbName + ".dict", null, SQLiteDatabase.OPEN_READONLY);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        mOutput.flush();
-        mOutput.close();
-        mInput.close();
-    }
-
-    private static boolean doesDatabaseExist(Context context, String dbName) {
-        File dbFile = context.getDatabasePath(dbName);
-        return dbFile.exists();
-    }
-
-    private void openDatabase(String dbName){
-        db = SQLiteDatabase.openDatabase(DB_PATH+dbName+".dict", null, SQLiteDatabase.OPEN_READONLY);
     }
 
     public String getTranslation(String word){

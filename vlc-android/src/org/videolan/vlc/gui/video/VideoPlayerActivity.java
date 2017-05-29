@@ -155,6 +155,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static java.security.AccessController.getContext;
+
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
         IPlaybackSettingsController, PlaybackService.Client.Callback, PlaybackService.Callback,
@@ -3103,10 +3105,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         public void onClick(final View widget) {
             mWasPlaying = mService.isPlaying();
             pause();
-            SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(mDialog);
             FragmentManager fm = getSupportFragmentManager();
-            final DictionaryDialog dictionaryDialog = DictionaryDialog.newInstance(styledString.toString(), mText);
-            dictionaryDialog.show(fm,"sub_Touch");
+            final boolean dictionaryIsReady = mSettings.getBoolean("dictionary_is_ready", false);
+            if(!dictionaryIsReady){
+                Toast.makeText(getApplicationContext(),getString(R.string.dictionary_is_not_ready),Toast.LENGTH_LONG).show();
+                return;
+            }
+            final DictionaryDialog dictionaryDialog = DictionaryDialog.newInstance(mDialog, mText);
+            if(dictionaryDialog != null)
+                dictionaryDialog.show(fm,"sub_Touch");
         }
 
         @Override
