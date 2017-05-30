@@ -92,7 +92,7 @@ public class Medialibrary {
     }
 
     public boolean addDevice(@NonNull String uuid, @NonNull String path, boolean removable, boolean notify) {
-        return nativeAddDevice(uuid, Tools.encodeVLCMrl(path), removable, notify);
+        return nativeAddDevice(VLCUtil.encodeVLCString(uuid), Tools.encodeVLCMrl(path), removable, notify);
     }
 
     public void discover(@NonNull String path) {
@@ -112,7 +112,7 @@ public class Medialibrary {
     }
 
     public boolean removeDevice(String uuid) {
-        return mIsInitiated && nativeRemoveDevice(uuid);
+        return mIsInitiated && nativeRemoveDevice(VLCUtil.encodeVLCString(uuid));
     }
 
     @Override
@@ -224,7 +224,7 @@ public class Medialibrary {
     }
 
     public boolean addToHistory(String mrl, String title) {
-        return mIsInitiated && nativeAddToHistory(mrl, title);
+        return mIsInitiated && nativeAddToHistory(Tools.encodeVLCMrl(mrl), VLCUtil.encodeVLCString(title));
     }
 
     public MediaWrapper getMedia(long id) {
@@ -232,7 +232,7 @@ public class Medialibrary {
     }
 
     public MediaWrapper getMedia(Uri uri) {
-        return mIsInitiated ? nativeGetMediaFromMrl(VLCUtil.locationFromUri(uri)) : null;
+        return mIsInitiated ? nativeGetMediaFromMrl(VLCUtil.encodeVLCUri(uri)) : null;
     }
 
     public MediaWrapper getMedia(String mrl) {
@@ -263,12 +263,14 @@ public class Medialibrary {
     public MediaWrapper findMedia(MediaWrapper mw) {
         if (mIsInitiated && mw != null && mw.getId() == 0L) {
             Uri uri = mw.getUri();
-            mw = getMedia(uri);
-            if (mw == null  && TextUtils.equals("file", uri.getScheme()) &&
+            MediaWrapper libraryMedia = getMedia(uri);
+            if (libraryMedia == null && TextUtils.equals("file", uri.getScheme()) &&
                     uri.getPath() != null && uri.getPath().startsWith("/sdcard")) {
                 uri = Tools.convertLocalUri(uri);
-                mw = getMedia(uri);
+                libraryMedia = getMedia(uri);
             }
+            if (libraryMedia != null)
+                return libraryMedia;
         }
         return mw;
     }
