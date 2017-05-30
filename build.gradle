@@ -25,6 +25,7 @@ ext {
     versionName = '1.1.0'
     versionCode = 1010000
 //    versionCode scheme is T M NN RR AA
+//    T: Target/Flavour (1 for Android, 2 for Chrome?)
 //    M: Major version from 0 to 9
 //    NN: Minor version from 00 to 99
 //    RR: Micro/Revision version from 00 to 99

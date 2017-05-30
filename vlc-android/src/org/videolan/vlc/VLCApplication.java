@@ -85,40 +85,38 @@ public class VLCApplication extends Application {
 
     @Override
     public void onCreate() {
-        synchronized (getClass()) {
-            super.onCreate();
+        super.onCreate();
+        instance = this;
 
-            // Are we using advanced debugging - locale?
-            mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-            String p = mSettings.getString("set_locale", "");
-            if (!p.equals("")) {
-                Locale locale;
-                // workaround due to region code
-                if(p.equals("zh-TW")) {
-                    locale = Locale.TRADITIONAL_CHINESE;
-                } else if(p.startsWith("zh")) {
-                    locale = Locale.CHINA;
-                } else if(p.equals("pt-BR")) {
-                    locale = new Locale("pt", "BR");
-                } else if(p.equals("bn-IN") || p.startsWith("bn")) {
-                    locale = new Locale("bn", "IN");
-                } else {
-                    /**
-                     * Avoid a crash of
-                     * java.lang.AssertionError: couldn't initialize LocaleData for locale
-                     * if the user enters nonsensical region codes.
-                     */
-                    if(p.contains("-"))
-                        p = p.substring(0, p.indexOf('-'));
-                    locale = new Locale(p);
-                }
-                Locale.setDefault(locale);
-                Configuration config = new Configuration();
-                config.locale = locale;
-                getResources().updateConfiguration(config,
-                        getResources().getDisplayMetrics());
+        // Are we using advanced debugging - locale?
+        mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+        String p = mSettings.getString("set_locale", "");
+        if (!p.equals("")) {
+            Locale locale;
+            // workaround due to region code
+            if(p.equals("zh-TW")) {
+                locale = Locale.TRADITIONAL_CHINESE;
+            } else if(p.startsWith("zh")) {
+                locale = Locale.CHINA;
+            } else if(p.equals("pt-BR")) {
+                locale = new Locale("pt", "BR");
+            } else if(p.equals("bn-IN") || p.startsWith("bn")) {
+                locale = new Locale("bn", "IN");
+            } else {
+                /**
+                 * Avoid a crash of
+                 * java.lang.AssertionError: couldn't initialize LocaleData for locale
+                 * if the user enters nonsensical region codes.
+                 */
+                if(p.contains("-"))
+                    p = p.substring(0, p.indexOf('-'));
+                locale = new Locale(p);
             }
-            instance = this;
+            Locale.setDefault(locale);
+            Configuration config = new Configuration();
+            config.locale = locale;
+            getResources().updateConfiguration(config,
+                    getResources().getDisplayMetrics());
         }
 
         runBackground(new Runnable() {
@@ -162,8 +160,7 @@ public class VLCApplication extends Application {
     /**
      * @return the main context of the Application
      */
-    public static synchronized Context getAppContext()
-    {
+    public static Context getAppContext() {
         return instance;
     }
 
@@ -247,7 +244,7 @@ public class VLCApplication extends Application {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
     }
 
-    public static synchronized Medialibrary getMLInstance() {
+    public static Medialibrary getMLInstance() {
         if (sMedialibraryInstance == null) {
             VLCInstance.get(); // ensure VLC is loaded before medialibrary
             sMedialibraryInstance = Medialibrary.getInstance(instance);

@@ -296,8 +296,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mSize;
     private String KEY_REMAINING_TIME_DISPLAY = "remaining_time_display";
     private String KEY_BLUETOOTH_DELAY = "key_bluetooth_delay";
-    private long mSubtitleDelay = 0;
-    private long mAudioDelay = 0;
+    private long mSubtitleDelay = 0L;
+    private long mAudioDelay = 0L;
     private boolean mRateHasChanged = false;
     private int mCurrentAudioTrack = -2;
 
@@ -413,17 +413,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (AndroidUtil.isJellyBeanMR1OrLater) {
             // Get the media router service (Miracast)
             mMediaRouter = (MediaRouter) VLCApplication.getAppContext().getSystemService(Context.MEDIA_ROUTER_SERVICE);
-            mMediaRouterCallback = new MediaRouter.SimpleCallback() {
-                @Override
-                public void onRoutePresentationDisplayChanged(
-                        MediaRouter router, MediaRouter.RouteInfo info) {
-                    Log.d(TAG, "onRoutePresentationDisplayChanged: info=" + info);
-                    final Display presentationDisplay = info.getPresentationDisplay();
-                    final int newDisplayId = presentationDisplay != null ? presentationDisplay.getDisplayId() : -1;
-                    if (newDisplayId != mPresentationDisplayId)
-                        removePresentation();
-                }
-            };
             Log.d(TAG, "MediaRouter information : " + mMediaRouter  .toString());
         }
 
@@ -656,7 +645,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
             showTitle();
             initUI();
-            initVideoParams();
+            setPlaybackParameters();
             mForcedTime = mLastTime = -1;
             setOverlayProgress();
         }
@@ -763,6 +752,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             switchToAudioMode(false);
         }
 
+        cleanUI();
         stopPlayback();
 
         SharedPreferences.Editor editor = mSettings.edit();
@@ -833,12 +823,61 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private void mediaRouterAddCallback(boolean add) {
-        if(!AndroidUtil.isJellyBeanMR1OrLater || mMediaRouter == null) return;
+        if (!AndroidUtil.isJellyBeanMR1OrLater || mMediaRouter == null
+                || add == (mMediaRouterCallback != null))
+            return;
 
-        if(add)
+        if(add) {
+            mMediaRouterCallback = new MediaRouter.SimpleCallback() {
+                @Override
+                public void onRoutePresentationDisplayChanged(
+                        MediaRouter router, MediaRouter.RouteInfo info) {
+                    Log.d(TAG, "onRoutePresentationDisplayChanged: info=" + info);
+                    final Display presentationDisplay = info.getPresentationDisplay();
+                    final int newDisplayId = presentationDisplay != null ? presentationDisplay.getDisplayId() : -1;
+                    if (newDisplayId != mPresentationDisplayId)
+                        removePresentation();
+                }
+            };
             mMediaRouter.addCallback(MediaRouter.ROUTE_TYPE_LIVE_VIDEO, mMediaRouterCallback);
-        else
+        }
+        else {
             mMediaRouter.removeCallback(mMediaRouterCallback);
+            mMediaRouterCallback = null;
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void surfaceFrameAddLayoutListener(boolean add) {
+        if (!AndroidUtil.isHoneycombOrLater || mSurfaceFrame == null
+                || add == (mOnLayoutChangeListener != null))
+            return;
+
+        if (add) {
+            mOnLayoutChangeListener = new View.OnLayoutChangeListener() {
+                private final Runnable mRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        changeSurfaceLayout();
+                    }
+                };
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right,
+                                           int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
+                        /* changeSurfaceLayout need to be called after the layout changed */
+                        mHandler.removeCallbacks(mRunnable);
+                        mHandler.post(mRunnable);
+                    }
+                }
+            };
+            mSurfaceFrame.addOnLayoutChangeListener(mOnLayoutChangeListener);
+            changeSurfaceLayout();
+        }
+        else {
+            mSurfaceFrame.removeOnLayoutChangeListener(mOnLayoutChangeListener);
+            mOnLayoutChangeListener = null;
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -873,8 +912,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         loadMedia();
         boolean ratePref = mSettings.getBoolean(PreferencesActivity.KEY_AUDIO_PLAYBACK_SPEED_PERSIST, true);
         mService.setRate(ratePref || mRateHasChanged ? mSettings.getFloat(PreferencesActivity.VIDEO_RATE, 1.0f) : 1.0F, false);
-
-        initVideoParams();
 
         initPlaylistUi();
     }
@@ -921,40 +958,17 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        if (AndroidUtil.isHoneycombOrLater) {
-            if (mOnLayoutChangeListener == null) {
-                mOnLayoutChangeListener = new View.OnLayoutChangeListener() {
-                    private final Runnable mRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            changeSurfaceLayout();
-                        }
-                    };
-                    @Override
-                    public void onLayoutChange(View v, int left, int top, int right,
-                                               int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                        if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
-                            /* changeSurfaceLayout need to be called after the layout changed */
-                            mHandler.removeCallbacks(mRunnable);
-                            mHandler.post(mRunnable);
-                        }
-                    }
-                };
-            }
-            mSurfaceFrame.addOnLayoutChangeListener(mOnLayoutChangeListener);
-        }
-        changeSurfaceLayout();
+        surfaceFrameAddLayoutListener(true);
 
         /* Listen for changes to media routes. */
-        if (mMediaRouter != null)
-            mediaRouterAddCallback(true);
+        mediaRouterAddCallback(true);
 
         if (mRootView != null)
             mRootView.setKeepScreenOn(true);
     }
 
-    private void initVideoParams() {
-        if (mAudioDelay != 0l)
+    private void setPlaybackParameters() {
+        if (mAudioDelay != 0L && mAudioDelay != mService.getAudioDelay())
             mService.setAudioDelay(mAudioDelay);
         else if (mBtReceiver != null && (mAudioManager.isBluetoothA2dpOn() || mAudioManager.isBluetoothScoOn()))
             toggleBtDelay(true);
@@ -996,8 +1010,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         }
 
-        cleanUI();
-
         if (mService.isSeekable()) {
             mSavedTime = getTime();
             long length = mService.getLength();
@@ -1026,11 +1038,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
 
         /* Stop listening for changes to media routes. */
-        if (mMediaRouter != null)
-            mediaRouterAddCallback(false);
+        mediaRouterAddCallback(false);
 
-        if (mSurfaceFrame != null && AndroidUtil.isHoneycombOrLater && mOnLayoutChangeListener != null)
-            mSurfaceFrame.removeOnLayoutChangeListener(mOnLayoutChangeListener);
+        surfaceFrameAddLayoutListener(false);
 
         if (AndroidUtil.isICSOrLater)
             getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
@@ -1895,8 +1905,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case MediaPlayer.Event.ESAdded:
                 if (mMenuIdx == -1) {
+                    MediaWrapper media = mMedialibrary.findMedia(mService.getCurrentMediaWrapper());
+                        if (media == null)
+                            return;
                     if (event.getEsChangedType() == Media.Track.Type.Audio) {
-                        MediaWrapper media = mMedialibrary.findMedia(mService.getCurrentMediaWrapper());
                         setESTrackLists();
                         int audioTrack = (int) media.getMetaLong(mMedialibrary, MediaWrapper.META_AUDIOTRACK);
                         if (audioTrack != 0 || mCurrentAudioTrack != -2)
@@ -1998,6 +2010,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private void onPlaying() {
         mIsPlaying = true;
+        setPlaybackParameters();
         stopLoading();
         updateOverlayPausePlay();
         updateNavStatus();
@@ -2089,6 +2102,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
         mSwitchingView = true;
         mSwitchToPopup = true;
+        cleanUI();
         exitOK();
     }
 
@@ -3772,9 +3786,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mService.saveTimeToSeek(savedTime);
 
             // Handle playback
-            if (!hasMedia)
-                mService.load(media);
-            else if (!mService.isPlaying())
+            if (!hasMedia) {
+                if (positionInPlaylist != -1)
+                    mService.loadLastPlaylist(PlaybackService.TYPE_VIDEO);
+                else
+                    mService.load(media);
+            } else if (!mService.isPlaying())
                 mService.playIndex(positionInPlaylist);
             else
                 onPlaying();
