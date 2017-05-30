@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.dialogs;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.AsyncTask;
@@ -17,6 +18,7 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -178,7 +180,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             SpannableStringBuilder translationWithLinks = getTranslationWithLinks(translation);
             mTranslationTextView.setText(translationWithLinks);
             mTranslationTextView.setVisibility(View.VISIBLE);
-            mainScrollView.fullScroll(ScrollView.FOCUS_UP);
+            focusOnView(mainScrollView,mTranslationTextView);
         }
 
     }
@@ -264,8 +266,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         Display display = window.getWindowManager().getDefaultDisplay();
 
-        int width;
-        int height;
+        double width;
+        double height;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
             width = display.getWidth();
@@ -277,8 +279,21 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         }
 
 
-        window.setLayout((int) (width * 0.75), (int) (height * 0.65));
-        window.setGravity(Gravity.CENTER);
+        int screenSize = getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK;
+
+        if(screenSize == Configuration.SCREENLAYOUT_SIZE_LARGE) {
+            window.setLayout((int) (width * 0.75), (int) (height * 0.7));
+            window.setGravity(Gravity.CENTER);
+        }
+        else{
+            mTranslationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+            mCaptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+            window.setLayout((int) (width ), (int) (height * 0.85));
+            window.setGravity(Gravity.TOP);
+        }
+
+
     }
 
 
@@ -395,5 +410,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             ds.setUnderlineText(underlineText);
         }
     }
+
+    private void focusOnView(final ScrollView scrollView, final View view){
+        scrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollView.scrollTo(0, view.getTop());
+            }
+        });
+    }
+
+
 
 }

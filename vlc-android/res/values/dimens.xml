@@ -78,4 +78,7 @@
     <dimen name="subtitle_caption_icon">35dp</dimen>
 
     <dimen name="progress_layout_height">24dp</dimen>
+
+    <dimen name="dictionary_font">25sp</dimen>
+
 </resources>
