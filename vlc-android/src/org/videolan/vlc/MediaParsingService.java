@@ -66,32 +66,35 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     private final ThreadPoolExecutor mThreadPool = new ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>(), VLCApplication.THREAD_FACTORY);
 
+    boolean mScanPaused = false;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        boolean paused = false;
         @Override
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case ACTION_PAUSE_SCAN:
                     if (mWakeLock.isHeld())
                         mWakeLock.release();
-                    paused = true;
+                    mScanPaused = true;
                     mMedialibrary.pauseBackgroundOperations();
                     break;
                 case ACTION_RESUME_SCAN:
                     if (!mWakeLock.isHeld())
                         mWakeLock.acquire();
                     mMedialibrary.resumeBackgroundOperations();
-                    paused = false;
+                    mScanPaused = false;
                     break;
                 case Medialibrary.ACTION_IDLE:
-                    if (intent.getBooleanExtra(Medialibrary.STATE_IDLE, true) && !paused) {
-                        stopSelf();
-                    } else {
-                        synchronized (this) {
-                            mLastNotificationTime = 0L;
+                    if (intent.getBooleanExtra(Medialibrary.STATE_IDLE, true)) {
+                        if (!mScanPaused) {
+                            stopSelf();
+                            return;
                         }
-                        showNotification();
                     }
+                    synchronized (MediaParsingService.this) {
+                        if (mLastNotificationTime != -1L)
+                            mLastNotificationTime = 0L;
+                    }
+                    showNotification();
                     break;
             }
         }
@@ -121,7 +124,7 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        synchronized (this) {
+        synchronized (MediaParsingService.this) {
             if (mLastNotificationTime <= 0L)
                 mLastNotificationTime = System.currentTimeMillis();
         }
@@ -177,7 +180,9 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                 String uuid = FileUtils.getFileNameFromPath(path);
                 if (TextUtils.isEmpty(uuid))
                     uuid = "root";
-                mMedialibrary.addDevice(uuid, path, true);
+                mMedialibrary.addDevice(uuid, path, true, true);
+                for (String folder : Medialibrary.getBlackList())
+                    mMedialibrary.banFolder(path + folder);
             }
         }
     }
@@ -199,7 +204,6 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                 @Override
                 public void run() {
                     boolean shouldInit = !(new File(MediaParsingService.this.getCacheDir()+Medialibrary.VLC_MEDIA_DB_NAME).exists());
-                    mMedialibrary.setup();
                     if (mMedialibrary.init(VLCApplication.getAppContext())) {
                         List<String> devices = new ArrayList<>();
                         devices.add(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
@@ -208,7 +212,7 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                         for (String device : devices) {
                             boolean isMainStorage = TextUtils.equals(device, AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY);
                             String uuid = FileUtils.getFileNameFromPath(device);
-                            boolean isNew = mMedialibrary.addDevice(isMainStorage ? "main-storage" : uuid, device, !isMainStorage);
+                            boolean isNew = mMedialibrary.addDevice(isMainStorage ? "main-storage" : uuid, device, !isMainStorage, false);
                             boolean isIgnored = sharedPreferences.getBoolean("ignore_"+ uuid, false);
                             if (!isMainStorage && isNew && !isIgnored) {
                                     startActivity(new Intent(MediaParsingService.this, DialogActivity.class)
@@ -240,7 +244,7 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     private final Intent notificationIntent = new Intent();
     private void showNotification() {
         final long currentTime = System.currentTimeMillis();
-        synchronized (this) {
+        synchronized (MediaParsingService.this) {
             if (mLastNotificationTime == -1L || currentTime-mLastNotificationTime < NOTIFICATION_DELAY)
                 return;
             mLastNotificationTime = currentTime;
@@ -266,25 +270,24 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
                 }
                 String progressText = sb.toString();
                 builder.setContentText(progressText);
-                mLocalBroadcastManager.sendBroadcast(progessIntent
-                        .putExtra(ACTION_PROGRESS_TEXT, progressText)
-                        .putExtra(ACTION_PROGRESS_VALUE, mParsing));
 
-                boolean isWorking = mMedialibrary.isWorking();
-                if (wasWorking != isWorking) {
-                    wasWorking = isWorking;
-                    notificationIntent.setAction(isWorking ? ACTION_PAUSE_SCAN : ACTION_RESUME_SCAN);
+                if (wasWorking != mMedialibrary.isWorking()) {
+                    wasWorking = !wasWorking;
+                    notificationIntent.setAction(mScanPaused ? ACTION_RESUME_SCAN : ACTION_PAUSE_SCAN);
                     PendingIntent pi = PendingIntent.getBroadcast(VLCApplication.getAppContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                    NotificationCompat.Action playpause = isWorking ? new NotificationCompat.Action(R.drawable.ic_pause, getString(R.string.pause), pi)
-                            : new NotificationCompat.Action(R.drawable.ic_play, getString(R.string.resume), pi);
+                    NotificationCompat.Action playpause = mScanPaused ? new NotificationCompat.Action(R.drawable.ic_play, getString(R.string.resume), pi)
+                            : new NotificationCompat.Action(R.drawable.ic_pause, getString(R.string.pause), pi);
                     builder.mActions.clear();
                     builder.addAction(playpause);
                 }
                 final Notification notification = builder.build();
                 synchronized (MediaParsingService.this) {
                     if (mLastNotificationTime != -1L) {
+                        mLocalBroadcastManager.sendBroadcast(progessIntent
+                                .putExtra(ACTION_PROGRESS_TEXT, progressText)
+                                .putExtra(ACTION_PROGRESS_VALUE, mParsing));
                         try {
-                            NotificationManagerCompat.from(MediaParsingService.this).notify(43, notification);
+                            startForeground(43, notification);
                         } catch (IllegalArgumentException ignored) {}
                     }
                 }
@@ -293,7 +296,7 @@ public class MediaParsingService extends Service implements DevicesDiscoveryCb {
     }
 
     private void hideNotification() {
-        synchronized (this) {
+        synchronized (MediaParsingService.this) {
             mLastNotificationTime = -1L;
             NotificationManagerCompat.from(MediaParsingService.this).cancel(43);
         }
