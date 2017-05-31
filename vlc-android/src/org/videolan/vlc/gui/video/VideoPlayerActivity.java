@@ -2487,9 +2487,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     coef > 1 ? String.format(" x%.1g", 1.0/coef) : ""), 50);
         else
             showInfo(R.string.unseekable_stream, 1000);
-        //to show seekbar update when it's paused
-        if(mShowing)
-            setOverlayProgress();
     }
 
     private void doVolumeTouch(float y_changed) {
@@ -3257,10 +3254,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mForcedTime = position;
         mLastTime = mService.getTime();
         mService.seek(position, length);
+        //update seekbar , mLength and mTime
+        setOverlayProgress((int) position, (int) length);
+
         //when video is paused and user seeks
         if(!mService.isPlaying() && showCaption)
             progressSubtitleCaption();
-
     }
 
     private void seekDelta(int delta) {
@@ -3566,7 +3565,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
         int time = (int) getTime();
         int length = (int) mService.getLength();
+        return setOverlayProgress(time, length);
+    }
 
+    private int setOverlayProgress(int time, int length) {
         // Update all view elements
         if (mSeekbar != null) {
             mSeekbar.setMax(length);
