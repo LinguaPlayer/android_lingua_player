@@ -450,6 +450,7 @@
     <string name="opengl_summary"></string>
     <string name="other_controls_prefs_category"></string>
     <string name="resume">ادامه‌دادن</string>
+    <string name="subtitle_track">قطعه زیرنویس</string>
     <string name="replace_subtitle">الان این زیرنویس استفاده شود یا فقط به لیست زینویس های ویدیو اضافه گردد؟</string>
     <string name="resume_playback_summary">در غیر این صورت در حالت مکث می ماند</string>
     <string name="resume_playback_title">ادامه دادن پخش پس از تماس تلفنی</string>
@@ -458,6 +459,7 @@
     <string name="search_global">جست و جوی کامل کتابخانه‌ی رسانه</string>
     <string name="search_list_hint">جست و جو در لیست کنونی</string>
     <string name="spu_sync">هماهنگ سازی زیرنویس</string>
+    <string name="caption_back_next">دکمه های کنترل زیرنویس</string>
     <string name="subtitle_parse_fail">فایل انتخاب شده معتبر نیست</string>
     <string name="subtitles_bottom_margins_title">حاشیه‌ی پایین زیرنویس</string>
     <string name="subtitles_color_black">مشکی</string>
