@@ -2340,6 +2340,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        final boolean rtl = AndroidUtil.isJellyBeanMR1OrLater && TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
         if (mService == null)
             return false;
         if (mDetector == null) {
@@ -2400,24 +2401,28 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                             return false;
                         mTouchY = event.getRawY();
                         mTouchX = event.getRawX();
-                        // Volume (Up or Down - Right side)
+                        // (Up or Down - Right side) LTR: Volume RTL: Brightness
                         if ((int)mTouchX > (4 * mScreen.widthPixels / 7f)){
                             if(!mIsLocked && mTouchVolumeControl % 2 == 0 /* == 2 || == 0 */)
                                 return true;
                             if(mIsLocked && mTouchVolumeControl < 2)
                                 return true;
-
-                            doVolumeTouch(y_changed);
+                            if (!rtl)
+                                doVolumeTouch(y_changed);
+                            else
+                                doBrightnessTouch(y_changed);
                             hideOverlay(true);
                         }
-                        // Brightness (Up or Down - Left side)
+                        // (Up or Down - Left side) LTR: Brightness RTL: Volume
                         if ((int)mTouchX < (3 * mScreen.widthPixels / 7f)){
                             if(!mIsLocked && mTouchBrightnessControl % 2 == 0 /* == 2 || == 0 */)
                                 return true;
                             if(mIsLocked && mTouchBrightnessControl < 2)
                                 return true;
-
-                            doBrightnessTouch(y_changed);
+                            if(!rtl)
+                                doBrightnessTouch(y_changed);
+                            else
+                                doVolumeTouch(y_changed);
                             hideOverlay(true);
                         }
                     } else {
@@ -2426,7 +2431,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                             return true;
                         if(mIsLocked && mTouchSeekControl < 2)
                             return true;
-                        doSeekTouch(Math.round(delta_y), xgesturesize, false);
+                        doSeekTouch(Math.round(delta_y), rtl ? -xgesturesize : xgesturesize , false);
                     }
                 } else {
                     mTouchY = event.getRawY();
@@ -2443,7 +2448,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 sendMouseEvent(MotionEvent.ACTION_UP, 0, xTouch, yTouch);
                 // Seek
                 if (mTouchAction == TOUCH_SEEK)
-                    doSeekTouch(Math.round(delta_y), xgesturesize, true);
+                    doSeekTouch(Math.round(delta_y), rtl ? -xgesturesize : xgesturesize , true);
                 mTouchX = -1f;
                 mTouchY = -1f;
                 break;
