@@ -4,7 +4,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white" >
+    android:background="@color/white"
+    android:layoutDirection="ltr">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -40,7 +41,8 @@
             android:background="@color/orange50"
             android:inputType="textNoSuggestions"
             android:maxLines="1"
-            android:text="attention"/>
+            android:paddingRight="10dp"
+            android:paddingEnd="10dp"/>
 
     </LinearLayout>
 
