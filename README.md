@@ -1,9 +1,9 @@
 # Lingua Player
 Powerful video and audio player with language learning feature.
 
-[<img alt="Get it on Google Play" height="80" src="https://s.cafebazaar.ir/2/images/badge-g-fullsize.png">](https://cafebazaar.ir/app/ir.habibkazemi.linguaplayer/?l=en)
+[<img alt="Get it on Cafebazaar" height="80" src="https://s.cafebazaar.ir/2/images/badge-g-fullsize.png">](https://cafebazaar.ir/app/ir.habibkazemi.linguaplayer/?l=en)
 
-#Overview
+# Overview
 watch your favorite movie and learn a new language.
 
 - Open Source, and based on VLC for Android
