@@ -179,8 +179,15 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         protected void onPostExecute (String translation) {
             SpannableStringBuilder translationWithLinks = getTranslationWithLinks(translation);
             mTranslationTextView.setText(translationWithLinks);
+            mDictionaryLoading.setVisibility(View.GONE);
             mTranslationTextView.setVisibility(View.VISIBLE);
             focusOnView(mainScrollView,mTranslationTextView);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mTranslationTextView.setVisibility(View.GONE);
+            mDictionaryLoading.setVisibility(View.VISIBLE);
         }
 
     }
@@ -230,15 +237,14 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         @Override
         protected void onPostExecute(Dictionary db) {
-            mDictionaryLoading.setVisibility(View.GONE);
             mDictionary = db;
             translate(word);
         }
 
         @Override
         protected void onPreExecute() {
-            mDictionaryLoading.setVisibility(View.VISIBLE);
             mTranslationTextView.setVisibility(View.GONE);
+            mDictionaryLoading.setVisibility(View.VISIBLE);
         }
 
         @Override

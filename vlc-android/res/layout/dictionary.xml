@@ -82,13 +82,13 @@
                 android:layout_gravity="left"
                 android:src="@drawable/ic_bookmark"
                 android:visibility="gone"/>
-
             <ProgressBar
                 android:id="@+id/dictionary_loading"
                 style="?android:attr/progressBarStyleLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginTop="20dp"
                 android:visibility="gone"/>
 
             <com.devspark.robototextview.widget.RobotoTextView
