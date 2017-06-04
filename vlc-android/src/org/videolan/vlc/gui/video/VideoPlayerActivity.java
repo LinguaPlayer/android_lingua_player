@@ -3124,14 +3124,24 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mWasPlaying = mService.isPlaying();
             pause();
             FragmentManager fm = getSupportFragmentManager();
-            final boolean dictionaryIsReady = mSettings.getBoolean("dictionary_is_ready", false);
-            if(!dictionaryIsReady){
-                Toast.makeText(getApplicationContext(),getString(R.string.dictionary_is_not_ready),Toast.LENGTH_LONG).show();
-                return;
+            final int dictionaryState = mSettings.getInt("dictionary_status", 0);
+            switch (dictionaryState){
+                case 3 : /*OK*/
+                    final DictionaryDialog dictionaryDialog = DictionaryDialog.newInstance(mDialog, mText);
+                    if(dictionaryDialog != null)
+                        dictionaryDialog.show(fm,"sub_Touch");
+                    return;
+
+                case 0 : /*not ready yet*/
+                    Toast.makeText(getApplicationContext(),getString(R.string.dictionary_is_not_ready),Toast.LENGTH_LONG).show();
+                    return;
+                case 2 : /*not enough storage error */
+                    Toast.makeText(getApplicationContext(),getString(R.string.dictionary_not_enough_space),Toast.LENGTH_LONG).show();
+                    return;
+                case 1 : /*unknown error*/
+                    Toast.makeText(getApplicationContext(),getString(R.string.dictionary_error),Toast.LENGTH_LONG).show();
+                    return;
             }
-            final DictionaryDialog dictionaryDialog = DictionaryDialog.newInstance(mDialog, mText);
-            if(dictionaryDialog != null)
-                dictionaryDialog.show(fm,"sub_Touch");
         }
 
         @Override

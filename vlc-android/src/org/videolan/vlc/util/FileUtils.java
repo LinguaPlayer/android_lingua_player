@@ -29,7 +29,9 @@ import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.os.StatFs;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -403,5 +405,16 @@ public class FileUtils {
             }
         }
         return uri;
+    }
+
+    public static float getAvailableInternalMemorySize() {
+        File path = Environment.getDataDirectory();
+        StatFs stat = new StatFs(path.getPath());
+        long bytesAvailable = 0;
+        if(AndroidUtil.isJellyBeanMR2OrLater)
+            bytesAvailable = (long) stat.getBlockSizeLong() * (long) stat.getAvailableBlocksLong();
+        else
+            bytesAvailable = (long) stat.getBlockSize() * (long) stat.getAvailableBlocks();
+        return bytesAvailable / (1024.f);
     }
 }

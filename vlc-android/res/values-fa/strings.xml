@@ -424,6 +424,8 @@
     <string name="enable_volume_gesture_summary_lock">کنترل بلندی صداتوسط حرکت روی صفحه در حین پخش ویدیو قفل شده</string>
     <string name="enable_volume_gesture_title_lock">حرکت بلندی صدا در حالت قفل</string>
     <string name="dictionary_is_not_ready">دیکشنری هنوز آماده نشده است چند ثانیه دیگر امتحان کنید</string>
+    <string name="dictionary_not_enough_space">در دستگاه شما فضای خالی وجود ندارد،مقداری فضا خالی کنید و نرم افزار را ریستارت کنید</string>
+    <string name="dictionary_error">مشکل پیش‌بینی‌نشده‌ای رخ داده است!</string>
     <string name="enable_brightness_gesture_summary_lock">کنترل درخشانی توسط حرکت روی صفحه ویدیو در حین بخش ویدیو قفل شده</string>
     <string name="enable_brightness_gesture_title_lock">حرکت روشنایی در حالت قفل</string>
     <string name="enable_doubletap_gesture_summary">دوبار لمس صفحه برای پخش و مکث پخش ویدیو</string>

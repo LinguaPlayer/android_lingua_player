@@ -41,6 +41,7 @@ import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.Dictionary;
+import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Permissions;
 
 public class StartActivity extends Activity {
@@ -50,7 +51,8 @@ public class StartActivity extends Activity {
     private static final String PREF_FIRST_RUN = "first_run";
     public static final String EXTRA_FIRST_RUN = "extra_first_run";
     public static final String EXTRA_UPGRADE = "extra_upgrade";
-    public static final String DICTIONARY_IS_READY = "dictionary_is_ready";
+    public static final String DICTIONARY_STATUS = "dictionary_status";
+    public static final float DICTIONAEY_SIZE = 252;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,17 +82,27 @@ public class StartActivity extends Activity {
         if (upgrade)
             settings.edit().putInt(PREF_FIRST_RUN, currentVersionNumber).apply();
 
-        final boolean dictionaryIsReady = settings.getBoolean(DICTIONARY_IS_READY, false);
-        Log.d("dictionary",dictionaryIsReady+"");
-        if(upgrade || !dictionaryIsReady){
+        //0 : not ready
+        //1 : error
+        //2 : not enough storage error
+        //3 : done
+        final int dictionaryState = settings.getInt(DICTIONARY_STATUS, 0);
+        if(upgrade || (dictionaryState != 3) ){
             final SharedPreferences fSettings = PreferenceManager.getDefaultSharedPreferences(this);
             VLCApplication.runBackground(new Runnable() {
                 @Override
                 public void run() {
+                    if(FileUtils.getAvailableInternalMemorySize() < DICTIONAEY_SIZE) {
+                        fSettings.edit().putInt(DICTIONARY_STATUS, 2).apply();
+                        return;
+                    }
                     String[] dictionaryValues = getResources().getStringArray(R.array.dictionaries_values);
-                    Dictionary.unpackZip(getApplicationContext(),dictionaryValues[0]);
-                    Dictionary.unpackZip(getApplicationContext(),dictionaryValues[1]);
-                    fSettings.edit().putBoolean(DICTIONARY_IS_READY, true).apply();
+                    boolean b1 = Dictionary.unpackZip(getApplicationContext(),dictionaryValues[0]);
+                    boolean b2 = Dictionary.unpackZip(getApplicationContext(),dictionaryValues[1]);
+                    if(b1 && b2)
+                        fSettings.edit().putInt(DICTIONARY_STATUS, 3).apply();
+                    else
+                        fSettings.edit().putInt(DICTIONARY_STATUS, 1).apply();
                 }
             });
         }

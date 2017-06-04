@@ -758,5 +758,7 @@
     <string name="just_add_to_list">just add to list</string>
 
     <string name="dictionary_is_not_ready">Dictionary is not ready at this moment try again in a few seconds</string>
+    <string name="dictionary_not_enough_space">There is not enough free space in your device free up some space and restart the app </string>
+    <string name="dictionary_error">Unexpected error happend!</string>
 
 </resources>
