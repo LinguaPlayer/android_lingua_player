@@ -6,7 +6,7 @@ Powerful video and audio player with language learning feature.
 # Overview
 watch your favorite movie and learn a new language.
 
-- Open Source, and based on VLC for Android
+- Open Source and based on VLC for Android
 - Plays most video and audio files
 - Shows the meaning of the words of the subtitle with touching them
 - Full support Persian subtitle and other languages
