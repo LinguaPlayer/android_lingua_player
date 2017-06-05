@@ -2882,7 +2882,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public void onSubtitleParseCompleted(boolean isSuccessful, TimedTextObject subtitleCaptions, String subtitleFilePath) {
         removeCurrentSubtitle();
         if((subtitleCaptions == null) || (subtitleCaptions.captions == null ) || (subtitleCaptions.captions.size() == 0)){
-            showInfo(R.string.subtitle_parse_fail, 2000);
+            Toast.makeText(this, R.string.subtitle_parse_fail, Toast.LENGTH_LONG).show();
             return;
         }
 
