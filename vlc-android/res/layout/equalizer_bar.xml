@@ -9,6 +9,7 @@
     <!-- Be careful: the view is rotated by 90 degrees. -->
     <org.videolan.vlc.gui.view.VerticalSeekBar
         android:id="@+id/equalizer_seek"
+        android:layoutDirection="ltr"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_gravity="center_horizontal"
