@@ -462,7 +462,7 @@
     <string name="search_list_hint">جست و جو در لیست کنونی</string>
     <string name="spu_sync">هماهنگ سازی زیرنویس</string>
     <string name="caption_back_next">دکمه های کنترل زیرنویس</string>
-    <string name="subtitle_parse_fail">فایل انتخاب شده معتبر نیست</string>
+    <string name="subtitle_parse_fail">فایل انتخاب شده معتبر نیست یا کدگذاری انتخاب شده صحیح نمی باشد</string>
     <string name="subtitles_bottom_margins_title">حاشیه‌ی پایین زیرنویس</string>
     <string name="subtitles_color_black">مشکی</string>
     <string name="subtitles_outline_color_title">رنگ خط خارجی زیرنویس ها</string>
