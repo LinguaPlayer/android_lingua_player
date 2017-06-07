@@ -203,6 +203,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private int mPresentationDisplayId = -1;
     private Uri mUri;
     private boolean mAskResume = true;
+    private boolean mIsRtl;
     private ScaleGestureDetector mScaleGestureDetector;
     private GestureDetectorCompat mDetector = null;
 
@@ -549,6 +550,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mCurrentSize = mSettings.getInt(PreferencesActivity.VIDEO_RATIO, SURFACE_BEST_FIT);
         }
         mMedialibrary = VLCApplication.getMLInstance();
+        mIsRtl = AndroidUtil.isJellyBeanMR1OrLater && TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
 
         //config subtitle view
         mSubtitleColor = Color.parseColor(mSettings.getString("subtitles_color","#ffffff"));
@@ -938,7 +940,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             ItemTouchHelper.Callback callback =  new SwipeDragItemTouchHelperCallback(mPlaylistAdapter);
             ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
             touchHelper.attachToRecyclerView(mPlaylist);
-            if (AndroidUtil.isJellyBeanMR1OrLater && TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL) {
+            if (mIsRtl) {
                 mPlaylistPrevious.setImageResource(R.drawable.ic_playlist_next_circle);
                 mPlaylistNext.setImageResource(R.drawable.ic_playlist_previous_circle);
             }
@@ -2340,7 +2342,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        final boolean rtl = AndroidUtil.isJellyBeanMR1OrLater && TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
         if (mService == null)
             return false;
         if (mDetector == null) {
@@ -2407,7 +2408,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                                 return true;
                             if(mIsLocked && mTouchVolumeControl < 2)
                                 return true;
-                            if (!rtl)
+                            if (!mIsRtl)
                                 doVolumeTouch(y_changed);
                             else
                                 doBrightnessTouch(y_changed);
@@ -2419,7 +2420,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                                 return true;
                             if(mIsLocked && mTouchBrightnessControl < 2)
                                 return true;
-                            if(!rtl)
+                            if(!mIsRtl)
                                 doBrightnessTouch(y_changed);
                             else
                                 doVolumeTouch(y_changed);
@@ -2431,7 +2432,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                             return true;
                         if(mIsLocked && mTouchSeekControl < 2)
                             return true;
-                        doSeekTouch(Math.round(delta_y), rtl ? -xgesturesize : xgesturesize , false);
+                        doSeekTouch(Math.round(delta_y), mIsRtl ? -xgesturesize : xgesturesize , false);
                     }
                 } else {
                     mTouchY = event.getRawY();
@@ -2448,7 +2449,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 sendMouseEvent(MotionEvent.ACTION_UP, 0, xTouch, yTouch);
                 // Seek
                 if (mTouchAction == TOUCH_SEEK)
-                    doSeekTouch(Math.round(delta_y), rtl ? -xgesturesize : xgesturesize , true);
+                    doSeekTouch(Math.round(delta_y), mIsRtl ? -xgesturesize : xgesturesize , true);
                 mTouchX = -1f;
                 mTouchY = -1f;
                 break;
