@@ -52,7 +52,7 @@ public class StartActivity extends Activity {
     public static final String EXTRA_FIRST_RUN = "extra_first_run";
     public static final String EXTRA_UPGRADE = "extra_upgrade";
     public static final String DICTIONARY_STATUS = "dictionary_status";
-    public static final float DICTIONAEY_SIZE = 252;
+    public static final float DICTIONAEY_SIZE = 73;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
