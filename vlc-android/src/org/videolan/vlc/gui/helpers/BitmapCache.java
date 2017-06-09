@@ -21,8 +21,6 @@
 package org.videolan.vlc.gui.helpers;
 
 import android.annotation.TargetApi;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -30,21 +28,15 @@ import android.os.Build;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
-import org.videolan.libvlc.util.AndroidUtil;
-import org.videolan.vlc.R;
-import org.videolan.vlc.VLCApplication;
-
-import java.lang.ref.SoftReference;
+import org.videolan.vlc.BuildConfig;
+import org.videolan.vlc.util.Strings;
 
 public class BitmapCache {
 
-    public final static String TAG = "VLC/BitmapCache";
-    private final static boolean LOG_ENABLED = false;
+    private final static String TAG = "VLC/BitmapCache";
 
-    private static final String CONE_KEY = "res:"+ R.drawable.cone;
-    private static final String CONE_O_KEY = "res:"+ R.drawable.ic_cone_o;
     private static BitmapCache mInstance;
-    private final LruCache<String, CacheableBitmap> mMemCache;
+    private final LruCache<String, Bitmap> mMemCache;
 
     public synchronized static BitmapCache getInstance() {
         if (mInstance == null)
@@ -55,44 +47,34 @@ public class BitmapCache {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private BitmapCache() {
 
-        // Get memory class of this device, exceeding this amount will throw an
-        // OutOfMemory exception.
-        final ActivityManager am = ((ActivityManager) VLCApplication.getAppContext().getSystemService(
-                Context.ACTIVITY_SERVICE));
-        final int memClass = AndroidUtil.isHoneycombOrLater ? am.getLargeMemoryClass() : am.getMemoryClass();
+        // Use 20% of the available memory for this memory cache.
+        final long cacheSize = Runtime.getRuntime().maxMemory() / 5;
 
-        // Use 1/5th of the available memory for this memory cache.
-        final int cacheSize = 1024 * 1024 * memClass / 5;
+        if (BuildConfig.DEBUG)
+            Log.i(TAG, "LRUCache size set to " +  Strings.readableSize(cacheSize));
 
-        Log.i(TAG, "LRUCache size set to " + cacheSize);
-
-        mMemCache = new LruCache<String, CacheableBitmap>(cacheSize) {
+        mMemCache = new LruCache<String, Bitmap>((int) cacheSize) {
 
             @Override
-            protected int sizeOf(String key, CacheableBitmap value) {
-                return value.getSize();
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getRowBytes() * value.getHeight();
             }
         };
     }
 
     public synchronized Bitmap getBitmapFromMemCache(String key) {
-        final CacheableBitmap cacheableBitmap = mMemCache.get(key);
-        if (cacheableBitmap == null)
-            return null;
-        Bitmap b = cacheableBitmap.get();
+        final Bitmap b = mMemCache.get(key);
+
         if (b == null){
             mMemCache.remove(key);
             return null;
         }
-        if (LOG_ENABLED)
-            Log.d(TAG, (b == null) ? "Cache miss" : "Cache found");
         return b;
     }
 
     public synchronized void addBitmapToMemCache(String key, Bitmap bitmap) {
         if (key != null && bitmap != null && getBitmapFromMemCache(key) == null) {
-            final CacheableBitmap cacheableBitmap = new CacheableBitmap(bitmap);
-            mMemCache.put(key, cacheableBitmap);
+            mMemCache.put(key, bitmap);
         }
     }
 
@@ -116,29 +98,5 @@ public class BitmapCache {
             cache.addBitmapToMemCache(resId, bitmap);
         }
         return bitmap;
-    }
-
-    private static class CacheableBitmap {
-        final int mSize;
-        final SoftReference<Bitmap> mReference;
-
-        CacheableBitmap(Bitmap bitmap){
-            mReference = new SoftReference<Bitmap>(bitmap);
-            mSize = bitmap == null ? 0 : bitmap.getRowBytes() * bitmap.getHeight();
-        }
-
-        public SoftReference<Bitmap> getReference(){
-            return mReference;
-        }
-
-        public Bitmap get(){
-            if (mReference != null)
-                return mReference.get();
-            return null;
-        }
-
-        public int getSize(){
-            return mSize;
-        }
     }
 }

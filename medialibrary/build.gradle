@@ -63,7 +63,8 @@ clean {
 
 dependencies {
     compile project(':libvlc')
-    compile 'com.android.support:support-v4:'+rootProject.ext.appCompatVersion
-    compile 'com.android.support:support-compat:'+rootProject.ext.appCompatVersion
-    compile 'com.android.support:support-fragment:'+rootProject.ext.appCompatVersion
+    compile "com.android.support:support-v4:$rootProject.ext.appCompatVersion"
+    compile "com.android.support:support-compat:$rootProject.ext.appCompatVersion"
+    compile "com.android.support:support-fragment:$rootProject.ext.appCompatVersion"
+    testCompile 'junit:junit:4.12'
 }
