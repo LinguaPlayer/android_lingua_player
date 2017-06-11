@@ -872,7 +872,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     metaData.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART) :
                     AudioUtil.readCoverBitmap(Uri.decode(getCurrentMedia().getArtworkMrl()), width);
             if (cover == null)
-                cover = BitmapFactory.decodeResource(VLCApplication.getAppContext().getResources(), R.drawable.ic_no_media);
+                cover = BitmapFactory.decodeResource(VLCApplication.getAppContext().getResources(), R.drawable.icon);
             Notification notification;
 
             //Watch notification dismissed
