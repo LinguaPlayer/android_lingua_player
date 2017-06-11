@@ -135,6 +135,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     private static final int DELAY_DOUBLE_CLICK = 800;
     private static final int DELAY_LONG_CLICK = 1000;
+    public static final String AUDIO_REPEAT_MODE_KEY = "audio_repeat_mode";
 
     public interface Callback {
         void update();
@@ -1427,6 +1428,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     @MainThread
     public void setRepeatType(int repeatType) {
         mRepeating = repeatType;
+        if (mMediaList.isAudioList() && mSettings.getBoolean("audio_save_repeat", false))
+            mSettings.edit().putInt(AUDIO_REPEAT_MODE_KEY, mRepeating).apply();
         savePosition();
         determinePrevAndNextIndices();
         publishState();
@@ -1567,13 +1570,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private synchronized void saveCurrentMedia() {
-        boolean audio = true;
-        for (int i = 0; i < mMediaList.size(); i++) {
-            if (mMediaList.getMedia(i).getType() == MediaWrapper.TYPE_VIDEO)
-                audio = false;
-        }
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putString(audio ? "current_song" : "current_media", mMediaList.getMRL(Math.max(mCurrentIndex, 0)));
+        editor.putString(mMediaList.isAudioList() ? "current_song" : "current_media", mMediaList.getMRL(Math.max(mCurrentIndex, 0)));
         editor.apply();
     }
 
@@ -1581,15 +1579,11 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (getCurrentMedia() == null)
             return;
         StringBuilder locations = new StringBuilder();
-        boolean audio = true;
-        for (int i = 0; i < mMediaList.size(); i++) {
-            if (mMediaList.getMedia(i).getType() == MediaWrapper.TYPE_VIDEO)
-                audio = false;
+        for (int i = 0; i < mMediaList.size(); i++)
             locations.append(" ").append(Uri.encode(mMediaList.getMRL(i)));
-        }
         //We save a concatenated String because putStringSet is APIv11.
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putString(audio ? "audio_list" : "media_list", locations.toString().trim());
+        editor.putString(mMediaList.isAudioList() ? "audio_list" : "media_list", locations.toString().trim());
         editor.apply();
     }
 
@@ -1597,11 +1591,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (getCurrentMedia() == null)
             return;
         SharedPreferences.Editor editor = mSettings.edit();
-        boolean audio = true;
-        for (int i = 0; i < mMediaList.size(); i++) {
-            if (mMediaList.getMedia(i).getType() == MediaWrapper.TYPE_VIDEO)
-                audio = false;
-        }
+        boolean audio = mMediaList.isAudioList();
         editor.putBoolean(audio ? "audio_shuffling" : "media_shuffling", mShuffling);
         editor.putInt(audio ? "audio_repeating" : "media_repeating", mRepeating);
         editor.putInt(audio ? "position_in_audio_list" : "position_in_media_list", mCurrentIndex);
@@ -1853,13 +1843,11 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
         mMediaList.removeEventListener(mListEventListener);
         mMediaList.clear();
-        MediaWrapperList currentMediaList = mMediaList;
 
         mPrevious.clear();
 
-        for (int i = 0; i < mediaList.size(); i++) {
-            currentMediaList.add(mediaList.get(i));
-        }
+        for (MediaWrapper media : mediaList)
+            mMediaList.add(media);
 
         if (mMediaList.size() == 0) {
             Log.w(TAG, "Warning: empty media list, nothing to play !");
@@ -1875,6 +1863,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         // Add handler after loading the list
         mMediaList.addEventListener(mListEventListener);
 
+        if (mMediaList.isAudioList() && mSettings.getBoolean("audio_save_repeat", false))
+            mRepeating = mSettings.getInt(AUDIO_REPEAT_MODE_KEY, REPEAT_NONE);
         playIndex(mCurrentIndex, 0);
         saveMediaList();
         onMediaChanged();
