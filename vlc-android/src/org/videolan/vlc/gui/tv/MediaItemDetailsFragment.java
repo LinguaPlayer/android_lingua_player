@@ -28,6 +28,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.DetailsFragment;
 import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -47,7 +49,6 @@ import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.PlaybackServiceFragment;
 import org.videolan.vlc.gui.helpers.AudioUtil;
-import org.videolan.vlc.gui.helpers.BitmapUtil;
 import org.videolan.vlc.gui.tv.audioplayer.AudioPlayerActivity;
 import org.videolan.vlc.gui.tv.browser.SortedBrowserFragment;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
@@ -68,6 +69,8 @@ public class MediaItemDetailsFragment extends DetailsFragment implements Playbac
     private static final int ID_DL_SUBS = 6;
     private static final int ID_PLAY_ALL = 7;
     private static final int ID_PLAY_FROM_START = 8;
+
+    private BackgroundManager mBackgroundManager;
     private ArrayObjectAdapter mRowsAdapter;
     private MediaItemDetails mMedia;
     private MediaWrapper mMediaWrapper;
@@ -77,8 +80,14 @@ public class MediaItemDetailsFragment extends DetailsFragment implements Playbac
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mBackgroundManager = BackgroundManager.getInstance(getActivity());
         buildDetails();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mBackgroundManager.attachToView(getView());
     }
 
     public void onPause(){
@@ -94,6 +103,12 @@ public class MediaItemDetailsFragment extends DetailsFragment implements Playbac
         PlaybackServiceFragment.unregisterPlaybackService(this, this);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mBackgroundManager.release();
+    }
+
     private void buildDetails() {
         Bundle extras = getActivity().getIntent().getExtras();
         mMedia = extras.getParcelable("item");
@@ -104,12 +119,13 @@ public class MediaItemDetailsFragment extends DetailsFragment implements Playbac
             media.setDisplayTitle(mMedia.getTitle());
         }
         mMediaWrapper = media;
+        setTitle(media.getTitle());
 
         final ArrayList<MediaWrapper> mediaList = (ArrayList<MediaWrapper>) VLCApplication.getData(SortedBrowserFragment.CURRENT_BROWSER_LIST);
         // Attach your media item details presenter to the row presenter:
         FullWidthDetailsOverviewRowPresenter rowPresenter = new FullWidthDetailsOverviewRowPresenter(new DetailsDescriptionPresenter());
 
-        Resources res = getActivity().getResources();
+        final Resources res = getActivity().getResources();
         final DetailsOverviewRow detailsOverview = new DetailsOverviewRow(mMedia);
         final Action actionAdd = new Action(ID_FAVORITE_ADD, getString(R.string.favorites_add));
         final Action actionDelete = new Action(ID_FAVORITE_DELETE, getString(R.string.favorites_remove));
@@ -169,48 +185,59 @@ public class MediaItemDetailsFragment extends DetailsFragment implements Playbac
         selector.addClassPresenter(ListRow.class,
                 new ListRowPresenter());
         mRowsAdapter = new ArrayObjectAdapter(selector);
-        if (media.getType() == MediaWrapper.TYPE_DIR && FileUtils.canSave(media)) {
-            mDb = MediaDatabase.getInstance();
-            detailsOverview.setImageDrawable(getResources().getDrawable(TextUtils.equals(media.getUri().getScheme(),"file")
-                    ? R.drawable.ic_menu_folder_big
-                    : R.drawable.ic_menu_network_big));
-            detailsOverview.setImageScaleUpAllowed(true);
-            detailsOverview.addAction(new Action(ID_BROWSE, getString(R.string.browse_folder)));
-            if (mDb.networkFavExists(Uri.parse(mMedia.getLocation())))
-                detailsOverview.addAction(actionDelete);
-            else
-                detailsOverview.addAction(actionAdd);
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+                final Bitmap cover = media.getType() == MediaWrapper.TYPE_AUDIO || media.getType() == MediaWrapper.TYPE_VIDEO
+                ? AudioUtil.readCoverBitmap(mMedia.getArtworkUrl(), 512) : null;
+                VLCApplication.runOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (media.getType() == MediaWrapper.TYPE_DIR && FileUtils.canSave(media)) {
+                            mDb = MediaDatabase.getInstance();
+                            detailsOverview.setImageDrawable(getResources().getDrawable(TextUtils.equals(media.getUri().getScheme(),"file")
+                                    ? R.drawable.ic_menu_folder_big
+                                    : R.drawable.ic_menu_network_big));
+                            detailsOverview.setImageScaleUpAllowed(true);
+                            detailsOverview.addAction(new Action(ID_BROWSE, getString(R.string.browse_folder)));
+                            if (mDb.networkFavExists(Uri.parse(mMedia.getLocation())))
+                                detailsOverview.addAction(actionDelete);
+                            else
+                                detailsOverview.addAction(actionAdd);
 
-        } else if (media.getType() == MediaWrapper.TYPE_AUDIO) {
-            // Add images and action buttons to the details view
-            Bitmap cover = AudioUtil.readCoverBitmap(mMedia.getArtworkUrl(), 512);
-            if (cover == null)
-                detailsOverview.setImageDrawable(res.getDrawable(R.drawable.ic_default_cone));
-            else
-                detailsOverview.setImageBitmap(getActivity(), cover);
+                        } else if (media.getType() == MediaWrapper.TYPE_AUDIO) {
+                            // Add images and action buttons to the details view
+                            if (cover == null)
+                                detailsOverview.setImageDrawable(res.getDrawable(R.drawable.ic_default_cone));
+                            else
+                                detailsOverview.setImageBitmap(getActivity(), cover);
 
-            detailsOverview.addAction(new Action(ID_PLAY, getString(R.string.play)));
-            detailsOverview.addAction(new Action(ID_LISTEN, getString(R.string.listen)));
-            if (mediaList != null && mediaList.contains(media))
-                detailsOverview.addAction(new Action(ID_PLAY_ALL, getString(R.string.play_all)));
-        } else if (media.getType() == MediaWrapper.TYPE_VIDEO) {
-            // Add images and action buttons to the details view
-            Bitmap cover = BitmapUtil.getPicture(media);
-            if (cover == null)
-                detailsOverview.setImageDrawable(res.getDrawable(R.drawable.ic_default_cone));
-            else
-                detailsOverview.setImageBitmap(getActivity(), cover);
+                            detailsOverview.addAction(new Action(ID_PLAY, getString(R.string.play)));
+                            detailsOverview.addAction(new Action(ID_LISTEN, getString(R.string.listen)));
+                            if (mediaList != null && mediaList.contains(media))
+                                detailsOverview.addAction(new Action(ID_PLAY_ALL, getString(R.string.play_all)));
+                        } else if (media.getType() == MediaWrapper.TYPE_VIDEO) {
+                            // Add images and action buttons to the details view
+                            if (cover == null)
+                                detailsOverview.setImageDrawable(res.getDrawable(R.drawable.ic_default_cone));
+                            else
+                                detailsOverview.setImageBitmap(getActivity(), cover);
 
-            detailsOverview.addAction(new Action(ID_PLAY, getString(R.string.play)));
-            detailsOverview.addAction(new Action(ID_PLAY_FROM_START, getString(R.string.play_from_start)));
-            if (FileUtils.canWrite(media.getUri()))
-                detailsOverview.addAction(new Action(ID_DL_SUBS, getString(R.string.download_subtitles)));
-            if (mediaList != null && mediaList.contains(media))
-                detailsOverview.addAction(new Action(ID_PLAY_ALL, getString(R.string.play_all)));
-        }
-        mRowsAdapter.add(detailsOverview);
-
-        setAdapter(mRowsAdapter);
+                            detailsOverview.addAction(new Action(ID_PLAY, getString(R.string.play)));
+                            detailsOverview.addAction(new Action(ID_PLAY_FROM_START, getString(R.string.play_from_start)));
+                            if (FileUtils.canWrite(media.getUri()))
+                                detailsOverview.addAction(new Action(ID_DL_SUBS, getString(R.string.download_subtitles)));
+                            if (mediaList != null && mediaList.contains(media))
+                                detailsOverview.addAction(new Action(ID_PLAY_ALL, getString(R.string.play_all)));
+                        }
+                        mRowsAdapter.add(detailsOverview);
+                        setAdapter(mRowsAdapter);
+                        if (cover != null)
+                            mBackgroundManager.setBitmap(cover);
+                    }
+                });
+            }
+        });
     }
 
     @Override

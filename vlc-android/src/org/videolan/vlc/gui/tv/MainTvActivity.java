@@ -119,6 +119,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
     private Object mSelectedItem;
     private AsyncUpdate mUpdateTask;
     private CardPresenter.SimpleCard mNowPlayingCard;
+    private BackgroundManager mBackgroundManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,7 +141,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         final FragmentManager fragmentManager = getFragmentManager();
         mBrowseFragment = (BrowseFragment) fragmentManager.findFragmentById(
                 R.id.browse_fragment);
-        mProgressBar = (ProgressBar) findViewById(R.id.tv_main_progress);
+        mProgressBar = findViewById(R.id.tv_main_progress);
 
         // Set display parameters for the BrowseFragment
         mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
@@ -160,6 +161,9 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
 
         mRootContainer = mBrowseFragment.getView();
         mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.orange800));
+        mBackgroundManager = BackgroundManager.getInstance(this);
+        mBackgroundManager.attachToView(findViewById(R.id.tv_container));
+        TvUtil.clearBackground(mBackgroundManager);
     }
 
     @Override
@@ -197,6 +201,13 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (mSelectedItem != null)
+            TvUtil.updateBackground(mBackgroundManager, mSelectedItem);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (AndroidDevices.isAndroidTv()) {
@@ -204,6 +215,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
                     RecommendationsService.class);
             startService(recommendationIntent);
         }
+        mBackgroundManager.release();
     }
 
     @Override
@@ -285,14 +297,6 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         return super.onKeyDown(keyCode, event);
     }
 
-    protected void updateBackground(Drawable drawable) {
-        BackgroundManager.getInstance(this).setDrawable(drawable);
-    }
-
-    protected void clearBackground() {
-        BackgroundManager.getInstance(this).setDrawable(mDefaultBackground);
-    }
-
     public void update() {
         if (mUpdateTask == null || mUpdateTask.getStatus() == AsyncTask.Status.FINISHED) {
             mUpdateTask = new AsyncUpdate();
@@ -336,6 +340,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
     @Override
     public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         mSelectedItem = item;
+        TvUtil.updateBackground(mBackgroundManager, item);
     }
 
     @Override
@@ -573,24 +578,34 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             mCategoriesAdapter.removeItems(0, 1);
             mNowPlayingCard = null;
         } else  if (mService.hasMedia()){
-            MediaWrapper mw = mService.getCurrentMediaWrapper();
-            String display = MediaUtils.getMediaTitle(mw) + " - " + MediaUtils.getMediaReferenceArtist(MainTvActivity.this, mw);
-            Bitmap cover = AudioUtil.readCoverBitmap(Uri.decode(mw.getArtworkMrl()), VLCApplication.getAppResources().getDimensionPixelSize(R.dimen.grid_card_thumb_width));
-            if (mNowPlayingCard == null) {
-                if (cover != null)
-                    mNowPlayingCard = new CardPresenter.SimpleCard(MusicFragment.CATEGORY_NOW_PLAYING, display, cover);
-                else
-                    mNowPlayingCard = new CardPresenter.SimpleCard(MusicFragment.CATEGORY_NOW_PLAYING, display, R.drawable.ic_default_cone);
-                mCategoriesAdapter.add(0, mNowPlayingCard);
-            } else {
-                mNowPlayingCard.setId(MusicFragment.CATEGORY_NOW_PLAYING);
-                mNowPlayingCard.setName(display);
-                if (cover != null)
-                    mNowPlayingCard.setImage(cover);
-                else
-                    mNowPlayingCard.setImageId(R.drawable.ic_default_cone);
-            }
-            mCategoriesAdapter.notifyArrayItemRangeChanged(0,1);
+            final MediaWrapper mw = mService.getCurrentMediaWrapper();
+            final String display = MediaUtils.getMediaTitle(mw) + " - " + MediaUtils.getMediaReferenceArtist(MainTvActivity.this, mw);
+            VLCApplication.runBackground(new Runnable() {
+                @Override
+                public void run() {
+                    final Bitmap cover = AudioUtil.readCoverBitmap(Uri.decode(mw.getArtworkMrl()), VLCApplication.getAppResources().getDimensionPixelSize(R.dimen.grid_card_thumb_width));
+                    VLCApplication.runOnMainThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mNowPlayingCard == null) {
+                                if (cover != null)
+                                    mNowPlayingCard = new CardPresenter.SimpleCard(MusicFragment.CATEGORY_NOW_PLAYING, display, cover);
+                                else
+                                    mNowPlayingCard = new CardPresenter.SimpleCard(MusicFragment.CATEGORY_NOW_PLAYING, display, R.drawable.ic_default_cone);
+                                mCategoriesAdapter.add(0, mNowPlayingCard);
+                            } else {
+                                mNowPlayingCard.setId(MusicFragment.CATEGORY_NOW_PLAYING);
+                                mNowPlayingCard.setName(display);
+                                if (cover != null)
+                                    mNowPlayingCard.setImage(cover);
+                                else
+                                    mNowPlayingCard.setImageId(R.drawable.ic_default_cone);
+                            }
+                            mCategoriesAdapter.notifyArrayItemRangeChanged(0,1);
+                        }
+                    });
+                }
+            });
 
         }
     }

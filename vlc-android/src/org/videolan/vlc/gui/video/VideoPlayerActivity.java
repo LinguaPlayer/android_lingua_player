@@ -23,6 +23,7 @@ package org.videolan.vlc.gui.video;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.KeyguardManager;
+import android.app.PictureInPictureParams;
 import android.app.Presentation;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothHeadset;
@@ -47,6 +48,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
@@ -75,6 +77,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.util.Rational;
 import android.view.Display;
 import android.view.GestureDetector;
 import android.view.InputDevice;
@@ -184,8 +187,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     public final static String EXTRA_URI = "extra_uri";
     public final static int RESULT_CONNECTION_FAILED = RESULT_FIRST_USER + 1;
     public final static int RESULT_PLAYBACK_ERROR = RESULT_FIRST_USER + 2;
-    public final static int RESULT_HARDWARE_ACCELERATION_ERROR = RESULT_FIRST_USER + 3;
-    public final static int RESULT_VIDEO_TRACK_LOST = RESULT_FIRST_USER + 4;
+    public final static int RESULT_VIDEO_TRACK_LOST = RESULT_FIRST_USER + 3;
     private static final float DEFAULT_FOV = 80f;
     public static final float MIN_FOV = 20f;
     public static final float MAX_FOV = 150f;
@@ -286,7 +288,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private ImageView mCaptionSettingsPrev;
     private ImageView mCaptionSettingsSync;
     private View mObjectFocused;
-    private boolean mEnableBrightnessGesture;
     protected boolean mEnableCloneMode;
     private boolean mDisplayRemainingTime;
     private int mScreenOrientation;
@@ -674,8 +675,31 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mSize.setOnClickListener(null);
 
         /* Stop the earliest possible to avoid vout error */
-        if (!isInPictureInPictureMode() && (isFinishing() || (AndroidDevices.isAndroidTv() && !requestVisibleBehind(true))))
-            stopPlayback();
+
+        if (!isInPictureInPictureMode()) {
+            if (isFinishing() ||
+                    (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
+                            && AndroidDevices.isAndroidTv() && !requestVisibleBehind(true)))
+                stopPlayback();
+            else if (AndroidUtil.isOOrLater && mSettings.getBoolean("video_home_pip", false) && isInteractive()) {
+                enterPictureInPictureMode();
+            }
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void enterPictureInPictureMode() {
+        if (AndroidUtil.isOOrLater)
+            enterPictureInPictureMode(new PictureInPictureParams.Builder().setAspectRatio(new Rational(mVideoWidth, mVideoHeight)).build());
+        else
+            super.enterPictureInPictureMode();
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
+    private boolean isInteractive() {
+        PowerManager pm = (PowerManager) VLCApplication.getAppContext().getSystemService(Context.POWER_SERVICE);
+        return AndroidUtil.isKitKatOrLater ? pm.isInteractive() : pm.isScreenOn();
     }
 
     @Override
@@ -1969,7 +1993,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     break;
                 case SHOW_PROGRESS:
                     int pos = setOverlayProgress();
-                    if (canShowProgress()) {
+                    if (pos >= 0 && canShowProgress()) {
                         msg = mHandler.obtainMessage(SHOW_PROGRESS);
                         mHandler.sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
@@ -2616,6 +2640,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     };
 
     public void onAudioSubClick(View anchor){
+        if (anchor == null)
+            initOverlay();
         final AppCompatActivity context = this;
         PopupMenu popupMenu = new PopupMenu(this, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.audiosub_tracks, popupMenu.getMenu());
@@ -3229,8 +3255,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             return;
 
         if (mService.isPlaying()) {
+            showOverlayTimeout(OVERLAY_INFINITE);
             pause();
         } else {
+            hideOverlay(true);
             play();
         }
     }
@@ -3404,6 +3432,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private void initOverlay() {
         ViewStubCompat vsc = (ViewStubCompat) findViewById(R.id.player_hud_stub);
         if (vsc != null) {
+            final boolean seekButtons = mSettings.getBoolean("enable_seek_buttons", false);
             vsc.inflate();
             mOverlayProgress = findViewById(R.id.progress_overlay);
             RelativeLayout.LayoutParams layoutParams =
@@ -3428,7 +3457,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mLock = (ImageView) findViewById(R.id.lock_overlay_button);
             mSize = (ImageView) findViewById(R.id.player_overlay_size);
             mNavMenu = (ImageView) findViewById(R.id.player_overlay_navmenu);
-            if (mSettings.getBoolean("enable_seek_buttons", false))
+            if (seekButtons)
                 initSeekButton();
             mSeekbar = (SeekBar) findViewById(R.id.player_overlay_seekbar);
             resetHudLayout();
@@ -3438,6 +3467,16 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             updateNavStatus();
             setHudClickListeners();
             initPlaylistUi();
+            if (!mService.hasPlaylist() && !seekButtons) {
+                if (rtl) {
+                    mAdvOptions.setNextFocusRightId(R.id.player_overlay_play);
+                    mTracks.setNextFocusLeftId(R.id.player_overlay_play);
+                } else {
+                    mTracks.setNextFocusRightId(R.id.player_overlay_play);
+                    mAdvOptions.setNextFocusLeftId(R.id.player_overlay_play);
+
+                }
+            }
         }
     }
 
@@ -3578,7 +3617,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      */
     private int setOverlayProgress() {
         if (mService == null) {
-            return 0;
+            return -1;
         }
         int time = (int) getTime();
         int length = (int) mService.getLength();
@@ -3586,6 +3625,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private int setOverlayProgress(int time, int length) {
+        if (time == -1 || length == -1)
+            return -1;
         // Update all view elements
         if (mSeekbar != null) {
             mSeekbar.setMax(length);

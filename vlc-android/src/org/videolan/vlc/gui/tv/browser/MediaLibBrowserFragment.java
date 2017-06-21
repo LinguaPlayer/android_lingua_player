@@ -23,30 +23,52 @@
 
 package org.videolan.vlc.gui.tv.browser;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
+import android.support.v17.leanback.app.BackgroundManager;
+import android.support.v17.leanback.widget.OnItemViewSelectedListener;
+import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.Row;
+import android.support.v17.leanback.widget.RowPresenter;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.VLCApplication;
+import org.videolan.vlc.gui.tv.TvUtil;
 
-import java.util.concurrent.CyclicBarrier;
-
-public abstract class MediaLibBrowserFragment extends GridFragment {
-    protected final CyclicBarrier mBarrier = new CyclicBarrier(2);
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+public abstract class MediaLibBrowserFragment extends GridFragment implements OnItemViewSelectedListener {
     protected Medialibrary mMediaLibrary;
+    private BackgroundManager mBackgroundManager;
+    private Object mSelectedItem;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mMediaLibrary = VLCApplication.getMLInstance();
+        mBackgroundManager = BackgroundManager.getInstance(getActivity());
     }
 
-    public void onResume() {
-        super.onResume();
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mBackgroundManager.attachToView(getView());
+        setOnItemViewSelectedListener(this);
     }
 
-    public void onPause() {
-        super.onPause();
-        mBarrier.reset();
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mSelectedItem != null)
+            TvUtil.updateBackground(mBackgroundManager, mSelectedItem);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mBackgroundManager.release();
     }
 
     public void refresh() {
@@ -55,4 +77,11 @@ public abstract class MediaLibBrowserFragment extends GridFragment {
     }
 
     public void updateList() {}
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
+                               RowPresenter.ViewHolder rowViewHolder, Row row) {
+        mSelectedItem = item;
+        TvUtil.updateBackground(mBackgroundManager, item);
+    }
 }

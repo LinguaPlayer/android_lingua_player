@@ -54,7 +54,7 @@ import org.videolan.vlc.PlaybackService;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.PlaybackServiceFragment;
-import org.videolan.vlc.gui.SecondaryActivity;
+import org.videolan.vlc.gui.audio.EqualizerFragment;
 import org.videolan.vlc.gui.helpers.UiTools;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.gui.view.AutoFitRecyclerView;
@@ -237,6 +237,10 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
             case ID_CHAPTER_TITLE:
                 newFragment = SelectChapterDialog.newInstance(mTheme);
                 tag = "select_chapter";
+                break;
+            case ID_EQUALIZER:
+                newFragment = new EqualizerFragment();
+                tag = "equalizer";
                 break;
             case ID_SAVE_PLAYLIST:
                 UiTools.addToPlaylist(getActivity(), mService.getMedias());
@@ -535,7 +539,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 ((VideoPlayerActivity)getActivity()).switchToAudioMode(true);
                 break;
             case ID_POPUP_VIDEO:
-                if (VLCApplication.showTvUi()) {
+                if (AndroidDevices.hasPiP) {
+                    //noinspection deprecation
                     getActivity().enterPictureInPictureMode();
                 } else {
                     if (Permissions.canDrawOverlays(mActivity))
@@ -545,10 +550,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 }
                 break;
             case ID_EQUALIZER:
-                Intent i = new Intent(getActivity(), SecondaryActivity.class);
-                i.putExtra("fragment", SecondaryActivity.EQUALIZER);
-                startActivity(i);
-                dismiss();
+                showFragment(ID_EQUALIZER);
                 break;
             case ID_SAVE_PLAYLIST:
                 showFragment(ID_SAVE_PLAYLIST);
@@ -615,6 +617,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
         mAdapter.addOption(new Option(ID_SLEEP, R.attr.ic_sleep_normal_style, getString(R.string.sleep_title)));
         mAdapter.addOption(new Option(ID_PLAYBACK_SPEED, R.attr.ic_speed_normal_style, getString(R.string.playback_speed)));
         mAdapter.addOption(new Option(ID_JUMP_TO, R.attr.ic_jumpto_normal_style, getString(R.string.jump_to_time)));
+        mAdapter.addOption(new Option(ID_EQUALIZER, R.attr.ic_equalizer_normal_style, getString(R.string.equalizer)));
 
         if (mMode == MODE_VIDEO) {
             if (!tvUi)
@@ -625,9 +628,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 mAdapter.addOption(new Option(ID_SPU_DELAY, R.attr.ic_subtitledelay, getString(R.string.spu_sync)));
             if(mService.getAudioTracksCount() > 0 && (mService.getAudioTrack() != -1))
                 mAdapter.addOption(new Option(ID_AUDIO_DELAY, R.attr.ic_audiodelay, getString(R.string.audio_sync)));
-
-            if (!tvUi || AndroidDevices.isAndroidTv() && AndroidUtil.isNougatOrLater)
-                mAdapter.addOption(new Option(ID_POPUP_VIDEO, R.attr.ic_popup_dim, getString(R.string.popup_playback_title)));
+            if (!tvUi || AndroidDevices.hasPiP)
+                    mAdapter.addOption(new Option(ID_POPUP_VIDEO, R.attr.ic_popup_dim, getString(R.string.popup_playback_title)));
             mAdapter.addOption(new Option(ID_REPEAT, R.attr.ic_repeat, getString(R.string.repeat_title)));
             if (mService.canShuffle())
                 mAdapter.addOption(new Option(ID_SHUFFLE, R.attr.ic_shuffle, getString(R.string.shuffle_title)));
@@ -641,7 +643,6 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
             mAdapter.addOption(new Option(ID_CAPTION_BACK_NEXT, R.attr.ic_caption_back_next, getString(R.string.caption_back_next)));
             mAdapter.addOption(new Option(ID_TOUCH_SUB, R.attr.ic_touch_sub, getString(R.string.ic_touch_sub)));
         } else {
-            mAdapter.addOption(new Option(ID_EQUALIZER, R.attr.ic_equalizer_normal_style, getString(R.string.equalizer)));
             mAdapter.addOption(new Option(ID_SAVE_PLAYLIST, R.attr.ic_save, getString(R.string.playlist_save)));
         }
         setDialogDimensions(large_items);
