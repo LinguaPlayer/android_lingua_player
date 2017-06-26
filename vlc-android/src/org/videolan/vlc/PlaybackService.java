@@ -155,6 +155,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         return binder.getService();
     }
 
+    KeyguardManager mKeyguardManager = (KeyguardManager) VLCApplication.getAppContext().getSystemService(Context.KEYGUARD_SERVICE);
     private SharedPreferences mSettings;
     private final IBinder mBinder = new LocalBinder();
     private MediaWrapperList mMediaList = new MediaWrapperList();
@@ -209,7 +210,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     /**
      * Last widget position update timestamp
      */
-    private long mWidgetPositionTimestamp = Calendar.getInstance().getTimeInMillis();
+    private long mWidgetPositionTimestamp = System.currentTimeMillis();
     private PopupManager mPopupManager;
 
     /* boolean indicating if the player is in benchmark mode */
@@ -291,6 +292,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             mRemoteControlClientReceiver = new RemoteControlClientReceiver();
             registerReceiver(mRemoteControlClientReceiver, filter);
         }
+        mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
     }
 
     @Override
@@ -563,7 +565,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private final MediaPlayer.EventListener mMediaPlayerListener = new MediaPlayer.EventListener() {
-        KeyguardManager keyguardManager = (KeyguardManager) VLCApplication.getAppContext().getSystemService(Context.KEYGUARD_SERVICE);
 
         @Override
         public void onEvent(MediaPlayer.Event event) {
@@ -582,7 +583,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     changeAudioFocus(true);
                     if (!mWakeLock.isHeld())
                         mWakeLock.acquire();
-                    if (!keyguardManager.inKeyguardRestrictedInputMode() && !mVideoBackground && switchToVideo()) {
+                    if (!mKeyguardManager.inKeyguardRestrictedInputMode() && !mVideoBackground && switchToVideo()) {
                         hideNotification();
                     } else {
                         showPlayer();
@@ -933,9 +934,9 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                         }
                         startService(new Intent(ctx, PlaybackService.class));
                         if (!AndroidUtil.isLolliPopOrLater || playing)
-                            startForeground(3, builder.build());
+                            PlaybackService.this.startForeground(3, builder.build());
                         else {
-                            stopForeground(false);
+                            PlaybackService.this.stopForeground(false);
                             NotificationManagerCompat.from(ctx).notify(3, builder.build());
                         }
                     } catch (IllegalArgumentException e){
@@ -974,8 +975,13 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void hideNotification() {
-        stopForeground(true);
-        NotificationManagerCompat.from(this).cancel(3);
+        mExecutorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                PlaybackService.this.stopForeground(true);
+                NotificationManagerCompat.from(PlaybackService.this).cancel(3);
+            }
+        });
     }
 
     @MainThread
@@ -1474,67 +1480,57 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void updateWidgetState() {
-        Intent i = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE);
-
+        final MediaWrapper media = getCurrentMedia();
+        Intent widgetIntent = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE);
         if (hasCurrentMedia()) {
-            final MediaWrapper media = getCurrentMedia();
-            i.putExtra("title", media.getTitle());
-            i.putExtra("artist", media.isArtistUnknown() && media.getNowPlaying() != null ?
+            widgetIntent.putExtra("title", media.getTitle());
+            widgetIntent.putExtra("artist", media.isArtistUnknown() && media.getNowPlaying() != null ?
                     media.getNowPlaying()
-                    : MediaUtils.getMediaArtist(this, media));
+                    : MediaUtils.getMediaArtist(PlaybackService.this, media));
+        } else {
+            widgetIntent.putExtra("title", getString(R.string.widget_default_text));
+            widgetIntent.putExtra("artist", "");
         }
-        else {
-            i.putExtra("title", getString(R.string.widget_default_text));
-            i.putExtra("artist", "");
-        }
-        i.putExtra("isplaying", mMediaPlayer.isPlaying());
-
-        sendBroadcast(i);
+        widgetIntent.putExtra("isplaying", isPlaying());
+        sendBroadcast(widgetIntent);
     }
 
     private void updateWidgetCover() {
+        if (!hasCurrentMedia())
+            return;
+        final String artworkMrl = getCurrentMedia().getArtworkMrl();
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER);
-                Bitmap cover = hasCurrentMedia() ? AudioUtil.readCoverBitmap(Uri.decode(getCurrentMedia().getArtworkMrl()), 64) : null;
-                i.putExtra("cover", cover);
-                sendBroadcast(i);
+                Bitmap cover = hasCurrentMedia()? AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), 320) : null;
+                sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER)
+                        .putExtra("cover", cover));
             }
         });
     }
 
-    private void updateWidgetPosition(float pos) {
+    private void updateWidgetPosition(final float pos) {
         // no more than one widget mUpdateMeta for each 1/50 of the song
         long timestamp = Calendar.getInstance().getTimeInMillis();
-        if (!hasCurrentMedia()
-                || timestamp - mWidgetPositionTimestamp < getCurrentMedia().getLength() / 50)
+        if (!hasCurrentMedia() || timestamp - mWidgetPositionTimestamp < getCurrentMedia().getLength() / 50)
             return;
-
         updateWidgetState();
-
         mWidgetPositionTimestamp = timestamp;
-        Intent i = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_POSITION);
-        i.putExtra("position", pos);
-        sendBroadcast(i);
+        sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_POSITION)
+                .putExtra("position", pos));
     }
 
     private void broadcastMetadata() {
-        MediaWrapper media = getCurrentMedia();
+        final MediaWrapper media = getCurrentMedia();
         if (media == null || media.getType() != MediaWrapper.TYPE_AUDIO)
             return;
-
-        boolean playing = mMediaPlayer.isPlaying();
-
-        Intent broadcast = new Intent("com.android.music.metachanged");
-        broadcast.putExtra("track", media.getTitle());
-        broadcast.putExtra("artist", media.getArtist());
-        broadcast.putExtra("album", media.getAlbum());
-        broadcast.putExtra("duration", media.getLength());
-        broadcast.putExtra("playing", playing);
-        broadcast.putExtra("package", "org.videolan.vlc");
-
-        sendBroadcast(broadcast);
+        sendBroadcast(new Intent("com.android.music.metachanged")
+                .putExtra("track", media.getTitle())
+                .putExtra("artist", media.getArtist())
+                .putExtra("album", media.getAlbum())
+                .putExtra("duration", media.getLength())
+                .putExtra("playing", mMediaPlayer.isPlaying())
+                .putExtra("package", "org.videolan.vlc"));
     }
 
     BroadcastReceiver mLibraryReceiver = null;
@@ -2060,7 +2056,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (isSeekable()) {
             long time = getTime();
             if (time > 0 )
-                setTime(time);
+                seek(time);
         }
     }
 
@@ -2109,6 +2105,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (mPopupManager == null)
             mPopupManager = new PopupManager(this);
         mPopupManager.showPopup();
+        hideNotification();
     }
 
     public void setVideoTrackEnabled(boolean enabled) {

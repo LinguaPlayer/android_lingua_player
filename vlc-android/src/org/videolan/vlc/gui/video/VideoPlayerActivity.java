@@ -581,29 +581,29 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         /*
          * Set listeners here to avoid NPE when activity is closing
          */
-        setHudClickListeners();
+        setHudClickListeners(true);
 
         if (mIsLocked && mScreenOrientation == 99)
             setRequestedOrientation(mScreenOrientationLock);
     }
 
-    private void setHudClickListeners() {
+    private void setHudClickListeners(boolean enabled) {
         if (mSeekbar != null)
-            mSeekbar.setOnSeekBarChangeListener(mSeekListener);
+            mSeekbar.setOnSeekBarChangeListener(enabled ? mSeekListener : null);
         if (mLock != null)
-            mLock.setOnClickListener(this);
+            mLock.setOnClickListener(enabled ? this : null);
         if (mPlayPause != null)
-            mPlayPause.setOnClickListener(this);
+            mPlayPause.setOnClickListener(enabled ? this : null);
         if (mPlayPause != null)
-            mPlayPause.setOnLongClickListener(this);
+            mPlayPause.setOnLongClickListener(enabled ? this : null);
         if (mLength != null)
-            mLength.setOnClickListener(this);
+            mLength.setOnClickListener(enabled ? this : null);
         if (mTime != null)
-            mTime.setOnClickListener(this);
+            mTime.setOnClickListener(enabled ? this : null);
         if (mSize != null)
-            mSize.setOnClickListener(this);
+            mSize.setOnClickListener(enabled ? this : null);
         if (mNavMenu != null)
-            mNavMenu.setOnClickListener(this);
+            mNavMenu.setOnClickListener(enabled ? this : null);
     }
 
     @Override
@@ -659,20 +659,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     protected void onPause() {
         super.onPause();
         hideOverlay(true);
-        if (mSeekbar != null)
-            mSeekbar.setOnSeekBarChangeListener(null);
-        if (mLock != null)
-            mLock.setOnClickListener(null);
-        if (mPlayPause != null)
-            mPlayPause.setOnClickListener(null);
-        if (mPlayPause != null)
-            mPlayPause.setOnLongClickListener(null);
-        if (mLength != null)
-            mLength.setOnClickListener(null);
-        if (mTime != null)
-            mTime.setOnClickListener(null);
-        if (mSize != null)
-            mSize.setOnClickListener(null);
+        setHudClickListeners(false);
 
         /* Stop the earliest possible to avoid vout error */
 
@@ -681,19 +668,29 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
                             && AndroidDevices.isAndroidTv() && !requestVisibleBehind(true)))
                 stopPlayback();
-            else if (AndroidUtil.isOOrLater && mSettings.getBoolean("video_home_pip", false) && isInteractive()) {
-                enterPictureInPictureMode();
+            else if ("2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
+                switchToPopup();
             }
         }
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void enterPictureInPictureMode() {
-        if (AndroidUtil.isOOrLater)
-            enterPictureInPictureMode(new PictureInPictureParams.Builder().setAspectRatio(new Rational(mVideoWidth, mVideoHeight)).build());
-        else
-            super.enterPictureInPictureMode();
+    @TargetApi(Build.VERSION_CODES.N)
+    public void switchToPopup() {
+        if (AndroidDevices.hasPiP) {
+            if (AndroidUtil.isOOrLater)
+                enterPictureInPictureMode(new PictureInPictureParams.Builder().setAspectRatio(new Rational(mVideoWidth, mVideoHeight)).build());
+            else
+                //noinspection deprecation
+                enterPictureInPictureMode();
+        } else {
+            if (Permissions.canDrawOverlays(this)) {
+                mSwitchingView = true;
+                mSwitchToPopup = true;
+                cleanUI();
+                exitOK();
+            } else
+                Permissions.checkDrawOverlaysPermission(this);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
@@ -774,7 +771,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mAlertDialog != null && mAlertDialog.isShowing())
             mAlertDialog.dismiss();
         if (!isFinishing() && mService != null && mService.isPlaying() &&
-                mSettings.getBoolean(PreferencesActivity.VIDEO_BACKGROUND, false)) {
+                "1".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0"))) {
             switchToAudioMode(false);
         }
 
@@ -2123,15 +2120,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    public void switchToPopupMode() {
-        if (mService == null)
-            return;
-        mSwitchingView = true;
-        mSwitchToPopup = true;
-        cleanUI();
-        exitOK();
-    }
-
     public void switchToAudioMode(boolean showUI) {
         if (mService == null)
             return;
@@ -3465,7 +3453,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             updateSeekable(mService.isSeekable());
             updatePausable(mService.isPausable());
             updateNavStatus();
-            setHudClickListeners();
+            setHudClickListeners(true);
             initPlaylistUi();
             if (!mService.hasPlaylist() && !seekButtons) {
                 if (rtl) {
