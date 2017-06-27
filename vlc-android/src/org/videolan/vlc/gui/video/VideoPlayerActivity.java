@@ -259,6 +259,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private boolean mDragging;
     private boolean mShowing;
+    private boolean mShowingDialog;
     private DelayState mPlaybackSetting = DelayState.OFF;
     private SeekBar mSeekbar;
     private TextView mTitle;
@@ -578,6 +579,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     @Override
     protected void onResume() {
         super.onResume();
+        mShowingDialog = false;
         /*
          * Set listeners here to avoid NPE when activity is closing
          */
@@ -668,7 +670,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
                             && AndroidDevices.isAndroidTv() && !requestVisibleBehind(true)))
                 stopPlayback();
-            else if ("2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
+            else if (!mShowingDialog && "2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
                 switchToPopup();
             }
         }
@@ -2651,6 +2653,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         return false;
                     mWasPlaying = mService.isPlaying();
                     pause();
+                    mShowingDialog = true;
                     Intent filePickerIntent = new Intent(context, FilePickerActivity.class);
                     filePickerIntent.setData(Uri.parse(FileUtils.getParent(mUri.toString())));
                     context.startActivityForResult(filePickerIntent, 0);
