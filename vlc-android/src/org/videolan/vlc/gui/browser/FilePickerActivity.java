@@ -55,4 +55,8 @@ public class FilePickerActivity extends AppCompatActivity {
         ((FilePickerFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_placeholder)).browseRoot();
         setTitle(R.string.directories);
     }
+
+    public void onArrowBackClick(View v){
+        ((FilePickerFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_placeholder)).browseUp();
+    }
 }

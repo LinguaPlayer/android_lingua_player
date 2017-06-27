@@ -4,16 +4,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="@dimen/file_picker_width"
     android:layout_height="@dimen/file_picker_height">
-    <ImageView
-        android:id="@+id/button_home"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="center_horizontal"
-        android:contentDescription="@string/directories"
-        android:onClick="onHomeClick"
-        tools:targetApi="11"
-        style="?android:attr/borderlessButtonStyle"
-        android:src="@drawable/icon"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/button_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/directories"
+            android:onClick="onArrowBackClick"
+            tools:targetApi="11"
+            style="?android:attr/borderlessButtonStyle"
+            android:src="@drawable/ic_arrow_back"/>
+        <ImageView
+            android:id="@+id/button_home"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/directories"
+            android:onClick="onHomeClick"
+            tools:targetApi="11"
+            style="?android:attr/borderlessButtonStyle"
+            android:src="@drawable/ic_home"/>
+    </LinearLayout>
     <FrameLayout
         android:id="@+id/fragment_placeholder"
         android:layout_width="match_parent"
