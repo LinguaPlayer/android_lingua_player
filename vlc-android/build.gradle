@@ -181,6 +181,7 @@ dependencies {
     compile project(':medialibrary')
     compile project(':api')
     compile project(':axmlrpc')
+    compile project(':ffmpeg_arm.0.3.2')
     compile 'com.github.johnkil.android-robototextview:robototextview:3.0.0'
     compile "com.android.support:recyclerview-v7:$rootProject.ext.appCompatVersion"
     compile "com.android.support:design:$rootProject.ext.appCompatVersion"

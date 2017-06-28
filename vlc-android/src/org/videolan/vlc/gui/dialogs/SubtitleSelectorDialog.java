@@ -24,17 +24,20 @@ public class SubtitleSelectorDialog extends DialogFragment {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private OnTrackClickListener trackClickListener;
-    public static final String Disable = "Disable";
+    private static final String TRACKS = "tracks";
+    private static final String ENCODEDTRACKLIST = "encodedSubList";
+    private static final String DEFAULT = "default";
 
     public SubtitleSelectorDialog(){
 
     }
 
-    public static SubtitleSelectorDialog newInstance (ArrayList<String> mTrackList, final int defaultSelected /*pass -1 to select nothing*/){
+    public static SubtitleSelectorDialog newInstance (ArrayList<String> mTrackList, ArrayList<String> encodedSubList, final int defaultSelected /*pass -1 to select nothing*/){
         SubtitleSelectorDialog myFragment = new SubtitleSelectorDialog();
         Bundle args = new Bundle();
-        args.putStringArrayList("tracks",mTrackList);
-        args.putInt("default",defaultSelected);
+        args.putStringArrayList(TRACKS,mTrackList);
+        args.putStringArrayList(ENCODEDTRACKLIST, encodedSubList);
+        args.putInt(DEFAULT,defaultSelected);
         myFragment.setArguments(args);
         return myFragment;
     }
@@ -48,10 +51,11 @@ public class SubtitleSelectorDialog extends DialogFragment {
         mRecyclerView = (RecyclerView) v.findViewById(R.id.track_selector_recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
-        final ArrayList<String> trackList = getArguments().getStringArrayList("tracks");
-        final int defaultSelected = getArguments().getInt("default");
+        final ArrayList<String> trackList = getArguments().getStringArrayList(TRACKS);
+        final ArrayList<String> encodedTrackList = getArguments().getStringArrayList(ENCODEDTRACKLIST);
+        final int defaultSelected = getArguments().getInt(DEFAULT);
 
-        mAdapter = new TrackSelectorAdapter(trackList,defaultSelected);
+        mAdapter = new TrackSelectorAdapter(trackList,encodedTrackList,defaultSelected);
         mRecyclerView.setAdapter(mAdapter);
         return v;
     }
@@ -73,11 +77,13 @@ public class SubtitleSelectorDialog extends DialogFragment {
     private class TrackSelectorAdapter extends RecyclerView.Adapter<TrackSelectorAdapter.ViewHolder>{
 
         public ArrayList<String> mTracks;
+        public ArrayList<String> mEncodedTrackList;
         public int mSelectedTrack = -1;
 
-        public TrackSelectorAdapter (ArrayList<String> mTracks,final int defaultSelected){
-            this.mTracks = mTracks;
+        public TrackSelectorAdapter (ArrayList<String> tracks, ArrayList<String> encodedTrackList, final int defaultSelected){
+            this.mTracks = tracks;
             this.mSelectedTrack = defaultSelected;
+            this.mEncodedTrackList = encodedTrackList;
         }
 
         @Override
@@ -91,6 +97,8 @@ public class SubtitleSelectorDialog extends DialogFragment {
         public void onBindViewHolder(ViewHolder holder, int position) {
             //with help of notifyItemRangeChanged and below line I can
             //Implement RadioGroup inside RecyclerView
+            boolean isEncodeSubtitle = mEncodedTrackList.contains(mTracks.get(position));
+            holder.clearButton.setVisibility(isEncodeSubtitle ? View.GONE : View.VISIBLE);
             holder.selected.setChecked(position == mSelectedTrack);
             final String trackName = mTracks.get(position);
             holder.selected.setText(Uri.parse(trackName).getLastPathSegment());

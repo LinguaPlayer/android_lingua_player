@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('ffmpeg_arm.0.3.2.aar'))

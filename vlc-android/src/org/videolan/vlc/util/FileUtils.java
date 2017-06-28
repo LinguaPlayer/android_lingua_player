@@ -25,6 +25,7 @@ package org.videolan.vlc.util;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -54,6 +55,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
 import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class FileUtils {
 
@@ -416,5 +419,42 @@ public class FileUtils {
         else
             bytesAvailable = (long) stat.getBlockSize() * (long) stat.getAvailableBlocks();
         return bytesAvailable / (1024.f);
+    }
+
+    public static String md5Hash(String str) throws NoSuchAlgorithmException {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            digest.update(str.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuffer hexString = new StringBuffer();
+            for (int i=0; i<messageDigest.length; i++)
+                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+            return hexString.toString();
+    }
+
+    public static String generateMediaUniqueName(String mediaLocation, long lastModified){
+        try {
+            String pattern = mediaLocation + lastModified;
+            return md5Hash(pattern);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public static File createMovieEncodedSubtitleDirectory(Context context, String mediaLocation, long lastModiFied){
+        Uri movieUri = Uri.parse(mediaLocation);
+        File subtitleDirectory = new File(context.getFilesDir()+"/"+"LinguaPlayerSubs", movieUri.getLastPathSegment());
+
+        String uniqueName = generateMediaUniqueName(mediaLocation, lastModiFied);
+        if(uniqueName== null || uniqueName.isEmpty()) {
+            return null;
+        }
+        File movieUniqueDirectory = new File(subtitleDirectory,uniqueName);
+        movieUniqueDirectory.mkdirs();
+        if(movieUniqueDirectory.exists())
+            return movieUniqueDirectory;
+        return null;
     }
 }

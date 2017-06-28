@@ -74,6 +74,7 @@ import android.text.format.DateFormat;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -109,6 +110,10 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 
 import org.videolan.libvlc.IVLCVout;
 import org.videolan.libvlc.LibVLC;
@@ -149,7 +154,10 @@ import org.videolan.vlc.util.SubtitlesDownloader;
 import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.widget.StrokedRobotoTextView;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -662,7 +670,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         super.onPause();
         hideOverlay(true);
         setHudClickListeners(false);
-
+        saveLastUsedSubtitle(mCurrentSubtitlePath);
         /* Stop the earliest possible to avoid vout error */
 
         if (!isInPictureInPictureMode()) {
@@ -796,12 +804,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService != null)
             mService.removeCallback(this);
         mHelper.onStop();
-        VLCApplication.runBackground(new Runnable() {
-            @Override
-            public void run() {
-                MediaDatabase.getInstance().saveLastUsedSubtitle(mCurrentSubtitlePath ,mUri.getLastPathSegment());
-            }
-        });
     }
 
     private void restoreBrightness() {
@@ -1085,7 +1087,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         if(data.hasExtra(FilePickerFragment.EXTRA_MRL)) {
             final Uri subLocation = Uri.parse(data.getStringExtra(FilePickerFragment.EXTRA_MRL));
-            addAndSaveSubtitle(subLocation);
+            addAndSaveSubtitle(subLocation,false);
             if(mCurrentSubtitlePath != null) {
                 if (!mCurrentSubtitlePath.contains(subLocation.getPath()))
                     showConfirmReplaceSubtitleDialog(subLocation.getPath());
@@ -1666,14 +1668,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        VLCApplication.runBackground(new Runnable() {
-            @Override
-            public void run() {
-                MediaDatabase.getInstance().saveSubtitle(mCurrentSubtitlePath, mUri.getLastPathSegment(), mSubtitleDelay);
-                Log.d("saveDelay","hey " + mSubtitleDelay);
-            }
-        });
-
+        saveSubtitleDelay(Uri.parse(mCurrentSubtitlePath),mSubtitleDelay);
         if (mPlayPause != null)
             mPlayPause.requestFocus();
     }
@@ -1931,13 +1926,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             case MediaPlayer.Event.ESAdded:
                 if (mMenuIdx == -1) {
                     MediaWrapper media = mMedialibrary.findMedia(mService.getCurrentMediaWrapper());
-                        if (media == null)
-                            return;
+                    if (media == null)
+                        return;
                     if (event.getEsChangedType() == Media.Track.Type.Audio) {
                         setESTrackLists();
                         int audioTrack = (int) media.getMetaLong(mMedialibrary, MediaWrapper.META_AUDIOTRACK);
                         if (audioTrack != 0 || mCurrentAudioTrack != -2)
                             mService.setAudioTrack(media.getId() == 0L ? mCurrentAudioTrack : audioTrack);
+                    } else if (event.getEsChangedType() == Media.Track.Type.Text) {
+                        setESTrackLists();
                     }
                 }
             case MediaPlayer.Event.ESDeleted:
@@ -2946,7 +2943,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             tempPosition++;
         }
 
-        final SubtitleSelectorDialog subtitleSelectorDialog = SubtitleSelectorDialog.newInstance(mSubtitleFiles, trackPosition);
+        final SubtitleSelectorDialog subtitleSelectorDialog = SubtitleSelectorDialog.newInstance(mSubtitleFiles, mEncodedSubtitles, trackPosition);
         subtitleSelectorDialog.setOnTrackClickListener(new SubtitleSelectorDialog.OnTrackClickListener() {
             @Override
             public void onTrackClick(boolean isChecked, String path) {
@@ -2967,7 +2964,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 VLCApplication.runBackground(new Runnable() {
                     @Override
                     public void run() {
-                        MediaDatabase.getInstance().deleteSubtitle(deletedPath,mUri.getLastPathSegment());
+                        MediaDatabase.getInstance().deleteSubtitle(deletedPath, getmediaUniqueName());
                     }
                 });
                 if(newTracksList.size() == 0)
@@ -3652,11 +3649,33 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mService.setSpuTrack(-1);
     }
 
+    private MediaPlayer.TrackDescription [] mSubtitleTracksList;
+    private ArrayList<String> mEncodedSubtitles = new ArrayList<>();
     private void setESTrackLists() {
         if (mAudioTracksList == null && mService.getAudioTracksCount() > 0)
             mAudioTracksList = mService.getAudioTracks();
-    }
 
+        if (mSubtitleTracksList == null && mService.getSpuTracksCount() > 0) {
+            mSubtitleTracksList = mService.getSpuTracks();
+            long lastModified = mService.getCurrentMediaWrapper().getLastModified();
+            File movieDirectory = FileUtils.createMovieEncodedSubtitleDirectory(getApplicationContext(), Uri.parse(mService.getCurrentMediaLocation()).getPath(), lastModified);
+            if (movieDirectory == null) {
+                return;
+            }
+            for (MediaPlayer.TrackDescription trackDescription : mSubtitleTracksList) {
+                if(trackDescription.id == -1)
+                    continue;
+                String srtFileName = (trackDescription.id + trackDescription.name).replaceAll("[^a-zA-Z0-9.-]", "_")+".srt";
+                File srtFile = new File(movieDirectory, srtFileName); //srtFile
+                mEncodedSubtitles.add(srtFile.getAbsolutePath());
+
+                if(!srtFile.exists()) {
+                    generateSubtitles(srtFile.getAbsolutePath(), trackDescription.id);
+                }
+
+            }
+        }
+    }
 
     /**
      *
@@ -3734,7 +3753,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         if (intent.hasExtra(PLAY_EXTRA_SUBTITLES_LOCATION)) {
             final Uri subLocation = Uri.parse(extras.getString(PLAY_EXTRA_SUBTITLES_LOCATION));
-            addAndSaveSubtitle(subLocation);
+            addAndSaveSubtitle(subLocation, false);
         }
         if (intent.hasExtra(PLAY_EXTRA_ITEM_TITLE))
             itemTitle = extras.getString(PLAY_EXTRA_ITEM_TITLE);
@@ -3873,21 +3892,43 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    private void addAndSaveSubtitle(final Uri subLocation){
-        if(mSubtitleFiles.contains(subLocation.getPath()))
-            return;
-
-        mSubtitleFiles.add(subLocation.getPath());
-        mSubtitleFileMapDelay.put(subLocation.getPath(),0L);
+    private void saveSubtitleDelay(final Uri subLocation, long delay, final String mediaName) {
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(),mUri.getLastPathSegment(),0);
+                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(), mediaName,0);
             }
         });
+    }
+    private void saveSubtitleDelay(final Uri subLocation,long delay){
+        saveSubtitleDelay(subLocation, delay, getmediaUniqueName());
+    }
+    private void addAndSaveSubtitle(final Uri subLocation, boolean addTobegin){
+        if(mSubtitleFiles.contains(subLocation.getPath()))
+            return;
+        if(addTobegin)
+            mSubtitleFiles.add(0,subLocation.getPath());
+        else
+            mSubtitleFiles.add(subLocation.getPath());
+        mSubtitleFileMapDelay.put(subLocation.getPath(),0L);
+        saveSubtitleDelay(subLocation,0L);
 
     }
+    private void saveLastUsedSubtitle(final String subLocation){
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+                MediaDatabase.getInstance().saveLastUsedSubtitle(subLocation , getmediaUniqueName());
+            }
+        });
+    }
 
+    private String mMediaUniqueName = null;
+    private String getmediaUniqueName(){
+         if(mMediaUniqueName == null)
+              mMediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(mService.getCurrentMediaLocation()).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, mService.getCurrentMediaWrapper().getLastModified());
+        return mMediaUniqueName;
+    }
     private SubtitlesGetTask mSubtitlesGetTask = null;
     private class SubtitlesGetTask extends AsyncTask<String, Void, SubtitlesGetTask.Wrapper> {
 
@@ -3895,13 +3936,23 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             public String lastUsedSubtitle;
             public ArrayList<MediaDatabase.SubtitleWithDelay> prefsList;
         }
+
+        String mediaUniqueName = null;
+        @Override
+        protected void onPreExecute(){
+            //This can be called from MainThread so I added it in onPreExecute
+            mediaUniqueName = getmediaUniqueName();
+        }
         @Override
         protected Wrapper doInBackground(String... strings) {
             ArrayList<MediaDatabase.SubtitleWithDelay> prefsList = new ArrayList<>();
-
-            final String lastUsedSubtitle = MediaDatabase.getInstance().getLastUsedSubtitle(mUri.getLastPathSegment());
-            if (!TextUtils.equals(mUri.getScheme(), "content"))
-                prefsList.addAll(MediaDatabase.getInstance().getSubtitles(mUri.getLastPathSegment()));
+            String lastUsedSubtitle = null;
+            if(mediaUniqueName != null && !mediaUniqueName.isEmpty()) {
+                lastUsedSubtitle = MediaDatabase.getInstance().getLastUsedSubtitle(mediaUniqueName);
+                if (!TextUtils.equals(mUri.getScheme(), "content")) {
+                    prefsList.addAll(MediaDatabase.getInstance().getSubtitles(mediaUniqueName));
+                }
+            }
 
             Wrapper wrapper = new Wrapper();
             wrapper.lastUsedSubtitle = lastUsedSubtitle;
@@ -3933,6 +3984,43 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
+    public void generateSubtitles(final String srtFilePath, final int  i){
+        FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
+        try {
+            Log.d("location",Uri.parse(mService.getCurrentMediaLocation()).getPath());
+            ffmpeg.execute(new String[]{"-i",Uri.parse(mService.getCurrentMediaLocation()).getPath(),"-vn","-an", "-codec:"+i,"srt",srtFilePath,"-y",}, new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onStart() {
+                    Toast.makeText(getApplicationContext(),R.string.preparing_embeded_subs, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onProgress(String message) {
+                    Log.d(TAG,"ffmpeg execute: "+ "onProgress"+message);
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    Log.d(TAG,"ffmpeg execute: "+ "onFailure"+message);
+                }
+
+                @Override
+                public void onSuccess(String message) {
+                    addAndSaveSubtitle(Uri.parse(srtFilePath), true);
+                    if(mCurrentSubtitlePath == null)
+                        parseSubtitle(srtFilePath);
+                }
+
+                @Override
+                public void onFinish() {
+                    Log.d(TAG,"ffmpeg execute: "+ "onFinish");
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            // Handle if FFmpeg is already running
+            Log.d(TAG,"ffmpeg execute: " + "alreadyRunning");
+        }
+    }
 
     public void getSubtitles() {
         if (mSubtitlesGetTask != null || mService == null)
@@ -3940,6 +4028,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mSubtitlesGetTask = new SubtitlesGetTask();
         mSubtitlesGetTask.execute();
+
+
     }
 
     @SuppressWarnings("deprecation")

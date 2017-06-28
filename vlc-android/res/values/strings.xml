@@ -768,4 +768,7 @@
     <string name="dictionary_not_enough_space">There is not enough free space in your device free up some space and restart the app </string>
     <string name="dictionary_error">Unexpected error happend!</string>
 
+    <!--EncodedSubtitles-->
+    <string name="preparing_embeded_subs">Preparing embedded subtitles might take few seconds</string>
+
 </resources>

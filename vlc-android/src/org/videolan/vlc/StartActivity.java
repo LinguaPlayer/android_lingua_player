@@ -31,6 +31,10 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.vlc.gui.AudioPlayerContainerActivity;
 import org.videolan.vlc.gui.MainActivity;
@@ -79,8 +83,10 @@ public class StartActivity extends Activity {
         /* Check if it's the first run */
         boolean firstRun = savedVersionNumber == -1;
         boolean upgrade = firstRun || savedVersionNumber != currentVersionNumber;
-        if (upgrade)
+        if (upgrade) {
             settings.edit().putInt(PREF_FIRST_RUN, currentVersionNumber).apply();
+            prepareFFmpeg();
+        }
 
         //0 : not ready
         //1 : error
@@ -137,5 +143,24 @@ public class StartActivity extends Activity {
     private boolean showTvUi() {
         return AndroidUtil.isJellyBeanMR1OrLater && (AndroidDevices.isAndroidTv() || !AndroidDevices.hasTsp() ||
                 PreferenceManager.getDefaultSharedPreferences(this).getBoolean("tv_ui", false));
+    }
+
+    private void prepareFFmpeg(){
+        FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
+        try {
+            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+                @Override
+                public void onStart() { }
+                @Override
+                public void onFailure() { }
+                @Override
+                public void onSuccess() { }
+                @Override
+                public void onFinish() { }
+            });
+        } catch (FFmpegNotSupportedException e) {
+            // Handle if FFmpeg is not supported by device
+            Log.d("ffmpeg","NOTSupported");
+        }
     }
 }
