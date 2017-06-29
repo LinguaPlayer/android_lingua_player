@@ -2627,8 +2627,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     };
 
     public void onAudioSubClick(View anchor){
-        if (anchor == null)
+        if (anchor == null) {
             initOverlay();
+            anchor = mTracks;
+        }
         final AppCompatActivity context = this;
         PopupMenu popupMenu = new PopupMenu(this, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.audiosub_tracks, popupMenu.getMenu());
@@ -3381,7 +3383,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         initOverlay();
         if (timeout != 0)
             mOverlayTimeout = timeout;
-        if (mOverlayTimeout == 0)
+        else
             mOverlayTimeout = mService.isPlaying() ? OVERLAY_TIMEOUT : OVERLAY_INFINITE;
         if (mIsNavMenu){
             mShowing = true;
@@ -3455,16 +3457,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             updateNavStatus();
             setHudClickListeners(true);
             initPlaylistUi();
-            if (!mService.hasPlaylist() && !seekButtons) {
-                if (rtl) {
-                    mAdvOptions.setNextFocusRightId(R.id.player_overlay_play);
-                    mTracks.setNextFocusLeftId(R.id.player_overlay_play);
-                } else {
-                    mTracks.setNextFocusRightId(R.id.player_overlay_play);
-                    mAdvOptions.setNextFocusLeftId(R.id.player_overlay_play);
-
-                }
-            }
         }
     }
 
