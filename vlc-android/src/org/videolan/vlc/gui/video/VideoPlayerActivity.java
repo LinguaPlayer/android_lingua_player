@@ -162,8 +162,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.regex.Pattern;
 
 import static java.security.AccessController.getContext;
@@ -3643,12 +3645,22 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private MediaPlayer.TrackDescription [] mSubtitleTracksList;
     private ArrayList<String> mEncodedSubtitles = new ArrayList<>();
+    private Queue<EncodingSub> mEncodingSubQueue = new LinkedList<>();
+    private class EncodingSub{
+        String path;
+        int id;
+        public EncodingSub(String path,int id){
+            this.path = path;
+            this.id = id;
+        }
+    }
     private void setESTrackLists() {
         if (mAudioTracksList == null && mService.getAudioTracksCount() > 0)
             mAudioTracksList = mService.getAudioTracks();
 
         if (mSubtitleTracksList == null && mService.getSpuTracksCount() > 0) {
             mSubtitleTracksList = mService.getSpuTracks();
+
             long lastModified = mService.getCurrentMediaWrapper().getLastModified();
             File movieDirectory = FileUtils.createMovieEncodedSubtitleDirectory(getApplicationContext(), Uri.parse(mService.getCurrentMediaLocation()).getPath(), lastModified);
             if (movieDirectory == null) {
@@ -3662,10 +3674,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mEncodedSubtitles.add(srtFile.getAbsolutePath());
 
                 if(!srtFile.exists()) {
-                    generateSubtitles(srtFile.getAbsolutePath(), trackDescription.id);
+                    EncodingSub encodingSub = new EncodingSub(srtFile.getAbsolutePath(), trackDescription.id);
+                    mEncodingSubQueue.add(encodingSub);
                 }
-
             }
+            Log.d("ffmpeg:","size"+mEncodingSubQueue.size());
+            generateSubtitles();
         }
     }
 
@@ -3976,11 +3990,18 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    public void generateSubtitles(final String srtFilePath, final int  i){
+    private void generateSubtitles(){
+        if(mEncodingSubQueue.isEmpty())
+            return;
+        EncodingSub encodedSubData = mEncodingSubQueue.poll();
+        final String srtFilePath = encodedSubData.path;
+        final int  i = encodedSubData.id;
+        Log.d("ffmpeg",srtFilePath+i);
+
         FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
         try {
             Log.d("location",Uri.parse(mService.getCurrentMediaLocation()).getPath());
-            ffmpeg.execute(new String[]{"-i",Uri.parse(mService.getCurrentMediaLocation()).getPath(),"-vn","-an", "-codec:"+i,"srt",srtFilePath,"-y",}, new ExecuteBinaryResponseHandler() {
+            ffmpeg.execute(new String[]{"-i",Uri.parse(mService.getCurrentMediaLocation()).getPath(),"-map","0:"+i,srtFilePath,"-y",}, new ExecuteBinaryResponseHandler() {
                 @Override
                 public void onStart() {
                     Toast.makeText(getApplicationContext(),R.string.preparing_embeded_subs, Toast.LENGTH_SHORT).show();
@@ -4006,6 +4027,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 @Override
                 public void onFinish() {
                     Log.d(TAG,"ffmpeg execute: "+ "onFinish");
+                    generateSubtitles();
                 }
             });
         } catch (FFmpegCommandAlreadyRunningException e) {

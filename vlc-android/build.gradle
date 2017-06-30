@@ -199,7 +199,8 @@ static def buildTime() {
 }
 
 static def hostName() {
-    return System.getProperty("user.name") + "@" + InetAddress.localHost.hostName
+//    return System.getProperty("user.name") + "@" + InetAddress.localHost.hostName
+    return "Habib@Kazemi"
 }
 
 def revision() {

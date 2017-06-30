@@ -98,7 +98,7 @@ public class SubtitleSelectorDialog extends DialogFragment {
             //with help of notifyItemRangeChanged and below line I can
             //Implement RadioGroup inside RecyclerView
             boolean isEncodeSubtitle = mEncodedTrackList.contains(mTracks.get(position));
-            holder.clearButton.setVisibility(isEncodeSubtitle ? View.GONE : View.VISIBLE);
+            holder.clearButton.setVisibility(isEncodeSubtitle ? View.INVISIBLE: View.VISIBLE);
             holder.selected.setChecked(position == mSelectedTrack);
             final String trackName = mTracks.get(position);
             holder.selected.setText(Uri.parse(trackName).getLastPathSegment());
