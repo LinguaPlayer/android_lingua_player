@@ -3678,7 +3678,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     mEncodingSubQueue.add(encodingSub);
                 }
             }
-            Log.d("ffmpeg:","size"+mEncodingSubQueue.size());
             generateSubtitles();
         }
     }
@@ -3996,11 +3995,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         EncodingSub encodedSubData = mEncodingSubQueue.poll();
         final String srtFilePath = encodedSubData.path;
         final int  i = encodedSubData.id;
-        Log.d("ffmpeg",srtFilePath+i);
 
         FFmpeg ffmpeg = FFmpeg.getInstance(getApplicationContext());
         try {
-            Log.d("location",Uri.parse(mService.getCurrentMediaLocation()).getPath());
             ffmpeg.execute(new String[]{"-i",Uri.parse(mService.getCurrentMediaLocation()).getPath(),"-map","0:"+i,srtFilePath,"-y",}, new ExecuteBinaryResponseHandler() {
                 @Override
                 public void onStart() {
