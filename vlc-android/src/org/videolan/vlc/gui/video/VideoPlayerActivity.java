@@ -3678,6 +3678,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     mEncodingSubQueue.add(encodingSub);
                 }
             }
+            if(!mEncodingSubQueue.isEmpty())
+                Toast.makeText(getApplicationContext(),R.string.preparing_embeded_subs, Toast.LENGTH_SHORT).show();
+
             generateSubtitles();
         }
     }
@@ -4001,7 +4004,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             ffmpeg.execute(new String[]{"-i",Uri.parse(mService.getCurrentMediaLocation()).getPath(),"-map","0:"+i,srtFilePath,"-y",}, new ExecuteBinaryResponseHandler() {
                 @Override
                 public void onStart() {
-                    Toast.makeText(getApplicationContext(),R.string.preparing_embeded_subs, Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
