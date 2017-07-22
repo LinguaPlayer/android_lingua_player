@@ -30,6 +30,12 @@ while [ $# -gt 0 ]; do
             echo "  ARM64:   (arm64-v8a|arm64)"
             echo "  X86:     x86, x86_64"
             echo "  MIPS:    mips, mips64."
+            echo "Use -t to set the TYPE:"
+            echo "  free "
+            echo "  pro "
+            echo "Use -m to set the MARKET:"
+            echo "  myket "
+            echo "  bazaar "
             echo "Use --release to build in release mode"
             echo "Use -s to set your keystore file and -p for the password"
             echo "Use -c to get a ChromeOS build"
@@ -38,6 +44,14 @@ while [ $# -gt 0 ]; do
             ;;
         a|-a)
             ANDROID_ABI=$2
+            shift
+            ;;
+        -t|--type)
+            TYPE=$2
+            shift
+            ;;
+        -m|--market)
+            MARKET=$2
             shift
             ;;
         -c)
@@ -101,6 +115,15 @@ else
     exit 1
 fi
 
+if [ -z "$MARKET" ]; then
+   diagnostic "*** No MARKET flavor defined : using bazaar"
+   MARKET="bazaar"
+fi
+
+if [ -z "$TYPE" ]; then
+   diagnostic "*** No TYPE defined : using free"
+   TYPE="pro"
+fi
 ##########
 # GRADLE #
 ##########
@@ -278,7 +301,7 @@ else
     else
         ACTION="assemble"
     fi
-    TARGET="${ACTION}${PLATFORM}${GRADLE_ABI}${BUILDTYPE}"
+    TARGET="${ACTION}${PLATFORM}${GRADLE_ABI}${TYPE}${MARKET}${BUILDTYPE}"
     CLI="" ./gradlew $TARGET
 fi
 
