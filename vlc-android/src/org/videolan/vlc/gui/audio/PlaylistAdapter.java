@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, PlaylistAdapter.ViewHolder> implements SwipeDragHelperAdapter, Filterable {
+public class PlaylistAdapter extends BaseQueuedAdapter<MediaWrapper, PlaylistAdapter.ViewHolder> implements SwipeDragHelperAdapter, Filterable {
 
     private static final String TAG = "VLC/PlaylistAdapter";
 
@@ -61,7 +61,6 @@ public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, 
     private PlaybackService mService = null;
     private IPlayer mAudioPlayer;
 
-    private volatile ArrayList<MediaWrapper> mDataSet = new ArrayList<>();
     private ArrayList<MediaWrapper> mOriginalDataSet;
     private int mCurrentIndex = 0;
 
@@ -96,13 +95,13 @@ public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, 
 
     @Override
     public int getItemCount() {
-        return mDataSet.size();
+        return mDataset.size();
     }
 
     @MainThread
     public MediaWrapper getItem(int position) {
         if (position >= 0 && position < getItemCount())
-            return mDataSet.get(position);
+            return mDataset.get(position);
         else
             return null;
     }
@@ -119,29 +118,33 @@ public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, 
 
     @MainThread
     public void addAll(List<MediaWrapper> playList) {
-        mDataSet.addAll(playList);
+        mDataset.addAll(playList);
     }
 
     @MainThread
-    protected void internalUpdate(final ArrayList<MediaWrapper> newList) {
-        VLCApplication.runBackground(new Runnable() {
+    protected void internalUpdate(final ArrayList<MediaWrapper> newList, final boolean detectMoves) {
+        mUpdateExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new MediaItemDiffCallback(mDataSet, newList), false);
+                final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new MediaItemDiffCallback(mDataset, newList), detectMoves);
                 VLCApplication.runOnMainThread(new Runnable() {
                     @Override
                     public void run() {
-                        mDataSet.clear();
+                        mDataset.clear();
                         addAll(newList);
                         result.dispatchUpdatesTo(PlaylistAdapter.this);
-                        if (mService != null)
-                            setCurrentIndex(mService.getCurrentMediaPosition());
                         processQueue();
                     }
                 });
             }
         });
 
+    }
+
+    @Override
+    protected void onUpdateFinished() {
+        if (mService != null)
+            setCurrentIndex(mService.getCurrentMediaPosition());
     }
 
     @MainThread
@@ -167,7 +170,7 @@ public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, 
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
-        Collections.swap(mDataSet, fromPosition, toPosition);
+        Collections.swap(mDataset, fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
         mHandler.obtainMessage(PlaylistHandler.ACTION_MOVE, fromPosition, toPosition).sendToTarget();
     }
@@ -278,15 +281,13 @@ public class PlaylistAdapter extends BaseQueuedAdapter<ArrayList<MediaWrapper>, 
         @Override
         protected FilterResults performFiltering(CharSequence charSequence) {
             if (mOriginalDataSet == null)
-                mOriginalDataSet = new ArrayList<>(mDataSet);
+                mOriginalDataSet = new ArrayList<>(mDataset);
             final String[] queryStrings = charSequence.toString().trim().toLowerCase().split(" ");
             FilterResults results = new FilterResults();
             ArrayList<MediaWrapper> list = new ArrayList<>();
             String title, location, artist, album, albumArtist, genre;
-            MediaWrapper media;
             mediaLoop:
-            for (int i = 0 ; i < mOriginalDataSet.size() ; ++i) {
-                media = mOriginalDataSet.get(i);
+            for (MediaWrapper media : mOriginalDataSet) {
                 title = MediaUtils.getMediaTitle(media);
                 location = media.getLocation();
                 artist = MediaUtils.getMediaArtist(VLCApplication.getAppContext(), media).toLowerCase();

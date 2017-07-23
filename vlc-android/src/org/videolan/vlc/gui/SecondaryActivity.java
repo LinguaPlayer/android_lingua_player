@@ -27,7 +27,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.view.Menu;
 import android.view.MenuItem;
 
 import org.videolan.medialibrary.Medialibrary;
@@ -36,15 +35,12 @@ import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.audio.AudioAlbumsSongsFragment;
 import org.videolan.vlc.gui.audio.AudioBrowserFragment;
-import org.videolan.vlc.gui.audio.EqualizerFragment;
 import org.videolan.vlc.gui.browser.StorageBrowserFragment;
 import org.videolan.vlc.gui.preferences.PreferencesActivity;
 import org.videolan.vlc.gui.tv.TvUtil;
 import org.videolan.vlc.gui.video.VideoGridFragment;
-import org.videolan.vlc.gui.video.VideoListAdapter;
-import org.videolan.vlc.interfaces.ISortable;
 
-public class SecondaryActivity extends AudioPlayerContainerActivity {
+public class SecondaryActivity extends ContentActivity {
     public final static String TAG = "VLC/SecondaryActivity";
 
     public static final int ACTIVITY_RESULT_SECONDARY = 3;
@@ -108,47 +104,38 @@ public class SecondaryActivity extends AudioPlayerContainerActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (mFragment instanceof VideoGridFragment)
-            getMenuInflater().inflate(R.menu.video_group, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.ml_menu_sortby_name:
-            case R.id.ml_menu_sortby_length:
-                ((ISortable) mFragment).sortBy(item.getItemId() == R.id.ml_menu_sortby_name
-                ? VideoListAdapter.SORT_BY_TITLE
-                : VideoListAdapter.SORT_BY_LENGTH);
-                break;
             case R.id.ml_menu_refresh:
                 Medialibrary ml = VLCApplication.getMLInstance();
                 if (!ml.isWorking())
                     startService(new Intent(MediaParsingService.ACTION_RELOAD, null,this, MediaParsingService.class));
-                break;
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void fetchSecondaryFragment(String id) {
-        if (id.equals(ALBUMS_SONGS)) {
-            mFragment = new AudioAlbumsSongsFragment();
-            Bundle args = new Bundle();
-            args.putParcelable(AudioBrowserFragment.TAG_ITEM, getIntent().getParcelableExtra(AudioBrowserFragment.TAG_ITEM));
-            mFragment.setArguments(args);
-        } else if(id.equals(ABOUT)) {
-            mFragment = new AboutFragment();
-        } else if(id.equals(VIDEO_GROUP_LIST)) {
-            mFragment = new VideoGridFragment();
-            ((VideoGridFragment) mFragment).setGroup(getIntent().getStringExtra("param"));
-        } else if (id.equals(STORAGE_BROWSER)){
-            mFragment = new StorageBrowserFragment();
-        } else {
-            throw new IllegalArgumentException("Wrong fragment id.");
+        switch (id) {
+            case ALBUMS_SONGS:
+                mFragment = new AudioAlbumsSongsFragment();
+                Bundle args = new Bundle();
+                args.putParcelable(AudioBrowserFragment.TAG_ITEM, getIntent().getParcelableExtra(AudioBrowserFragment.TAG_ITEM));
+                mFragment.setArguments(args);
+                break;
+            case ABOUT:
+                mFragment = new AboutFragment();
+                break;
+            case VIDEO_GROUP_LIST:
+                mFragment = new VideoGridFragment();
+                ((VideoGridFragment) mFragment).setGroup(getIntent().getStringExtra("param"));
+                break;
+            case STORAGE_BROWSER:
+                mFragment = new StorageBrowserFragment();
+                break;
+            default:
+                throw new IllegalArgumentException("Wrong fragment id.");
         }
     }
 }

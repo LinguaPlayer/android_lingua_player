@@ -13,6 +13,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.util.VLCUtil;
 import org.videolan.medialibrary.interfaces.DevicesDiscoveryCb;
 import org.videolan.medialibrary.interfaces.EntryPointsEventsCb;
@@ -47,7 +48,7 @@ public class Medialibrary {
     public static final String ACTION_IDLE = "action_idle";
     public static final String STATE_IDLE = "state_idle";
 
-    private static final MediaWrapper[] EMPTY_COLLECTION = {};
+    public static final MediaWrapper[] EMPTY_COLLECTION = {};
     public static final String VLC_MEDIA_DB_NAME = "/vlc_media.db";
     public static final String THUMBS_FOLDER_NAME = "/thumbs";
 
@@ -69,6 +70,7 @@ public class Medialibrary {
     private static Medialibrary sInstance;
 
     static {
+        LibVLC.loadLibraries();
         System.loadLibrary("c++_shared");
         System.loadLibrary("mla");
     }
@@ -76,11 +78,12 @@ public class Medialibrary {
     public boolean init(Context context) {
         if (context == null)
             return false;
-        File cacheDir = context.getCacheDir();
+        mContext = context;
         File extFilesDir = context.getExternalFilesDir(null);
-        if (extFilesDir == null || !cacheDir.exists() || !extFilesDir.exists())
+        File dbDirectory = context.getDir("db", Context.MODE_PRIVATE);
+        if (extFilesDir == null || !extFilesDir.exists())
             return false;
-        mIsInitiated = nativeInit(cacheDir+ VLC_MEDIA_DB_NAME, extFilesDir.getAbsolutePath()+ THUMBS_FOLDER_NAME);
+        mIsInitiated = nativeInit(dbDirectory+ VLC_MEDIA_DB_NAME, extFilesDir+ THUMBS_FOLDER_NAME);
         return mIsInitiated;
     }
 
@@ -134,11 +137,9 @@ public class Medialibrary {
         super.finalize();
     }
 
-    public static synchronized Medialibrary getInstance(Context context) {
-        if (sInstance == null) {
+    public static synchronized Medialibrary getInstance() {
+        if (sInstance == null)
             sInstance = new Medialibrary();
-            sInstance.mContext = context;
-        }
         return sInstance;
     }
 
@@ -383,6 +384,7 @@ public class Medialibrary {
         }
     }
 
+    @SuppressWarnings("unused")
     public void onBackgroundTasksIdleChanged(boolean isIdle) {
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(new Intent(ACTION_IDLE).putExtra(STATE_IDLE, isIdle));
         mIsWorking = !isIdle;

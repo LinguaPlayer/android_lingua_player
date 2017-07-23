@@ -51,6 +51,8 @@ import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.audio.AudioBrowserAdapter;
 import org.videolan.vlc.interfaces.IEventsHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class SavePlaylistDialog extends DialogFragment implements View.OnClickListener, TextView.OnEditorActionListener, IEventsHandler {
@@ -79,7 +81,7 @@ public class SavePlaylistDialog extends DialogFragment implements View.OnClickLi
         super.onCreate(savedInstanceState);
         mMedialibrary = VLCApplication.getMLInstance();
         mAdapter = new AudioBrowserAdapter(getActivity(),MediaLibraryItem.TYPE_PLAYLIST,  this, false);
-        mAdapter.addAll(mMedialibrary.getPlaylists());
+        mAdapter.addAll(new ArrayList<MediaLibraryItem>(Arrays.asList(mMedialibrary.getPlaylists())));
         mTracks = (MediaWrapper[]) getArguments().getParcelableArray(KEY_TRACKS);
         mNewTrack = (MediaWrapper[]) getArguments().getParcelableArray(KEY_NEW_TRACKS);
     }
@@ -153,8 +155,8 @@ public class SavePlaylistDialog extends DialogFragment implements View.OnClickLi
                 if (addTracks) {
                     tracks = mNewTrack;
                 } else {//Save a playlist
-                    for (MediaWrapper mw : playlist.getTracks(mMedialibrary))
-                        playlist.remove(mMedialibrary, mw.getId());
+                    for (MediaWrapper mw : playlist.getTracks())
+                        playlist.remove(mw.getId());
                     tracks = mTracks;
                 }
                 LinkedList<Long> ids = new LinkedList<>();
@@ -172,7 +174,7 @@ public class SavePlaylistDialog extends DialogFragment implements View.OnClickLi
                     } else
                         ids.add(id);
                 }
-                playlist.append(mMedialibrary, ids);
+                playlist.append(ids);
                 if (mCallBack != null)
                     mCallBack.run();
             }

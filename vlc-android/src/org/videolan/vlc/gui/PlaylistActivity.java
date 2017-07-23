@@ -62,7 +62,7 @@ import org.videolan.vlc.gui.view.ContextMenuRecyclerView;
 import org.videolan.vlc.interfaces.IEventsHandler;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
-import org.videolan.vlc.util.Strings;
+import org.videolan.vlc.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,8 +97,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
 
         mBinding.songs.setLayoutManager(new LinearLayoutManager(this));
         mBinding.songs.setAdapter(mAdapter);
-        final int fabVisibility =  savedInstanceState != null
-            ? savedInstanceState.getInt(TAG_FAB_VISIBILITY) : -1;
+        final int fabVisibility =  savedInstanceState != null ? savedInstanceState.getInt(TAG_FAB_VISIBILITY) : -1;
 
         if (!TextUtils.isEmpty(mPlaylist.getArtworkMrl())) {
             VLCApplication.runBackground(new Runnable() {
@@ -138,8 +137,8 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
         mFragmentContainer = mBinding.songs;
+        super.onPostCreate(savedInstanceState);
     }
 
     @Override
@@ -164,8 +163,10 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
     }
 
     private void updateList() {
-        if (mPlaylist != null)
-            mAdapter.addAll(mPlaylist.getTracks(mMediaLibrary));
+        if (mPlaylist != null) {
+            ArrayList<MediaLibraryItem> tracks = Util.arrayToMediaArrayList(mPlaylist.getTracks());
+            mAdapter.addAll(tracks);
+        }
     }
 
     @Override
@@ -176,7 +177,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             mAdapter.notifyItemChanged(position, item);
             invalidateActionMode();
         } else if (mService != null)
-            mService.load(mPlaylist.getTracks(mMediaLibrary), position);
+            mService.load(mPlaylist.getTracks(), position);
     }
 
     @Override
@@ -250,7 +251,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
         List<MediaLibraryItem> list = mAdapter.getSelection();
         ArrayList<MediaWrapper> tracks = new ArrayList<>();
         for (MediaLibraryItem mediaItem : list)
-            tracks.addAll(Arrays.asList(mediaItem.getTracks(mMediaLibrary)));
+            tracks.addAll(Arrays.asList(mediaItem.getTracks()));
         stopActionMode();
         switch (item.getItemId()) {
             case R.id.action_mode_audio_play:
@@ -277,12 +278,12 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
     @Override
     public void onDestroyActionMode(ActionMode mode) {
         mActionMode = null;
-        MediaLibraryItem[] items = mAdapter.getAll();
+        ArrayList<MediaLibraryItem> items = mAdapter.getAll();
         if (items != null) {
-            for (int i = 0; i < items.length; ++i) {
-                if (items[i].hasStateFlags(MediaLibraryItem.FLAG_SELECTED)) {
-                    items[i].removeStateFlags(MediaLibraryItem.FLAG_SELECTED);
-                    mAdapter.notifyItemChanged(i, items[i]);
+            for (int i = 0; i < items.size(); ++i) {
+                if (items.get(i).hasStateFlags(MediaLibraryItem.FLAG_SELECTED)) {
+                    items.get(i).removeStateFlags(MediaLibraryItem.FLAG_SELECTED);
+                    mAdapter.notifyItemChanged(i, items.get(i));
                 }
             }
         }
@@ -320,7 +321,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             return true;
         } else if (id == R.id.audio_list_browser_delete) {
             mAdapter.remove(media);
-            UiTools.snackerWithCancel(getWindow().getDecorView(), getString(R.string.file_deleted), new Runnable() {
+            UiTools.snackerWithCancel(mBinding.getRoot(), getString(R.string.file_deleted), new Runnable() {
                 @Override
                 public void run() {
                     deleteMedia(media);
@@ -339,7 +340,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             FragmentManager fm = getSupportFragmentManager();
             SavePlaylistDialog savePlaylistDialog = new SavePlaylistDialog();
             Bundle args = new Bundle();
-            args.putParcelableArray(SavePlaylistDialog.KEY_NEW_TRACKS, media.getTracks(mMediaLibrary));
+            args.putParcelableArray(SavePlaylistDialog.KEY_NEW_TRACKS, media.getTracks());
             savePlaylistDialog.setArguments(args);
             savePlaylistDialog.show(fm, "fragment_add_to_playlist");
             return true;
@@ -370,7 +371,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             public void run() {
                 final LinkedList<String> foldersToReload = new LinkedList<>();
                 final LinkedList<String> mediaPaths = new LinkedList<>();
-                for (MediaWrapper media : mw.getTracks(mMediaLibrary)) {
+                for (MediaWrapper media : mw.getTracks()) {
                     String path = media.getUri().getPath();
                     mediaPaths.add(media.getLocation());
                     String parentPath = FileUtils.getParent(path);
@@ -395,6 +396,6 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
     @Override
     public void onClick(View v) {
         if (mService != null)
-            mService.load(mPlaylist.getTracks(mMediaLibrary), 0);
+            mService.load(mPlaylist.getTracks(), 0);
     }
 }

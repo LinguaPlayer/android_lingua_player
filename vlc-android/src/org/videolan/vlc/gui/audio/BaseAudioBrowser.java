@@ -2,7 +2,7 @@
  * *************************************************************************
  *  BaseAudioBrowser.java
  * **************************************************************************
- *  Copyright © 2016 VLC authors and VideoLAN
+ *  Copyright © 2016-2017 VLC authors and VideoLAN
  *  Author: Geoffrey Métais
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui.audio;
 
+import android.content.Intent;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -31,10 +32,13 @@ import android.view.View;
 
 import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
+import org.videolan.vlc.PlaybackService;
 import org.videolan.vlc.R;
-import org.videolan.vlc.gui.browser.MediaBrowserFragment;
+import org.videolan.vlc.gui.ContentActivity;
+import org.videolan.vlc.gui.browser.SortableFragment;
 import org.videolan.vlc.gui.helpers.AudioUtil;
 import org.videolan.vlc.gui.helpers.UiTools;
+import org.videolan.vlc.interfaces.Filterable;
 import org.videolan.vlc.interfaces.IEventsHandler;
 import org.videolan.vlc.util.AndroidDevices;
 
@@ -42,14 +46,41 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class BaseAudioBrowser extends MediaBrowserFragment implements IEventsHandler {
+public abstract class BaseAudioBrowser extends SortableFragment implements IEventsHandler, Filterable {
 
     abstract protected AudioBrowserAdapter getCurrentAdapter();
+    public View mSearchButtonView;
+    public ContentActivity mActivity;
+    protected AudioBrowserAdapter[] mAdapters;
 
     protected void inflate(Menu menu, int position) {
         if (getActivity() == null)
             return;
         getActivity().getMenuInflater().inflate(R.menu.audio_list_browser, menu);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        int type = getCurrentAdapter().getAdapterType();
+        boolean album = type == MediaLibraryItem.TYPE_ALBUM;
+        boolean songs =  type == MediaLibraryItem.TYPE_MEDIA;
+        boolean playlist = type == MediaLibraryItem.TYPE_PLAYLIST;
+        menu.findItem(R.id.ml_menu_sortby_length).setVisible(album||playlist||songs);
+        menu.findItem(R.id.ml_menu_sortby_date).setVisible(album);
+        menu.findItem(R.id.ml_menu_sortby_number).setVisible(album||playlist);
+        menu.findItem(R.id.ml_menu_last_playlist).setVisible(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.ml_menu_last_playlist:
+                getActivity().sendBroadcast(new Intent(PlaybackService.ACTION_REMOTE_LAST_PLAYLIST));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -81,7 +112,7 @@ public abstract class BaseAudioBrowser extends MediaBrowserFragment implements I
         if (!list.isEmpty()) {
             ArrayList<MediaWrapper> tracks = new ArrayList<>();
             for (MediaLibraryItem mediaItem : list)
-                tracks.addAll(Arrays.asList(mediaItem.getTracks(mMediaLibrary)));
+                tracks.addAll(Arrays.asList(mediaItem.getTracks()));
             switch (item.getItemId()) {
                 case R.id.action_mode_audio_play:
                     mService.load(tracks, 0);
@@ -111,12 +142,12 @@ public abstract class BaseAudioBrowser extends MediaBrowserFragment implements I
 
     public void onDestroyActionMode(AudioBrowserAdapter adapter) {
         mActionMode = null;
-        MediaLibraryItem[] items = adapter.getAll();
+        ArrayList<? extends MediaLibraryItem> items = adapter.getAll();
         if (items != null) {
-            for (int i = 0; i < items.length; ++i) {
-                if (items[i].hasStateFlags(MediaLibraryItem.FLAG_SELECTED)) {
-                    items[i].removeStateFlags(MediaLibraryItem.FLAG_SELECTED);
-                    adapter.notifyItemChanged(i, items[i]);
+            for (int i = 0; i < items.size(); ++i) {
+                if (items.get(i).hasStateFlags(MediaLibraryItem.FLAG_SELECTED)) {
+                    items.get(i).removeStateFlags(MediaLibraryItem.FLAG_SELECTED);
+                    adapter.notifyItemChanged(i, items.get(i));
                 }
             }
         }
@@ -156,4 +187,36 @@ public abstract class BaseAudioBrowser extends MediaBrowserFragment implements I
 
     @Override
     public void onUpdateFinished(RecyclerView.Adapter adapter) {}
+
+    public void restoreList() {
+        getCurrentAdapter().restoreList();
+    }
+
+    @Override
+    public boolean enableSearchOption() {
+        return true;
+    }
+
+    @Override
+    public void setSearchVisibility(boolean visible) {
+        UiTools.setViewVisibility(mSearchButtonView, visible ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public int sortDirection(int sortby) {
+        return getCurrentAdapter().sortDirection(sortby);
+    }
+
+    @Override
+    public void sortBy(int sortby) {
+        AudioBrowserAdapter adapter = mAdapters[0];
+        int sortDirection = adapter.getSortDirection();
+        int sortBy = adapter.getSortBy();
+        if (sortby == sortBy)
+            sortDirection*=-1;
+        else
+            sortDirection = 1;
+        for (AudioBrowserAdapter audioBrowserAdapter : mAdapters)
+            audioBrowserAdapter.sortBy(sortby, sortDirection);
+    }
 }

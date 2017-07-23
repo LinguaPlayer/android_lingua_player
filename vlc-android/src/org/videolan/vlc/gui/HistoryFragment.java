@@ -29,6 +29,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,6 +84,29 @@ public class HistoryFragment extends MediaBrowserFragment implements IRefreshabl
 
         mSwipeRefreshLayout.setOnRefreshListener(this);
         return v;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_option_history, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.ml_menu_clean).setVisible(!isEmpty());
+        super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.ml_menu_clean:
+                clearHistory();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -246,5 +270,7 @@ public class HistoryFragment extends MediaBrowserFragment implements IRefreshabl
     public void onCtxClick(View v, int position, MediaLibraryItem item) {}
 
     @Override
-    public void onUpdateFinished(RecyclerView.Adapter adapter) {}
+    public void onUpdateFinished(RecyclerView.Adapter adapter) {
+        invalidateActionMode();
+    }
 }

@@ -29,9 +29,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.LocalBroadcastManager;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -40,6 +44,7 @@ import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.dialogs.NetworkServerDialog;
+import org.videolan.vlc.gui.dialogs.VlcLoginDialog;
 import org.videolan.vlc.media.MediaDatabase;
 import org.videolan.vlc.util.AndroidDevices;
 
@@ -55,6 +60,10 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
         mAdapter = new BaseBrowserAdapter(this);
     }
 
+    public boolean isSortEnabled() {
+        return !mRoot;
+    }
+
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -63,14 +72,46 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
         mRoot = ROOT.equals(mMrl);
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_option_network, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        MenuItem item = menu.findItem(R.id.ml_menu_save);
+        item.setVisible(isSortEnabled());
+
+        boolean isFavorite = MediaDatabase.getInstance().networkFavExists(Uri.parse(mMrl));
+        item.setIcon(isFavorite ?
+                R.drawable.ic_menu_bookmark_w :
+                R.drawable.ic_menu_bookmark_outline_w);
+        item.setTitle(isFavorite ? R.string.favorites_remove : R.string.favorites_add);
+        super.onPrepareOptionsMenu(menu);
+    }
+
     public void onStart() {
         super.onStart();
         //Handle network connection state
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         mSkipRefresh = mediaList != null && !mediaList.isEmpty();
         getActivity().registerReceiver(networkReceiver, filter);
+        if (!mRoot)
+            LocalBroadcastManager.getInstance(VLCApplication.getAppContext()).registerReceiver(mLocalReceiver, new IntentFilter(VlcLoginDialog.ACTION_DIALOG_CANCELED));
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.ml_menu_save:
+                toggleFavorite();
+                onPrepareOptionsMenu(mMenu);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onHiddenChanged(boolean hidden) {
@@ -96,6 +137,8 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
     public void onStop() {
         super.onStop();
         getActivity().unregisterReceiver(networkReceiver);
+        if (!mRoot)
+            LocalBroadcastManager.getInstance(VLCApplication.getAppContext()).unregisterReceiver(mLocalReceiver);
     }
 
     protected boolean handleContextItemSelected(MenuItem item, final int position) {
@@ -126,12 +169,16 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
 
     @Override
     protected void browseRoot() {
+        if (!isAdded())
+            return;
         updateFavorites();
         mAdapter.setTop(mAdapter.getItemCount());
         if (allowLAN())
             runOnBrowserThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (mMediaBrowser == null)
+                        initMediaBrowser(NetworkBrowserFragment.this);
                     mMediaBrowser.discoverNetworkShares();
                 }
             });
@@ -285,6 +332,16 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
                         refresh();
                 }
             }
+        }
+    };
+
+    private BroadcastReceiver mLocalReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (isResumed())
+                goBack();
+            else
+                goBack = true;
         }
     };
 }

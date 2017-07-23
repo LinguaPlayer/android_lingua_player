@@ -67,8 +67,8 @@ public abstract class BaseTvActivity extends PlaybackServiceActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         mIsVisible = true;
         //Handle network connection state
         IntentFilter networkFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -87,9 +87,9 @@ public abstract class BaseTvActivity extends PlaybackServiceActivity {
     }
 
     @Override
-    protected void onPause() {
+    protected void onStop() {
         mIsVisible = false;
-        super.onPause();
+        super.onStop();
         unregisterReceiver(mExternalDevicesReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mParsingServiceReceiver);
     }
@@ -138,7 +138,7 @@ public abstract class BaseTvActivity extends PlaybackServiceActivity {
             }
             String action = intent.getAction();
             if (ConnectivityManager.CONNECTIVITY_ACTION.equals(action)) {
-                final NetworkInfo networkInfo = ((ConnectivityManager) VLCApplication.getAppContext().getSystemService(
+                final NetworkInfo networkInfo = ((ConnectivityManager) getApplicationContext().getSystemService(
                         Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
                 if (networkInfo != null && networkInfo.getState() == NetworkInfo.State.CONNECTED)
                     onNetworkUpdated();

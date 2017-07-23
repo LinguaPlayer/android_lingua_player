@@ -155,10 +155,10 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         return binder.getService();
     }
 
-    KeyguardManager mKeyguardManager = (KeyguardManager) VLCApplication.getAppContext().getSystemService(Context.KEYGUARD_SERVICE);
+    private KeyguardManager mKeyguardManager;
     private SharedPreferences mSettings;
     private final IBinder mBinder = new LocalBinder();
-    private MediaWrapperList mMediaList = new MediaWrapperList();
+    private final MediaWrapperList mMediaList = new MediaWrapperList();
     private Medialibrary mMedialibrary;
     private MediaPlayer mMediaPlayer;
     private boolean mParsed = false;
@@ -167,21 +167,21 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     private boolean mSwitchingToVideo = false;
     private boolean mVideoBackground = false;
 
-    final private ArrayList<Callback> mCallbacks = new ArrayList<>();
+    private final ArrayList<Callback> mCallbacks = new ArrayList<>();
     private boolean mDetectHeadset = true;
     private PowerManager.WakeLock mWakeLock;
     private final AtomicBoolean mExpanding = new AtomicBoolean(false);
     private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
-    private AtomicBoolean mUpdateMeta = new AtomicBoolean(false);
+    private final AtomicBoolean mUpdateMeta = new AtomicBoolean(false);
 
     // Index management
     /**
      * Stack of previously played indexes, used in shuffle mode
      */
-    private Stack<Integer> mPrevious;
-    private int mCurrentIndex; // Set to -1 if no media is currently loaded
-    private int mPrevIndex; // Set to -1 if no previous media
-    private int mNextIndex; // Set to -1 if no next media
+    private final Stack<Integer> mPrevious = new Stack<>();
+    private int mCurrentIndex = -1; // Set to -1 if no media is currently loaded
+    private int mPrevIndex = -1; // Set to -1 if no previous media
+    private int mNextIndex = -1; // Set to -1 if no next media
 
     // Playback management
 
@@ -252,11 +252,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
         mDetectHeadset = mSettings.getBoolean("enable_headset_detection", true);
 
-        mCurrentIndex = -1;
-        mPrevIndex = -1;
-        mNextIndex = -1;
-        mPrevious = new Stack<>();
-
         // Make sure the audio player will acquire a wake-lock while playing. If we don't do
         // that, the CPU might go to sleep while the song is playing, causing playback to stop.
         PowerManager pm = (PowerManager) VLCApplication.getAppContext().getSystemService(Context.POWER_SERVICE);
@@ -321,7 +316,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             mMediaSession.getController().getTransportControls()
                     .playFromSearch(extras.getString(SearchManager.QUERY), extras);
         }
-        updateWidget();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -677,17 +671,23 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             //Save progress
             long time = getTime();
             float progress = time / (float)media.getLength();
-            if (progress > 0.90f)
+            if (progress > 0.90f) {
+                //increase seen counter if more than 90% of the media have been seen
+                //and reset progress to 0
+                long incSeen = media.getSeen() + 1L;
+                media.setLongMeta(MediaWrapper.META_SEEN, incSeen);
+                media.setSeen(incSeen);
                 progress = 0f;
+            }
             media.setTime(progress == 0f ? 0L : time);
-            media.setLongMeta(mMedialibrary, MediaWrapper.META_PROGRESS, (long) (progress*100));
+            media.setLongMeta(MediaWrapper.META_PROGRESS, (long) (progress*100));
         }
         if (canSwitchToVideo) {
             //Save audio delay
             if (mSettings.getBoolean("save_individual_audio_delay", false))
-                media.setLongMeta(mMedialibrary, MediaWrapper.META_AUDIODELAY, mMediaPlayer.getAudioDelay());
-            media.setLongMeta(mMedialibrary, MediaWrapper.META_SUBTITLE_DELAY, mMediaPlayer.getSpuDelay());
-            media.setLongMeta(mMedialibrary, MediaWrapper.META_SUBTITLE_TRACK, mMediaPlayer.getSpuTrack());
+                media.setLongMeta(MediaWrapper.META_AUDIODELAY, mMediaPlayer.getAudioDelay());
+            media.setLongMeta(MediaWrapper.META_SUBTITLE_DELAY, mMediaPlayer.getSpuDelay());
+            media.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, mMediaPlayer.getSpuTrack());
         }
     }
 
@@ -697,9 +697,9 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             return;
         if (canSwitchToVideo()) {
             if (mSettings.getBoolean("save_individual_audio_delay", false))
-                mMediaPlayer.setAudioDelay(media.getMetaLong(mMedialibrary, MediaWrapper.META_AUDIODELAY));
-            mMediaPlayer.setSpuTrack((int) media.getMetaLong(mMedialibrary, MediaWrapper.META_SUBTITLE_TRACK));
-            mMediaPlayer.setSpuDelay(media.getMetaLong(mMedialibrary, MediaWrapper.META_SUBTITLE_DELAY));
+                mMediaPlayer.setAudioDelay(media.getMetaLong(MediaWrapper.META_AUDIODELAY));
+            mMediaPlayer.setSpuTrack((int) media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK));
+            mMediaPlayer.setSpuDelay(media.getMetaLong(MediaWrapper.META_SUBTITLE_DELAY));
         }
     }
 
@@ -895,8 +895,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                                     metaData.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART) :
                                     AudioUtil.readCoverBitmap(Uri.decode(mw.getArtworkMrl()), width);
                         }
-                            if (cover == null)
-                                cover = BitmapFactory.decodeResource(VLCApplication.getAppContext().getResources(), R.drawable.icon);
+                            if (cover == null || cover.isRecycled())
+                                cover = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.icon);
 
                             boolean video = mw.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO);
                             // add notification to status bar
@@ -1212,9 +1212,9 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             if (mediaId.startsWith(BrowserProvider.ALBUM_PREFIX)) {
-                load(mMedialibrary.getAlbum(Long.parseLong(mediaId.split("_")[1])).getTracks(mMedialibrary), 0);
+                load(mMedialibrary.getAlbum(Long.parseLong(mediaId.split("_")[1])).getTracks(), 0);
             } else if (mediaId.startsWith(BrowserProvider.PLAYLIST_PREFIX)) {
-                load(mMedialibrary.getPlaylist(Long.parseLong(mediaId.split("_")[1])).getTracks(mMedialibrary), 0);
+                load(mMedialibrary.getPlaylist(Long.parseLong(mediaId.split("_")[1])).getTracks(), 0);
             } else
                 try {
                     load(mMedialibrary.getMedia(Long.parseLong(mediaId)));
@@ -1262,14 +1262,14 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             if (Tools.isArrayEmpty(tracks)){
                 SearchAggregate result = mMedialibrary.search(query);
                 if (!Tools.isArrayEmpty(result.getAlbums()))
-                    tracks = result.getAlbums()[0].getTracks(mMedialibrary);
+                    tracks = result.getAlbums()[0].getTracks();
                 else if (!Tools.isArrayEmpty(result.getArtists()))
-                    tracks = result.getArtists()[0].getTracks(mMedialibrary);
+                    tracks = result.getArtists()[0].getTracks();
                 else if (!Tools.isArrayEmpty(result.getGenres()))
-                    tracks = result.getGenres()[0].getTracks(mMedialibrary);
+                    tracks = result.getGenres()[0].getTracks();
             }
             if (tracks == null && !Tools.isArrayEmpty(items))
-                tracks = items[0].getTracks(mMedialibrary);
+                tracks = items[0].getTracks();
             if (!Tools.isArrayEmpty(tracks))
                 load(tracks, 0);
         }
@@ -1475,8 +1475,10 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void updateWidget() {
-        updateWidgetState();
-        updateWidgetCover();
+        if (!isVideoPlaying()) {
+            updateWidgetState();
+            updateWidgetCover();
+        }
     }
 
     private void updateWidgetState() {
@@ -1496,17 +1498,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void updateWidgetCover() {
-        if (!hasCurrentMedia())
-            return;
-        final String artworkMrl = getCurrentMedia().getArtworkMrl();
-        VLCApplication.runBackground(new Runnable() {
-            @Override
-            public void run() {
-                Bitmap cover = hasCurrentMedia()? AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), 320) : null;
-                sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER)
-                        .putExtra("cover", cover));
-            }
-        });
+        sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER)
+                        .putExtra("artworkMrl", hasCurrentMedia() ? getCurrentMedia().getArtworkMrl() : null));
     }
 
     private void updateWidgetPosition(final float pos) {
@@ -1589,9 +1582,11 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                             mSavedTime = mSettings.getLong(audio ? "position_in_song" : "position_in_media", -1);
                         }
                         if (!audio) {
-                            boolean paused = mSettings.getBoolean(PreferencesActivity.VIDEO_PAUSED, !isPlaying());
-                            if (paused)
-                                playList.get(position).addFlags(MediaWrapper.MEDIA_PAUSED);
+                            if (position < playList.size()) {
+                                boolean paused = mSettings.getBoolean(PreferencesActivity.VIDEO_PAUSED, false);
+                                if (paused)
+                                    playList.get(position).addFlags(MediaWrapper.MEDIA_PAUSED);
+                            }
                             float rate = mSettings.getFloat(PreferencesActivity.VIDEO_SPEED, getRate());
                             if (rate != 1.0f)
                                 setRate(rate, false);
@@ -1617,7 +1612,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             locations.append(" ").append(Uri.encode(mMediaList.getMRL(i)));
         //We save a concatenated String because putStringSet is APIv11.
         SharedPreferences.Editor editor = mSettings.edit();
-        editor.putString(mMediaList.isAudioList() ? "audio_list" : "media_list", locations.toString().trim());
+        editor.putString(canSwitchToVideo() || !mMediaList.isAudioList() ? "media_list" : "audio_list", locations.toString().trim());
         editor.apply();
     }
 
@@ -2083,6 +2078,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     @MainThread
     public void switchToPopup(int index) {
+        saveMediaMeta();
         showWithoutParse(index);
         showPopup();
     }

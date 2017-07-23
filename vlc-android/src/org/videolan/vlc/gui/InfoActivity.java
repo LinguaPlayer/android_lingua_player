@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -38,6 +39,8 @@ import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.util.WeakHandler;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 public class InfoActivity extends AudioPlayerContainerActivity implements View.OnClickListener {
 
@@ -65,10 +68,14 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
         mItem = (MediaLibraryItem) (savedInstanceState != null ?
                 savedInstanceState.getParcelable(TAG_ITEM) :
                 getIntent().getParcelableExtra(TAG_ITEM));
+        if (mItem == null) {
+            finish();
+            return;
+        }
         if (mItem.getId() == 0L) {
-            MediaLibraryItem mediaWrapper = VLCApplication.getMLInstance().getMedia(((MediaWrapper)mItem).getUri());
-            if (mediaWrapper != null)
-                mItem = mediaWrapper;
+            MediaLibraryItem libraryItem = VLCApplication.getMLInstance().getMedia(((MediaWrapper)mItem).getUri());
+            if (libraryItem != null)
+                mItem = libraryItem;
         }
         mBinding.setItem(mItem);
         final int fabVisibility =  savedInstanceState != null
@@ -98,7 +105,8 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
             noCoverFallback();
         mBinding.fab.setOnClickListener(this);
         if (mItem.getItemType() == MediaLibraryItem.TYPE_MEDIA) {
-            mAdapter = new MediaInfoAdapter(this);
+            mAdapter = new MediaInfoAdapter();
+            mBinding.list.setLayoutManager(new LinearLayoutManager(mBinding.getRoot().getContext()));
             mBinding.list.setAdapter(mAdapter);
             mCheckFileTask = (CheckFileTask) new CheckFileTask().execute();
             mParseTracksTask = (ParseTracksTask) new ParseTracksTask().execute();
@@ -113,7 +121,7 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
 
     private void updateMeta() {
         long length = 0L;
-        MediaWrapper[] tracks = mItem.getTracks(VLCApplication.getMLInstance());
+        MediaWrapper[] tracks = mItem.getTracks();
         int nbTracks = tracks != null ? tracks.length : 0;
         if (nbTracks > 0)
             for (MediaWrapper media : tracks)
@@ -128,7 +136,7 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
             mBinding.setSizeTitleText(getString(R.string.file_size));
         } else if (mItem.getItemType() == MediaLibraryItem.TYPE_ARTIST) {
             Medialibrary ml = VLCApplication.getMLInstance();
-            Album[] albums = ((Artist)mItem).getAlbums(ml);
+            Album[] albums = ((Artist)mItem).getAlbums();
             int nbAlbums = albums == null ? 0 : albums.length;
             mBinding.setSizeTitleText(getString(R.string.albums));
             mBinding.setSizeValueText(String.valueOf(nbAlbums));
@@ -142,8 +150,8 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
         mFragmentContainer = mBinding.container;
+        super.onPostCreate(savedInstanceState);
     }
 
     @Override
@@ -176,7 +184,7 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
 
     @Override
     public void onClick(View v) {
-        mService.load(mItem.getTracks(VLCApplication.getMLInstance()), 0);
+        mService.load(mItem.getTracks(), 0);
         finish();
     }
 
@@ -273,20 +281,18 @@ public class InfoActivity extends AudioPlayerContainerActivity implements View.O
         @Override
         protected void onPostExecute(Media media) {
             mParseTracksTask = null;
-            if (isCancelled())
+            if (media == null || isCancelled())
                 return;
             boolean hasSubs = false;
-            if (media == null)
-                return;
             final int trackCount = media.getTrackCount();
+            List<Media.Track> tracks = new LinkedList<>();
             for (int i = 0; i < trackCount; ++i) {
                 final Media.Track track = media.getTrack(i);
-                if (track.type == Media.Track.Type.Text)
-                    hasSubs = true;
-                mAdapter.add(track);
+                tracks.add(track);
+                hasSubs |= track.type == Media.Track.Type.Text;
             }
             media.release();
-
+            mAdapter.setTracks(tracks);
             if (hasSubs)
                 mBinding.infoSubtitles.setVisibility(View.VISIBLE);
         }

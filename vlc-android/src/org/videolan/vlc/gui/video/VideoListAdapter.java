@@ -21,7 +21,6 @@
 package org.videolan.vlc.gui.video;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
@@ -46,51 +45,43 @@ import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.BR;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
+import org.videolan.vlc.gui.BaseQueuedAdapter;
 import org.videolan.vlc.gui.helpers.AsyncImageLoader;
 import org.videolan.vlc.gui.helpers.UiTools;
 import org.videolan.vlc.interfaces.IEventsHandler;
 import org.videolan.vlc.media.MediaGroup;
 import org.videolan.vlc.util.MediaItemFilter;
+import org.videolan.vlc.util.MediaLibraryItemComparator;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
-public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.ViewHolder> implements Filterable {
+public class VideoListAdapter extends BaseQueuedAdapter<MediaWrapper, VideoListAdapter.ViewHolder> implements Filterable {
 
     public final static String TAG = "VLC/VideoListAdapter";
-
-    public final static int SORT_BY_TITLE = 0;
-    public final static int SORT_BY_LENGTH = 1;
-
-    public final static int SORT_BY_DATE = 2;
 
     final static int UPDATE_SELECTION = 0;
     final static int UPDATE_THUMB = 1;
     final static int UPDATE_TIME = 2;
+    final static int UPDATE_SEEN = 3;
 
     private boolean mListMode = false;
     private IEventsHandler mEventsHandler;
-    private VideoComparator mVideoComparator = new VideoComparator();
-    private ArrayList<MediaWrapper> mVideos = new ArrayList<>();
-    private ArrayDeque<ArrayList<MediaWrapper>> mPendingUpdates = new ArrayDeque<>();
+    private static MediaLibraryItemComparator sMediaComparator = new MediaLibraryItemComparator(MediaLibraryItemComparator.ADAPTER_VIDEO);
     private ArrayList<MediaWrapper> mOriginalData = null;
     private ItemFilter mFilter = new ItemFilter();
     private int mSelectionCount = 0;
     private int mGridCardWidth = 0;
 
+    private boolean mIsSeenMediaMarkerVisible = true;
+
     VideoListAdapter(IEventsHandler eventsHandler) {
         super();
         mEventsHandler = eventsHandler;
-    }
-
-    VideoComparator getComparator() {
-        return mVideoComparator;
+        mIsSeenMediaMarkerVisible = PreferenceManager.getDefaultSharedPreferences(VLCApplication.getAppContext()).getBoolean("media_seen", true);
     }
 
     @Override
@@ -108,7 +99,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        MediaWrapper media = mVideos.get(position);
+        MediaWrapper media = mDataset.get(position);
         if (media == null)
             return;
         holder.binding.setVariable(BR.scaleType, ImageView.ScaleType.CENTER_CROP);
@@ -124,13 +115,14 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         if (payloads.isEmpty())
             onBindViewHolder(holder, position);
         else {
-            MediaWrapper media = mVideos.get(position);
+            MediaWrapper media = mDataset.get(position);
             for (Object data : payloads) {
                 switch ((int) data) {
                     case UPDATE_THUMB:
                         AsyncImageLoader.loadPicture(holder.thumbView, media);
                         break;
                     case UPDATE_TIME:
+                    case UPDATE_SEEN:
                         fillView(holder, media);
                         break;
                     case UPDATE_SELECTION:
@@ -154,11 +146,11 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @Nullable
     public MediaWrapper getItem(int position) {
-        return isPositionValid(position) ? mVideos.get(position) : null;
+        return isPositionValid(position) ? mDataset.get(position) : null;
     }
 
     private boolean isPositionValid(int position) {
-        return position >= 0 && position < mVideos.size();
+        return position >= 0 && position < mDataset.size();
     }
 
     @MainThread
@@ -177,27 +169,22 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @MainThread
     public void addAll(Collection<MediaWrapper> items) {
-        mVideos.addAll(items);
+        mDataset.addAll(items);
         mOriginalData = null;
     }
 
-    @MainThread
-    private ArrayList<MediaWrapper> peekLast() {
-        return mPendingUpdates.isEmpty() ? mVideos : mPendingUpdates.peekLast();
-    }
-
     public boolean contains(MediaWrapper mw) {
-        return mVideos.indexOf(mw) != -1;
+        return mDataset.indexOf(mw) != -1;
     }
 
     public ArrayList<MediaWrapper> getAll() {
-        return mVideos;
+        return mDataset;
     }
 
     List<MediaWrapper> getSelection() {
         List<MediaWrapper> selection = new LinkedList<>();
-        for (int i = 0; i < mVideos.size(); ++i) {
-            MediaWrapper mw = mVideos.get(i);
+        for (int i = 0; i < mDataset.size(); ++i) {
+            MediaWrapper mw = mDataset.get(i);
             if (mw.hasStateFlags(MediaLibraryItem.FLAG_SELECTED)) {
                 if (mw instanceof MediaGroup)
                     selection.addAll(((MediaGroup) mw).getAll());
@@ -226,10 +213,10 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @MainThread
     public void update(MediaWrapper item) {
-        int position = mVideos.indexOf(item);
+        int position = mDataset.indexOf(item);
         if (position != -1) {
-            if (!(mVideos.get(position) instanceof MediaGroup))
-                mVideos.set(position, item);
+            if (!(mDataset.get(position) instanceof MediaGroup))
+                mDataset.set(position, item);
             notifyItemChanged(position, UPDATE_THUMB);
         } else
             add(item);
@@ -237,7 +224,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @MainThread
     public void clear() {
-        mVideos.clear();
+        mDataset.clear();
         mOriginalData = null;
     }
 
@@ -246,6 +233,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         String resolution = "";
         int max = 0;
         int progress = 0;
+        long seen = 0L;
 
         if (media.getType() == MediaWrapper.TYPE_GROUP) {
             MediaGroup mediaGroup = (MediaGroup) media;
@@ -264,12 +252,14 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
                 }
             }
             resolution = Tools.getResolution(media);
+            seen = mIsSeenMediaMarkerVisible ? media.getSeen() : 0L;
         }
 
         holder.binding.setVariable(BR.resolution, resolution);
         holder.binding.setVariable(BR.time, text);
         holder.binding.setVariable(BR.max, max);
         holder.binding.setVariable(BR.progress, progress);
+        holder.binding.setVariable(BR.seen, seen);
     }
 
     public void setListMode(boolean value) {
@@ -291,7 +281,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @Override
     public int getItemCount() {
-        return mVideos.size();
+        return mDataset.size();
     }
 
     @Override
@@ -303,7 +293,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         MediaWrapper mw;
         int offset = 0;
         for (int i = 0; i < getItemCount(); ++i) {
-            mw = mVideos.get(i);
+            mw = mDataset.get(i);
             if (mw instanceof MediaGroup) {
                 for (MediaWrapper item : ((MediaGroup) mw).getAll())
                     list.add(item);
@@ -330,7 +320,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
         public void onClick(View v) {
             int position = getLayoutPosition();
-            mEventsHandler.onClick(v, position, mVideos.get(position));
+            mEventsHandler.onClick(v, position, mDataset.get(position));
         }
 
         public void onMoreClick(View v){
@@ -339,7 +329,7 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
         public boolean onLongClick(View v) {
             int position = getLayoutPosition();
-            return mEventsHandler.onLongClick(v, position, mVideos.get(position));
+            return mEventsHandler.onLongClick(v, position, mDataset.get(position));
         }
 
         private void setOverlay(boolean selected) {
@@ -348,104 +338,29 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
         @Override
         public void onFocusChange(View v, boolean hasFocus) {
-            setViewBackground(hasFocus || mVideos.get(getLayoutPosition()).hasStateFlags(MediaLibraryItem.FLAG_SELECTED));
+            setViewBackground(hasFocus || mDataset.get(getLayoutPosition()).hasStateFlags(MediaLibraryItem.FLAG_SELECTED));
         }
 
         private void setViewBackground(boolean highlight) {
             itemView.setBackgroundColor(highlight ? UiTools.ITEM_FOCUS_ON : UiTools.ITEM_FOCUS_OFF);
         }
     }
-    int sortDirection(int sortDirection) {
-        return mVideoComparator.sortDirection(sortDirection);
+
+    int sortDirection(int sortby) {
+        return sMediaComparator.sortDirection(sortby);
     }
 
-    void sortBy(int sortby) {
-        mVideoComparator.sortBy(sortby);
+    int getSortDirection() {
+        return sMediaComparator.sortDirection;
     }
 
-    private class VideoComparator implements Comparator<MediaWrapper> {
+    int getSortBy() {
+        return sMediaComparator.sortBy;
+    }
 
-        private static final String KEY_SORT_BY =  "sort_by";
-        private static final String KEY_SORT_DIRECTION =  "sort_direction";
-
-        private int mSortDirection;
-        private int mSortBy;
-        protected SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(VLCApplication.getAppContext());
-
-        VideoComparator() {
-            mSortBy = mSettings.getInt(KEY_SORT_BY, SORT_BY_TITLE);
-            mSortDirection = mSettings.getInt(KEY_SORT_DIRECTION, 1);
-        }
-
-        int sortDirection(int sortby) {
-            if (sortby == mSortBy)
-                return  mSortDirection;
-            else
-                return -1;
-        }
-
-        void sortBy(int sortby) {
-            switch (sortby) {
-                case SORT_BY_TITLE:
-                    if (mSortBy == SORT_BY_TITLE)
-                        mSortDirection *= -1;
-                    else {
-                        mSortBy = SORT_BY_TITLE;
-                        mSortDirection = 1;
-                    }
-                    break;
-                case SORT_BY_LENGTH:
-                    if (mSortBy == SORT_BY_LENGTH)
-                        mSortDirection *= -1;
-                    else {
-                        mSortBy = SORT_BY_LENGTH;
-                        mSortDirection *= 1;
-                    }
-                    break;
-                case SORT_BY_DATE:
-                    if (mSortBy == SORT_BY_DATE)
-                        mSortDirection *= -1;
-                    else {
-                        mSortBy = SORT_BY_DATE;
-                        mSortDirection *= 1;
-                    }
-                    break;
-                default:
-                    mSortBy = SORT_BY_TITLE;
-                    mSortDirection = 1;
-                    break;
-            }
-            ArrayList<MediaWrapper> list = new ArrayList<>(mVideos);
-            update(list, true);
-
-            mSettings.edit()
-                    .putInt(KEY_SORT_BY, mSortBy)
-                    .putInt(KEY_SORT_DIRECTION, mSortDirection)
-                    .apply();
-        }
-
-        @Override
-        public int compare(MediaWrapper item1, MediaWrapper item2) {
-            if (item1 == null)
-                return item2 == null ? 0 : -1;
-            else if (item2 == null)
-                return 1;
-
-            int compare = 0;
-            switch (mSortBy) {
-                case SORT_BY_TITLE:
-                    compare = item1.getTitle().toUpperCase(Locale.ENGLISH).compareTo(
-                            item2.getTitle().toUpperCase(Locale.ENGLISH));
-                    break;
-                case SORT_BY_LENGTH:
-                    compare = ((Long) item1.getLength()).compareTo(item2.getLength());
-                    break;
-                case SORT_BY_DATE:
-                    compare = ((Long) item1.getLastModified()).compareTo(item2.getLastModified());
-                    break;
-            }
-            return mSortDirection * compare;
-        }
+    void sortBy(int sortby, int direction) {
+        sMediaComparator.sortBy(sortby, direction);
+        update(new ArrayList<>(mDataset), true);
     }
 
     @Override
@@ -466,9 +381,9 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         @Override
         protected List<MediaWrapper> initData() {
             if (mOriginalData == null) {
-                mOriginalData = new ArrayList<>(mVideos.size());
-                for (int i = 0; i < mVideos.size(); ++i)
-                    mOriginalData.add(mVideos.get(i));
+                mOriginalData = new ArrayList<>(mDataset.size());
+                for (int i = 0; i < mDataset.size(); ++i)
+                    mOriginalData.add(mDataset.get(i));
             }
             return mOriginalData;
         }
@@ -489,32 +404,28 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         view.setLayoutParams(layoutParams);
     }
 
-    @MainThread
-    void update(final ArrayList<MediaWrapper> items, final boolean detectMoves) {
-        mPendingUpdates.add(items);
-        if (mPendingUpdates.size() == 1)
-            internalUpdate(items, detectMoves);
-    }
-
-    private void internalUpdate(final ArrayList<MediaWrapper> items, final boolean detectMoves) {
-        VLCApplication.runBackground(new Runnable() {
+    protected void internalUpdate(final ArrayList<MediaWrapper> items, final boolean detectMoves) {
+        mUpdateExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                Collections.sort(items, mVideoComparator);
-                final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new VideoItemDiffCallback(mVideos, items), detectMoves);
+                if(detectMoves || items.size() != getItemCount())
+                    Collections.sort(items, sMediaComparator);
+                final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new VideoItemDiffCallback(mDataset, items), detectMoves);
                 VLCApplication.runOnMainThread(new Runnable() {
                     @Override
                     public void run() {
-                        mPendingUpdates.remove();
-                        mVideos = items;
+                        mDataset = items;
                         result.dispatchUpdatesTo(VideoListAdapter.this);
-                        mEventsHandler.onUpdateFinished(null);
-                        if (!mPendingUpdates.isEmpty())
-                            internalUpdate(mPendingUpdates.peek(), true);
+                        processQueue();
                     }
                 });
             }
         });
+    }
+
+    @Override
+    protected void onUpdateFinished() {
+        mEventsHandler.onUpdateFinished(null);
     }
 
     private class VideoItemDiffCallback extends DiffUtil.Callback {
@@ -545,7 +456,9 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
             MediaWrapper oldItem = oldList.get(oldItemPosition);
             MediaWrapper newItem = newList.get(newItemPosition);
-            return oldItem.getTime() == newItem.getTime() && TextUtils.equals(oldItem.getArtworkMrl(), newItem.getArtworkMrl());
+            return oldItem.getTime() == newItem.getTime()
+                    && TextUtils.equals(oldItem.getArtworkMrl(), newItem.getArtworkMrl())
+                    && oldItem.getSeen() == newItem.getSeen();
         }
 
         @Nullable
@@ -555,8 +468,14 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
             MediaWrapper newItem = newList.get(newItemPosition);
             if (oldItem.getTime() != newItem.getTime())
                 return UPDATE_TIME;
-            else
+            if (!TextUtils.equals(oldItem.getArtworkMrl(), newItem.getArtworkMrl()))
                 return UPDATE_THUMB;
+            else
+                return UPDATE_SEEN;
         }
+    }
+
+    public void setSeenMediaMarkerVisible(boolean seenMediaMarkerVisible) {
+        mIsSeenMediaMarkerVisible = seenMediaMarkerVisible;
     }
 }

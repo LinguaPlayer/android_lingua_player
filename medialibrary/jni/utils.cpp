@@ -36,7 +36,9 @@ mediaToMediaWrapper(JNIEnv* env, fields *fields, medialibrary::MediaPtr const& m
     }
     medialibrary::AlbumTrackPtr p_albumTrack = mediaPtr->albumTrack();
     jstring artist = NULL, genre = NULL, album = NULL, albumArtist = NULL, mrl = NULL, title = NULL, thumbnail = NULL;
-    if (p_albumTrack) {
+    jint trackNumber = 0, discNumber = 0;
+    if (p_albumTrack)
+    {
         medialibrary::ArtistPtr artistPtr = p_albumTrack->artist();
         medialibrary::GenrePtr genrePtr = p_albumTrack->genre();
         medialibrary::AlbumPtr albumPtr = p_albumTrack->album();
@@ -50,7 +52,13 @@ mediaToMediaWrapper(JNIEnv* env, fields *fields, medialibrary::MediaPtr const& m
             if (albumArtistPtr != NULL)
                 albumArtist = env->NewStringUTF(albumArtistPtr->name().c_str());
         }
+        trackNumber = p_albumTrack->trackNumber();
+        discNumber = p_albumTrack->discNumber();
     }
+    const medialibrary::IMediaMetadata& metaAudioTrack = mediaPtr->metadata(medialibrary::IMedia::MetadataType::AudioTrack);
+    jint  audioTrack = metaAudioTrack.isSet() ? metaAudioTrack.integer() : -2;
+    const medialibrary::IMediaMetadata& metaSpuTrack = mediaPtr->metadata(medialibrary::IMedia::MetadataType::SubtitleTrack);
+    jint  spuTrack = metaSpuTrack.isSet() ? metaSpuTrack.integer() : -2;
     title = mediaPtr->title().empty() ? NULL : env->NewStringUTF(mediaPtr->title().c_str());
     mrl = env->NewStringUTF(files.at(0)->mrl().c_str());
     thumbnail = mediaPtr->thumbnail().empty() ? NULL : env->NewStringUTF(mediaPtr->thumbnail().c_str());
@@ -59,13 +67,16 @@ mediaToMediaWrapper(JNIEnv* env, fields *fields, medialibrary::MediaPtr const& m
     unsigned int width = hasVideoTracks ? videoTracks.at(0)->width() : 0;
     unsigned int height = hasVideoTracks ? videoTracks.at(0)->height() : 0;
     int64_t duration = mediaPtr->duration();
-    int64_t progress = duration * ( mediaPtr->metadata( medialibrary::IMedia::MetadataType::Progress ).integer() / 100.0 );
+    const medialibrary::IMediaMetadata& progressMeta = mediaPtr->metadata( medialibrary::IMedia::MetadataType::Progress );
+    int64_t progress = progressMeta.isSet() ? duration * ( progressMeta.integer() / 100.0 ) : 0;
+    const medialibrary::IMediaMetadata& seenMeta =  mediaPtr->metadata( medialibrary::IMedia::MetadataType::Seen );
+    int64_t seen = seenMeta.isSet() ? seenMeta.integer() : 0;
 
     jobject item = env->NewObject(fields->MediaWrapper.clazz, fields->MediaWrapper.initID,
                           (jlong) mediaPtr->id(), mrl,(jlong) progress, (jlong) duration, type,
                           title, artist, genre, album,
                           albumArtist, width, height, thumbnail,
-                          (jint) -2, (jint) -2, (jint) 0, (jint) 0, (jlong) files.at(0)->lastModificationDate());
+                          audioTrack, spuTrack, trackNumber, discNumber, (jlong) files.at(0)->lastModificationDate(), seen);
     if (artist != NULL)
         env->DeleteLocalRef(artist);
     if (genre != NULL)
@@ -130,7 +141,7 @@ convertPlaylistObject(JNIEnv* env, fields *fields, medialibrary::PlaylistPtr con
 {
     jstring name = env->NewStringUTF(playlistPtr->name().c_str());
     jobject item = env->NewObject(fields->Playlist.clazz, fields->Playlist.initID,
-                          (jlong) playlistPtr->id(), name);
+                          (jlong) playlistPtr->id(), name, (jint)playlistPtr->media().size());
     env->DeleteLocalRef(name);
     return item;
 }

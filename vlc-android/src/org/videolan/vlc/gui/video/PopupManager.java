@@ -24,12 +24,9 @@
 
 package org.videolan.vlc.gui.video;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -48,6 +45,7 @@ import android.widget.ImageView;
 import org.videolan.libvlc.IVLCVout;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
+import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.PlaybackService;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
@@ -82,7 +80,6 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
         hideNotification();
         if (mRootView == null)
             return;
-        mService.setVideoTrackEnabled(false);
         mService.removeCallback(this);
         final IVLCVout vlcVout = mService.getVLCVout();
         vlcVout.detachViews();
@@ -125,8 +122,7 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
 
     @Override
     public boolean onDoubleTap(MotionEvent e) {
-        mService.removePopup();
-        mService.switchToVideo();
+        expandToVideoPlayer();
         return true;
     }
 
@@ -218,7 +214,7 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
     public void onMediaPlayerEvent(MediaPlayer.Event event) {
         switch (event.type) {
             case MediaPlayer.Event.Stopped:
-                mService.removePopup();
+                removePopup();
                 break;
             case MediaPlayer.Event.Playing:
                 if (!mAlwaysOn)
@@ -238,18 +234,10 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
     private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SHOW_BUTTONS:
-                    mPlayPauseButton.setVisibility(View.VISIBLE);
-                    mCloseButton.setVisibility(View.VISIBLE);
-                    mExpandButton.setVisibility(View.VISIBLE);
-                    break;
-                case HIDE_BUTTONS:
-                    mPlayPauseButton.setVisibility(View.GONE);
-                    mCloseButton.setVisibility(View.GONE);
-                    mExpandButton.setVisibility(View.GONE);
-                    break;
-            }
+            int visibility = msg.what == SHOW_BUTTONS ? View.VISIBLE : View.GONE;
+            mPlayPauseButton.setVisibility(visibility);
+            mCloseButton.setVisibility(visibility);
+            mExpandButton.setVisibility(visibility);
         }
     };
 
@@ -258,8 +246,7 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
         switch (v.getId()) {
             case R.id.video_play_pause:
                 if (mService.hasMedia()) {
-                    boolean isPLaying = mService.isPlaying();
-                    if (isPLaying)
+                    if (mService.isPlaying())
                         mService.pause();
                     else
                         mService.play();
@@ -269,27 +256,30 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
                 stopPlayback();
                 break;
             case R.id.popup_expand:
-                mService.removePopup();
-                mService.switchToVideo();
+                expandToVideoPlayer();
                 break;
         }
     }
 
+    private void expandToVideoPlayer() {
+        removePopup();
+        if (mService.hasMedia() && !mService.isPlaying())
+            mService.getCurrentMediaWrapper().setFlags(MediaWrapper.MEDIA_PAUSED);
+        mService.switchToVideo();
+    }
+
     private void stopPlayback() {
         long time = mService.getTime();
-        long length = mService.getLength();
-        Uri uri = mService.getCurrentMediaWrapper().getUri();
-        //remove saved position if in the last 5 seconds
-        if (length - time < 5000)
-            time = 0;
-        else
-            time -= 2000; // go back 2 seconds, to compensate loading time
+        if (time != -1) {
+            // remove saved position if in the last 5 seconds
+            // else, go back 2 seconds, to compensate loading time
+            time = mService.getLength() - time < 5000 ? 0 :  2000;
+            // Save position
+            if (mService.isSeekable())
+                PreferenceManager.getDefaultSharedPreferences(mService).edit()
+                        .putLong(PreferencesActivity.VIDEO_RESUME_TIME, time).apply();
+        }
         mService.stop();
-
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(mService).edit();
-        // Save position
-        if (mService.isSeekable() && time != -1)
-            editor.putLong(PreferencesActivity.VIDEO_RESUME_TIME, time).apply();
     }
 
     private void showNotification() {
@@ -316,10 +306,9 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
             builder.addAction(R.drawable.ic_popup_play, mService.getString(R.string.play), piPlay);
         builder.addAction(R.drawable.ic_popup_expand_w, mService.getString(R.string.popup_expand), piExpand);
 
-        Notification notification = builder.build();
         try {
-            NotificationManagerCompat.from(mService).notify(42, notification);
-        } catch (IllegalArgumentException e) {}
+            NotificationManagerCompat.from(mService).notify(42, builder.build());
+        } catch (IllegalArgumentException ignored) {}
     }
 
     private void hideNotification() {
@@ -331,10 +320,11 @@ public class PopupManager implements PlaybackService.Callback, GestureDetector.O
         mService.setVideoAspectRatio(null);
         mService.setVideoScale(0);
         mService.setVideoTrackEnabled(true);
-        if (!mService.isPlaying())
-            mService.playIndex(mService.getCurrentMediaPosition());
-        else
+        if (mService.hasMedia()) {
             mService.flush();
+            mPlayPauseButton.setImageResource(mService.isPlaying() ? R.drawable.ic_popup_pause : R.drawable.ic_popup_play);
+        } else
+            mService.playIndex(mService.getCurrentMediaPosition());
         showNotification();
     }
 

@@ -47,7 +47,6 @@ import org.videolan.vlc.util.VLCInstance;
 public abstract class MediaSortedFragment extends SortedBrowserFragment implements MediaBrowser.EventListener {
     protected Uri mUri;
     protected MediaBrowser mMediaBrowser;
-    boolean goBack = false;
     private boolean mShowHiddenFiles = false;
     private final Medialibrary mMedialibrary = VLCApplication.getMLInstance();
 
@@ -96,27 +95,10 @@ public abstract class MediaSortedFragment extends SortedBrowserFragment implemen
         });
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (goBack)
-            getActivity().finish();
-    }
-
     public void onPause(){
         super.onPause();
         ((BrowserActivityInterface)getActivity()).updateEmptyView(false);
     }
-
-    private Runnable releaseBrowser = new Runnable() {
-        @Override
-        public void run() {
-            if (mMediaBrowser != null) {
-                mMediaBrowser.release();
-                mMediaBrowser = null;
-            }
-        }
-    };
 
     @Override
     public void onStop() {
@@ -168,9 +150,18 @@ public abstract class MediaSortedFragment extends SortedBrowserFragment implemen
                 if (isResumed()) {
                     sort();
                     mHandler.sendEmptyMessage(HIDE_LOADING);
-                } else
-                    goBack = true;
+                }
             }
         });
     }
+
+    private Runnable releaseBrowser = new Runnable() {
+        @Override
+        public void run() {
+            if (mMediaBrowser != null) {
+                mMediaBrowser.release();
+                mMediaBrowser = null;
+            }
+        }
+    };
 }

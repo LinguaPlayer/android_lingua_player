@@ -49,12 +49,12 @@ public abstract class MediaLibBrowserFragment extends GridFragment implements On
         super.onCreate(savedInstanceState);
         mMediaLibrary = VLCApplication.getMLInstance();
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
+        mBackgroundManager.setAutoReleaseOnStop(false);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mBackgroundManager.attachToView(getView());
         setOnItemViewSelectedListener(this);
     }
 
@@ -66,9 +66,16 @@ public abstract class MediaLibBrowserFragment extends GridFragment implements On
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        mBackgroundManager.release();
+    public void onResume() {
+        super.onResume();
+        if (!mBackgroundManager.isAttached())
+            mBackgroundManager.attachToView(getView());
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        TvUtil.releaseBackgroundManager(mBackgroundManager);
     }
 
     public void refresh() {

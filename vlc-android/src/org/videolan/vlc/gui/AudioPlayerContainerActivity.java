@@ -57,15 +57,13 @@ import org.videolan.vlc.PlaybackService;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.audio.AudioPlayer;
+import org.videolan.vlc.gui.audio.EqualizerFragment;
 import org.videolan.vlc.gui.browser.StorageBrowserFragment;
 import org.videolan.vlc.interfaces.IRefreshable;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.Permissions;
 import org.videolan.vlc.util.Strings;
 import org.videolan.vlc.util.WeakHandler;
-
-import static org.videolan.vlc.StartActivity.EXTRA_FIRST_RUN;
-import static org.videolan.vlc.StartActivity.EXTRA_UPGRADE;
 
 public class AudioPlayerContainerActivity extends BaseActivity implements PlaybackService.Client.Callback {
 
@@ -80,7 +78,6 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     protected static final String ID_MRL = "mrl";
     protected static final String ID_PREFERENCES = "preferences";
     protected static final String ID_ABOUT = "about";
-
     protected AppBarLayout mAppBarLayout;
     protected Toolbar mToolbar;
     protected AudioPlayer mAudioPlayer;
@@ -89,6 +86,7 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     protected PlaybackService mService;
     protected BottomSheetBehavior mBottomSheetBehavior;
     protected View mFragmentContainer;
+    private int mOriginalBottomPadding;
     private View mScanProgressLayout;
     private TextView mScanProgressText;
     private ProgressBar mScanProgressBar;
@@ -98,8 +96,11 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //Init Medialibrary if KO
-        if (savedInstanceState != null && !VLCApplication.getMLInstance().isInitiated() && Permissions.canReadStorage())
-            startService(new Intent(MediaParsingService.ACTION_INIT, null, this, MediaParsingService.class));
+        if (savedInstanceState != null) {
+            VLCApplication.setLocale();
+            if (!VLCApplication.getMLInstance().isInitiated() && Permissions.canReadStorage())
+                startService(new Intent(MediaParsingService.ACTION_INIT, null, this, MediaParsingService.class));
+        }
         MediaUtils.updateSubsDownloaderActivity(this);
         super.onCreate(savedInstanceState);
     }
@@ -125,7 +126,9 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        mFragmentContainer = findViewById(R.id.fragment_placeholder);
+        if (mFragmentContainer == null)
+            mFragmentContainer = findViewById(R.id.fragment_placeholder);
+        mOriginalBottomPadding = mFragmentContainer.getPaddingBottom();
     }
 
     @Override
@@ -160,7 +163,7 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     protected void onResume() {
         super.onResume();
         if (mBottomSheetBehavior != null && mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
-            mFragmentContainer.setPadding(0, 0, 0, mBottomSheetBehavior.getPeekHeight());
+            updateContainerPadding(true);
             applyMarginToProgressBar(mBottomSheetBehavior.getPeekHeight());
         }
     }
@@ -175,10 +178,44 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
     }
 
     @Override
+    public void onConnected(PlaybackService service) {
+        mService = service;
+        if (service.hasMedia() && !mService.isVideoPlaying())
+            showAudioPlayer();
+    }
+
+    @Override
+    public void onDisconnected() {
+        mService = null;
+    }
+
+    @Override
     public void onBackPressed() {
         if (slideDownAudioPlayer())
             return;
         super.onBackPressed();
+    }
+
+    protected Fragment getCurrentFragment() {
+        return getSupportFragmentManager().findFragmentById(R.id.fragment_placeholder);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Handle item selection
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // Current fragment loaded
+                Fragment current = getCurrentFragment();
+                if (current instanceof StorageBrowserFragment)
+                    ((StorageBrowserFragment) current).goBack();
+                else
+                    finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void updateLib() {
@@ -190,23 +227,6 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
         Fragment current = fm.findFragmentById(R.id.fragment_placeholder);
         if (current != null && current instanceof IRefreshable)
             ((IRefreshable) current).refresh();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        // Handle item selection
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_placeholder);
-                if (current instanceof StorageBrowserFragment)
-                    ((StorageBrowserFragment) current).goBack();
-                else
-                    finish();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-
     }
 
     /**
@@ -255,7 +275,7 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
             initAudioPlayer();
         if (mAudioPlayerContainer.getVisibility() == View.GONE) {
             mAudioPlayerContainer.setVisibility(View.VISIBLE);
-            mFragmentContainer.setPadding(0, 0, 0, mBottomSheetBehavior.getPeekHeight());
+            updateContainerPadding(true);
             applyMarginToProgressBar(mBottomSheetBehavior.getPeekHeight());
         }
         if (mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
@@ -318,11 +338,18 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
             mScanProgressText = (TextView) findViewById(R.id.scan_progress_text);
             mScanProgressBar = (ProgressBar) findViewById(R.id.scan_progress_bar);
             if (mBottomSheetBehavior != null && mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
-                mFragmentContainer.setPadding(0, 0, 0, mBottomSheetBehavior.getPeekHeight());
+                updateContainerPadding(true);
                 applyMarginToProgressBar(mBottomSheetBehavior.getPeekHeight());
             }
         } else if (mScanProgressLayout != null)
             mScanProgressLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void updateContainerPadding(boolean show) {
+        int factor = show ? 1 : 0;
+        mFragmentContainer.setPadding(mFragmentContainer.getPaddingLeft(),
+                mFragmentContainer.getPaddingTop(), mFragmentContainer.getPaddingRight(),
+                mOriginalBottomPadding+factor*mBottomSheetBehavior.getPeekHeight());
     }
 
     private void applyMarginToProgressBar(int marginValue) {
@@ -388,12 +415,12 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
             switch (newState) {
                 case BottomSheetBehavior.STATE_COLLAPSED:
                     removeTipViewIfDisplayed();
-                    mFragmentContainer.setPadding(0, 0, 0, mBottomSheetBehavior.getPeekHeight());
+                    updateContainerPadding(true);
                     applyMarginToProgressBar(mBottomSheetBehavior.getPeekHeight());
                     break;
                 case BottomSheetBehavior.STATE_HIDDEN:
                     removeTipViewIfDisplayed();
-                    mFragmentContainer.setPadding(0, 0, 0, 0);
+                    updateContainerPadding(false);
                     applyMarginToProgressBar(0);
                     break;
             }
@@ -450,17 +477,5 @@ public class AudioPlayerContainerActivity extends BaseActivity implements Playba
 
     public PlaybackServiceActivity.Helper getHelper() {
         return mHelper;
-    }
-
-    @Override
-    public void onConnected(PlaybackService service) {
-        mService = service;
-        if (service.hasMedia() && !mService.isVideoPlaying())
-            showAudioPlayer();
-    }
-
-    @Override
-    public void onDisconnected() {
-        mService = null;
     }
 }

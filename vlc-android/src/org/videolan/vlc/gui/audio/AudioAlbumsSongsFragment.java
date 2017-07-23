@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.audio;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.medialibrary.media.Album;
@@ -47,6 +49,7 @@ import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.PlaylistActivity;
+import org.videolan.vlc.gui.SecondaryActivity;
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog;
 import org.videolan.vlc.gui.helpers.AudioUtil;
 import org.videolan.vlc.gui.helpers.UiTools;
@@ -56,10 +59,13 @@ import org.videolan.vlc.gui.view.SwipeRefreshLayout;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
+import org.videolan.vlc.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+
+import static org.videolan.vlc.R.string.albums;
 
 public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeRefreshLayout.OnRefreshListener, TabLayout.OnTabSelectedListener {
 
@@ -75,6 +81,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
     private AudioBrowserAdapter mSongsAdapter;
     private AudioBrowserAdapter mAlbumsAdapter;
     private FastScroller mFastScroller;
+    //private View mSearchButtonView;
 
     private final static int MODE_ALBUM = 0;
     private final static int MODE_SONG = 1;
@@ -103,6 +110,10 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
         return mItem.getTitle();
     }
 
+    public Filter getFilter() {
+        return getCurrentAdapter().getFilter();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -113,9 +124,10 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
         ContextMenuRecyclerView songsList = (ContextMenuRecyclerView) mViewPager.getChildAt(MODE_SONG);
 
         mLists = new ContextMenuRecyclerView[]{albumsList, songsList};
-        String[] titles = new String[] {getString(R.string.albums), getString(R.string.songs)};
+        String[] titles = new String[] {getString(albums), getString(R.string.songs)};
         mAlbumsAdapter = new AudioBrowserAdapter(getActivity(), MediaLibraryItem.TYPE_ALBUM, this, false);
         mSongsAdapter = new AudioBrowserAdapter(getActivity(), MediaLibraryItem.TYPE_MEDIA, this, false);
+        mAdapters = new AudioBrowserAdapter[]{mAlbumsAdapter, mSongsAdapter};
 
         songsList.setAdapter(mSongsAdapter);
         albumsList.setAdapter(mAlbumsAdapter);
@@ -130,7 +142,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipeLayout);
         mSwipeRefreshLayout.setOnRefreshListener(this);
-
+        mSearchButtonView = v.findViewById(R.id.searchButton);
         return v;
     }
 
@@ -158,6 +170,12 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (SecondaryActivity) context;
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
         for (View rv : mLists)
@@ -166,6 +184,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
 
     @Override
     public void onRefresh() {
+        mActivity.closeSearchView();
         updateList();
     }
 
@@ -206,7 +225,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
 
             adapter.remove(mediaItem);
 
-            UiTools.snackerWithCancel(getView(), getString(R.string.file_deleted), new Runnable() {
+            UiTools.snackerWithCancel(mViewPager, getString(R.string.file_deleted), new Runnable() {
                 @Override
                 public void run() {
                     deleteMedia(mediaItem, true);
@@ -234,7 +253,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
             FragmentManager fm = getActivity().getSupportFragmentManager();
             SavePlaylistDialog savePlaylistDialog = new SavePlaylistDialog();
             Bundle args = new Bundle();
-            args.putParcelableArray(SavePlaylistDialog.KEY_NEW_TRACKS, mediaItem.getTracks(mMediaLibrary));
+            args.putParcelableArray(SavePlaylistDialog.KEY_NEW_TRACKS, mediaItem.getTracks());
             savePlaylistDialog.setArguments(args);
             savePlaylistDialog.show(fm, "fragment_add_to_playlist");
             return true;
@@ -247,7 +266,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
         } else {
             startPosition = 0;
             if (mediaItem instanceof Album)
-                medias = mediaItem.getTracks(mMediaLibrary);
+                medias = mediaItem.getTracks();
             else
                 medias = new MediaWrapper[] {(MediaWrapper) mediaItem};
         }
@@ -271,26 +290,26 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                final Album[] albums;
-                if (mItem.getItemType() == MediaLibraryItem.TYPE_ARTIST)
-                    albums = ((Artist) mItem).getAlbums(mMediaLibrary);
-                else if (mItem.getItemType() == MediaLibraryItem.TYPE_GENRE)
-                    albums = ((Genre) mItem).getAlbums(mMediaLibrary);
+                final ArrayList<MediaLibraryItem> albums;
+                if (mItem.getItemType() == MediaLibraryItem.TYPE_ARTIST) {
+                    albums = Util.arrayToMediaArrayList(((Artist) mItem).getAlbums());
+                } else if (mItem.getItemType() == MediaLibraryItem.TYPE_GENRE)
+                    albums = Util.arrayToMediaArrayList(((Genre) mItem).getAlbums());
                 else
                     return;
                 final LinkedList<MediaLibraryItem> songs = new LinkedList<>();
-                for (Album album : albums) {
+                for (MediaLibraryItem album : albums) {
                     String title = album.getTitle();
                     if (TextUtils.isEmpty(title))
                         title = getString(R.string.unknown_album);
                     songs.add(new DummyItem(title));
-                    songs.addAll(Arrays.asList(album.getTracks(mMediaLibrary)));
+                    songs.addAll(Arrays.asList(album.getTracks()));
                 }
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         mAlbumsAdapter.update(albums);
-                        mSongsAdapter.update(songs.toArray(new MediaLibraryItem[songs.size()]));
+                        mSongsAdapter.update(new ArrayList<>(songs));
                         mFastScroller.setRecyclerView(mLists[mViewPager.getCurrentItem()]);
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
@@ -342,6 +361,7 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
+        getActivity().supportInvalidateOptionsMenu();
         mFastScroller.setRecyclerView(mLists[tab.getPosition()]);
     }
 
@@ -356,8 +376,8 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
         mLists[tab.getPosition()].smoothScrollToPosition(0);
     }
 
-    protected AudioBrowserAdapter getCurrentAdapter() {
-        return (AudioBrowserAdapter) (getCurrentRV()).getAdapter();
+    public AudioBrowserAdapter getCurrentAdapter() {
+        return (AudioBrowserAdapter) getCurrentRV().getAdapter();
     }
 
     private ContextMenuRecyclerView getCurrentRV() {
@@ -367,4 +387,5 @@ public class AudioAlbumsSongsFragment extends BaseAudioBrowser implements SwipeR
     protected boolean songModeSelected() {
         return mViewPager.getCurrentItem() == MODE_SONG;
     }
+
 }

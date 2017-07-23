@@ -29,7 +29,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -112,9 +111,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
     private ProgressBar mProgressBar;
     private ArrayObjectAdapter mRowsAdapter = null;
     private ArrayObjectAdapter mVideoAdapter, mCategoriesAdapter, mHistoryAdapter, mBrowserAdapter, mOtherAdapter;
-    private View mRootContainer;
     private final SimpleArrayMap<String, Integer> mVideoIndex = new SimpleArrayMap<>(), mHistoryIndex = new SimpleArrayMap<>();
-    private Drawable mDefaultBackground;
     private Activity mContext;
     private Object mSelectedItem;
     private AsyncUpdate mUpdateTask;
@@ -137,7 +134,6 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         mContext = this;
         setContentView(R.layout.tv_main);
 
-        mDefaultBackground = getResources().getDrawable(R.drawable.background);
         final FragmentManager fragmentManager = getFragmentManager();
         mBrowseFragment = (BrowseFragment) fragmentManager.findFragmentById(
                 R.id.browse_fragment);
@@ -159,10 +155,9 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             mBrowseFragment.setSearchAffordanceColor(getResources().getColor(R.color.orange500));
         }
 
-        mRootContainer = mBrowseFragment.getView();
         mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.orange800));
         mBackgroundManager = BackgroundManager.getInstance(this);
-        mBackgroundManager.attachToView(findViewById(R.id.tv_container));
+        mBackgroundManager.setAutoReleaseOnStop(false);
         TvUtil.clearBackground(mBackgroundManager);
     }
 
@@ -215,7 +210,6 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
                     RecommendationsService.class);
             startService(recommendationIntent);
         }
-        mBackgroundManager.release();
     }
 
     @Override
@@ -227,6 +221,8 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             setmedialibraryListeners();
         } else
             setupMediaLibraryReceiver();
+        if (!mBackgroundManager.isAttached())
+            mBackgroundManager.attach(getWindow());
     }
 
     @Override
@@ -237,6 +233,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         if (mService != null)
             mService.removeCallback(this);
         mMediaLibrary.removeMediaUpdatedCb();
+        TvUtil.releaseBackgroundManager(mBackgroundManager);
     }
 
     @Override
@@ -413,7 +410,8 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             showHistory = mSettings.getBoolean(PreferencesFragment.PLAYBACK_HISTORY, true);
             if (mRowsAdapter != null)
                 mRowsAdapter.clear();
-            mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+            else
+                mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
             mHandler.sendEmptyMessageDelayed(SHOW_LOADING, 300);
             mHistoryIndex.clear();
 
@@ -439,6 +437,8 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
         @Override
         protected void onPostExecute(Void result) {
             mHandler.sendEmptyMessage(HIDE_LOADING);
+            if (!isVisible())
+                return;
             mVideoAdapter = new ArrayObjectAdapter(
                     new CardPresenter(mContext));
             final HeaderItem videoHeader = new HeaderItem(HEADER_VIDEO, getString(R.string.video));
@@ -447,18 +447,11 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             // Update video section
             if (!Tools.isArrayEmpty(videoList)) {
                 final int size = Math.min(NUM_ITEMS_PREVIEW, videoList.length);
-                mRootContainer.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        MediaWrapper item;
-                        for (int i = 0; i < size; ++i) {
-                            item = videoList[i];
-                            Tools.setMediaDescription(item);
-                            mVideoAdapter.add(item);
-                            mVideoIndex.put(item.getLocation(), i);
-                        }
-                    }
-                });
+                for (int i = 0; i < size; ++i) {
+                    Tools.setMediaDescription(videoList[i]);
+                    mVideoAdapter.add(videoList[i]);
+                    mVideoIndex.put(videoList[i].getLocation(), i);
+                }
             }
             mRowsAdapter.add(new ListRow(videoHeader, mVideoAdapter));
 
@@ -494,10 +487,8 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             mOtherAdapter.add(new CardPresenter.SimpleCard(ID_ABOUT, getString(R.string.about), getString(R.string.app_name_full)+" "+ BuildConfig.VERSION_NAME, R.drawable.ic_default_cone));
             mOtherAdapter.add(new CardPresenter.SimpleCard(ID_LICENCE, getString(R.string.licence), R.drawable.ic_default_cone));
             mRowsAdapter.add(new ListRow(miscHeader, mOtherAdapter));
-            mBrowseFragment.setSelectedPosition(Math.min(mBrowseFragment.getSelectedPosition(), mRowsAdapter.size()-1));
-            if (!isVisible())
-                return;
             mBrowseFragment.setAdapter(mRowsAdapter);
+            mBrowseFragment.setSelectedPosition(Math.min(mBrowseFragment.getSelectedPosition(), mRowsAdapter.size()-1));
         }
     }
 
@@ -520,7 +511,7 @@ public class MainTvActivity extends BaseTvActivity implements OnItemViewSelected
             return;
         mBrowserAdapter.clear();
         List<MediaWrapper> directories = AndroidDevices.getMediaDirectoriesList();
-        if (!AndroidDevices.showInternalStorage())
+        if (!AndroidDevices.showInternalStorage() && !directories.isEmpty())
             directories.remove(0);
         for (MediaWrapper directory : directories)
             mBrowserAdapter.add(new CardPresenter.SimpleCard(HEADER_DIRECTORIES, directory.getTitle(), R.drawable.ic_menu_folder_big, directory.getUri()));

@@ -13,6 +13,8 @@
     <string name="sortby_length_desc">Length (desc)</string>
     <string name="sortby_date">Date</string>
     <string name="sortby_date_desc">Date (desc)</string>
+    <string name="sortby_number">Tracks</string>
+    <string name="sortby_number_desc">Tracks (desc)</string>
     <string name="searchable_hint">Search…</string>
     <string name="history">History</string>
 
@@ -290,6 +292,8 @@
     <string name="video_min_group_length_first">First letter only</string>
     <string name="video_min_group_length_short">Short number of letters (6)</string>
     <string name="video_min_group_length_long">Long number of letters (9)</string>
+    <string name="media_seen">Show seen video marker</string>
+    <string name="media_seen_summary">Mark a video as seen when you play it until the end</string>
     <string name="force_list_portrait">No grid in portrait mode</string>
     <string name="force_list_portrait_summary">Show videos in list instead of grid in portrait mode</string>
     <string name="force_play_all_summary">Play all videos, starting with the one you clicked on</string>

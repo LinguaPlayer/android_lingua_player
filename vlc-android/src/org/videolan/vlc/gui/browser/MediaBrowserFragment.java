@@ -36,6 +36,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -62,11 +63,13 @@ public abstract class MediaBrowserFragment extends PlaybackServiceFragment imple
     protected Medialibrary mMediaLibrary;
     protected ActionMode mActionMode;
     public FloatingActionButton mFabPlay;
+    protected Menu mMenu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mMediaLibrary = VLCApplication.getMLInstance();
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -175,7 +178,7 @@ public abstract class MediaBrowserFragment extends PlaybackServiceFragment imple
             public void run() {
                 final LinkedList<String> foldersToReload = new LinkedList<>();
                 final LinkedList<String> mediaPaths = new LinkedList<>();
-                for (MediaWrapper media : mw.getTracks(mMediaLibrary)) {
+                for (MediaWrapper media : mw.getTracks()) {
                     String path = media.getUri().getPath();
                     mediaPaths.add(media.getLocation());
                     String parentPath = FileUtils.getParent(path);
@@ -203,6 +206,12 @@ public abstract class MediaBrowserFragment extends PlaybackServiceFragment imple
         Intent i = new Intent(getActivity(), InfoActivity.class);
         i.putExtra(InfoActivity.TAG_ITEM, item);
         startActivity(i);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        mMenu = menu;
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)

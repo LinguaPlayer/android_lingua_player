@@ -21,13 +21,13 @@ public abstract class MediaLibraryItem implements Parcelable {
     public static final int FLAG_SELECTED = 1;
 
 
-    public abstract MediaWrapper[] getTracks(Medialibrary ml);
+    public abstract MediaWrapper[] getTracks();
     public abstract int getItemType();
 
     long mId;
     protected String mTitle;
     String mDescription;
-    int mFlags;
+    private int mFlags;
 
     protected MediaLibraryItem() {}
 

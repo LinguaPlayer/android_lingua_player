@@ -425,7 +425,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         if (AndroidUtil.isJellyBeanMR1OrLater) {
             // Get the media router service (Miracast)
-            mMediaRouter = (MediaRouter) VLCApplication.getAppContext().getSystemService(Context.MEDIA_ROUTER_SERVICE);
+            mMediaRouter = (MediaRouter) getApplicationContext().getSystemService(Context.MEDIA_ROUTER_SERVICE);
             Log.d(TAG, "MediaRouter information : " + mMediaRouter  .toString());
         }
 
@@ -451,7 +451,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
 
         /* Services and miscellaneous */
-        mAudioManager = (AudioManager) VLCApplication.getAppContext().getSystemService(AUDIO_SERVICE);
+        mAudioManager = (AudioManager) getApplicationContext().getSystemService(AUDIO_SERVICE);
         mAudioMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
         mEnableCloneMode = mSettings.getBoolean("enable_clone_mode", false);
@@ -698,6 +698,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if (Permissions.canDrawOverlays(this)) {
                 mSwitchingView = true;
                 mSwitchToPopup = true;
+                if (!mService.isPlaying())
+                    mService.getCurrentMediaWrapper().addFlags(MediaWrapper.MEDIA_PAUSED);
                 cleanUI();
                 exitOK();
             } else
@@ -707,7 +709,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     private boolean isInteractive() {
-        PowerManager pm = (PowerManager) VLCApplication.getAppContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
         return AndroidUtil.isKitKatOrLater ? pm.isInteractive() : pm.isScreenOn();
     }
 
@@ -1256,7 +1258,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mLockBackButton) {
             mLockBackButton = false;
             mHandler.sendEmptyMessageDelayed(RESET_BACK_LOCK, 2000);
-            Toast.makeText(VLCApplication.getAppContext(), getString(R.string.back_quit_lock), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.back_quit_lock), Toast.LENGTH_SHORT).show();
         } else if(mPlaylist.getVisibility() == View.VISIBLE) {
             togglePlaylist();
         } else if (mPlaybackSetting != DelayState.OFF){
@@ -1932,7 +1934,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         return;
                     if (event.getEsChangedType() == Media.Track.Type.Audio) {
                         setESTrackLists();
-                        int audioTrack = (int) media.getMetaLong(mMedialibrary, MediaWrapper.META_AUDIOTRACK);
+                        int audioTrack = (int) media.getMetaLong(MediaWrapper.META_AUDIOTRACK);
                         if (audioTrack != 0 || mCurrentAudioTrack != -2)
                             mService.setAudioTrack(media.getId() == 0L ? mCurrentAudioTrack : audioTrack);
                     } else if (event.getEsChangedType() == Media.Track.Type.Text) {
@@ -2520,13 +2522,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void setAudioVolume(int vol) {
-        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, 0);
+        if (vol <= 0 && AndroidUtil.isNougatOrLater)
+            return; //Android N+ throws "SecurityException: Not allowed to change Do Not Disturb state"
 
         /* Since android 4.3, the safe volume warning dialog is displayed only with the FLAG_SHOW_UI flag.
          * We don't want to always show the default UI volume, so show it only when volume is not set. */
         int newVol = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         if (vol != newVol)
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, AudioManager.FLAG_SHOW_UI);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, 0);
 
         mTouchAction = TOUCH_VOLUME;
         vol = vol * 100 / mAudioMax;
@@ -2890,7 +2893,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                         mService.setAudioTrack(trackID);
                         MediaWrapper mw = mMedialibrary.findMedia(mService.getCurrentMediaWrapper());
                         if (mw != null && mw.getId() != 0L)
-                            mw.setLongMeta(mMedialibrary, MediaWrapper.META_AUDIOTRACK, trackID);
+                            mw.setLongMeta(MediaWrapper.META_AUDIOTRACK, trackID);
                         return true;
                     }
                 });
@@ -3743,7 +3746,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
          * the background.
          * To workaround this, pause playback if the lockscreen is displayed.
          */
-        final KeyguardManager km = (KeyguardManager) VLCApplication.getAppContext().getSystemService(KEYGUARD_SERVICE);
+        final KeyguardManager km = (KeyguardManager) getApplicationContext().getSystemService(KEYGUARD_SERVICE);
         if (km.inKeyguardRestrictedInputMode())
             mWasPaused = true;
         if (mWasPaused)
@@ -3797,7 +3800,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     media = ml.getMedia(mUri);
                 }
                 if (media != null && media.getId() != 0L && media.getTime() == 0L)
-                    media.setTime((long) (media.getMetaLong(mMedialibrary, MediaWrapper.META_PROGRESS) * (double) media.getLength())/100L);
+                    media.setTime((long) (media.getMetaLong(MediaWrapper.META_PROGRESS) * (double) media.getLength())/100L);
             } else
                 media = openedMedia;
             if (media != null) {
@@ -4047,7 +4050,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     @SuppressWarnings("deprecation")
     private int getScreenRotation(){
-        WindowManager wm = (WindowManager) VLCApplication.getAppContext().getSystemService(Context.WINDOW_SERVICE);
+        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         try {
             Method m = display.getClass().getDeclaredMethod("getRotation");
@@ -4070,7 +4073,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         /*
          mScreenOrientation = 100, we lock screen at its current orientation
          */
-        WindowManager wm = (WindowManager) VLCApplication.getAppContext().getSystemService(Context.WINDOW_SERVICE);
+        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         int rot = getScreenRotation();
         /*
