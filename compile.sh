@@ -34,8 +34,8 @@ while [ $# -gt 0 ]; do
             echo "  free "
             echo "  pro "
             echo "Use -m to set the MARKET:"
-            echo "  myket "
-            echo "  bazaar "
+            echo "  Myket "
+            echo "  Bazaar "
             echo "Use --release to build in release mode"
             echo "Use -s to set your keystore file and -p for the password"
             echo "Use -c to get a ChromeOS build"
@@ -47,11 +47,11 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -t|--type)
-            TYPE=$2
+            TYPE="${2^}"
             shift
             ;;
         -m|--market)
-            MARKET=$2
+            MARKET="${2^}"
             shift
             ;;
         -c)
@@ -116,14 +116,22 @@ else
 fi
 
 if [ -z "$MARKET" ]; then
-   diagnostic "*** No MARKET flavor defined : using bazaar"
-   MARKET="bazaar"
+   diagnostic "*** No MARKET flavor defined : using Bazaar"
+   MARKET="Bazaar"
+elif [ "$MARKET" != "Bazaar" -a "$MARKET" != "Myket" ]; then
+   diagnostic "*** ${MARKET} MARKET is not valid"
+   exit 1
 fi
 
 if [ -z "$TYPE" ]; then
-   diagnostic "*** No TYPE defined : using free"
-   TYPE="pro"
+   diagnostic "*** No TYPE defined : using Free"
+   TYPE="Free"
+
+elif [ "$TYPE" != "Free" -a "$TYPE" != "Pro" ]; then
+   diagnostic "*** ${TYPE} TYPE is not valid "
+   exit 1
 fi
+
 ##########
 # GRADLE #
 ##########

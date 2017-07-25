@@ -86,6 +86,8 @@ public class HistoryFragment extends MediaBrowserFragment implements IRefreshabl
         return v;
     }
 
+
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_option_history, menu);

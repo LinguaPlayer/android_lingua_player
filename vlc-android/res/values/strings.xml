@@ -775,4 +775,17 @@
     <!--EncodedSubtitles-->
     <string name="preparing_embeded_subs">Preparing embedded subtitles might take few seconds</string>
 
+    <!--Rate app -->
+    <string name="rate_app_request_myket">با امتیاز و نظر دادن در مایکت از برنامه حمایت کن</string>
+    <string name="rate_app_request_bazaar">با امتیاز و نظر دادن در کافه بازار از برنامه حمایت کن</string>
+    <string name="dont_show_rate_dialog">دیگه نشون نده</string>
+    <string name="myket_is_not_installed">مایکت نصب نیست</string>
+    <string name="bazaar_is_not_installed">بازار نصب نیست</string>
+
+    <string name="do_you_love_app">از برنامه راضی هستی؟</string>
+    <string name="I_love_it">بله</string>
+    <string name="I_dont_love_it">خیر</string>
+    <string name="send_email">با ارسال دیدگاه خود از طریق ایمیل به ما در بهبود برنامه کمک کن</string>
+    <string name="send_email_in">ارسال نظر از طریق :</string>
+
 </resources>

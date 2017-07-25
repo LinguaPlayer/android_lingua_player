@@ -23,6 +23,7 @@ package org.videolan.vlc.gui;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -30,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +40,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.internal.NavigationMenuView;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -46,8 +49,10 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -55,6 +60,8 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FilterQueryProvider;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
@@ -86,6 +93,9 @@ import org.videolan.vlc.util.VLCInstance;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.provider.ContactsContract.Directory.PACKAGE_NAME;
+import static org.videolan.vlc.util.RateUtils.showRateAppDialog;
 
 public class MainActivity extends ContentActivity implements FilterQueryProvider, NavigationView.OnNavigationItemSelectedListener, ExtensionManagerService.ExtensionManagerActivity {
     public final static String TAG = "VLC/MainActivity";
@@ -198,6 +208,19 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         mScanNeeded = savedInstanceState == null && mSettings.getBoolean("auto_rescan", true);
 
         mMediaLibrary = VLCApplication.getMLInstance();
+
+        boolean showRateRequest = mSettings.getBoolean("show_rate_request", true);
+        if(!showRateRequest){
+            return;
+        }
+
+        //count number of times app launchs and ask to rate it
+        int launchCount = mSettings.getInt("launch_count", 0);
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt("launch_count", ++launchCount).commit();
+
+        if(launchCount % 3 == 0)
+            showRateAppDialog(this);
     }
 
     private void setupNavigationView() {
