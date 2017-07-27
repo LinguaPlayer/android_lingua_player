@@ -44,7 +44,7 @@ import org.videolan.vlc.gui.tv.audioplayer.AudioPlayerActivity;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.AndroidDevices;
-import org.videolan.vlc.util.Dictionary;
+import org.videolan.vlc.util.Dictionary.Dictionary;
 import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Permissions;
 

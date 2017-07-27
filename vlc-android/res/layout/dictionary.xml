@@ -7,16 +7,23 @@
     android:background="@color/white"
     android:layoutDirection="ltr">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="45dp"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
         android:background="@color/orange500">
         <Spinner
-            android:id="@+id/language_list"
+            android:id="@+id/language_from_list"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal" />
-    </FrameLayout>
+        <Spinner
+            android:id="@+id/language_to_list"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -82,24 +89,54 @@
                 android:layout_gravity="left"
                 android:src="@drawable/ic_bookmark"
                 android:visibility="gone"/>
-            <ProgressBar
-                android:id="@+id/dictionary_loading"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginTop="20dp"
-                android:visibility="gone"/>
-
-            <com.devspark.robototextview.widget.RobotoTextView
-                android:id="@+id/translation"
-                android:layout_margin="10dp"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:paddingLeft="10dp"
-                android:textSize="@dimen/dictionary_font"
-                android:visibility="gone"/>
+                android:id="@+id/offline_dictionary_layout">
+                <ProgressBar
+                    android:id="@+id/offline_dictionary_loading"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"/>
+
+                <com.devspark.robototextview.widget.RobotoTextView
+                    android:id="@+id/offline_translation"
+                    android:layout_margin="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:paddingLeft="10dp"
+                    android:textSize="@dimen/dictionary_font"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/online_dictionary_layout" >
+                <ProgressBar
+                    android:id="@+id/online_dictionary_loading"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"/>
+
+                <com.devspark.robototextview.widget.RobotoTextView
+                    android:id="@+id/online_translation"
+                    android:layout_margin="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:paddingLeft="10dp"
+                    android:textSize="@dimen/dictionary_font"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

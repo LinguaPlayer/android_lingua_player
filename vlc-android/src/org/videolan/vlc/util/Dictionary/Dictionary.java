@@ -1,21 +1,19 @@
-package org.videolan.vlc.util;
+package org.videolan.vlc.util.Dictionary;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.net.Uri;
-import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import org.videolan.vlc.util.Dictionary.remote.DictionaryApi;
+import org.videolan.vlc.util.Dictionary.remote.GlosbeService;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -31,6 +29,10 @@ public class Dictionary {
     private TextToSpeech tts;
 
     private static String lastDbName = null;
+    private static GlosbeService mGlosbeService;
+    public GlosbeService getGlosbeService(){
+        return mGlosbeService;
+    }
 
     private Dictionary(){
 
@@ -48,6 +50,7 @@ public class Dictionary {
 
         if (dictionaryInstance == null || !dbName.equals(getDbName()))
             dictionaryInstance = new Dictionary(context, dbName);
+        mGlosbeService = DictionaryApi.getGlosbeService();
 
         return dictionaryInstance;
     }

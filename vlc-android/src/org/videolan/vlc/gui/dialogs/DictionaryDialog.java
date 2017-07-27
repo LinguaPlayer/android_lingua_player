@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.dialogs;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -9,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Layout;
 import android.text.Selection;
@@ -18,6 +20,7 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
@@ -31,6 +34,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -39,10 +43,22 @@ import android.widget.Toast;
 
 import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
-import org.videolan.vlc.util.Dictionary;
+import org.videolan.vlc.util.Dictionary.Dictionary;
+import org.videolan.vlc.util.Dictionary.model.Author;
+import org.videolan.vlc.util.Dictionary.model.Glosbe;
+import org.videolan.vlc.util.Dictionary.model.Phrase;
+import org.videolan.vlc.util.Dictionary.model.Tuc;
+import org.videolan.vlc.util.Dictionary.remote.DictionaryApi;
+import org.videolan.vlc.util.Dictionary.remote.GlosbeService;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 /**
@@ -51,25 +67,35 @@ import java.util.regex.Pattern;
 
 public class DictionaryDialog extends DialogFragment implements AdapterView.OnItemSelectedListener{
 
+
     private EditText mWordToTranslateEditText;
     private ScrollView mainScrollView;
     private TextView mCaptionTextView;
-    private TextView mTranslationTextView;
     private Dictionary mDictionary;
-    private ProgressBar mDictionaryLoading;
+    private TextView mOfflineTranslationTextView;
+    private ProgressBar mOfflineDictionaryLoading;
+    private TextView mOnlineTranslationTextView;
+    private ProgressBar mOnlineDictionaryLoading;
+    private LinearLayout mOfflineDictionaryLayout;
     private ImageView mSpeakButton;
 
+    private String[] mFromLanguageValues = null;
+    private String[] mToLanguageValues = null;
+    //last selected Items position
+    private static int mLastFromLangugeSelectedItem = 25;
+    private static int mLastToLangugeSelectedItem = 84;
+
+    private SharedPreferences mSettings = null;
 
     public final static String TAG = "VLC/DictionaryDialog";
-    String[] dictionaryValues = null;
+    public final static String  LAST_FROM_LANGUAGE_SELECTED = "last_from_language_selected";
+    public final static String  LAST_to_LANGUAGE_SELECTED = "last_to_language_selected";
 
 
-    public DictionaryDialog(){
-
-    }
+    public DictionaryDialog(){ }
 
     public static DictionaryDialog newInstance (String dialog,String wordToTranslate){
-       DictionaryDialog dictionaryFragment = new DictionaryDialog();
+        DictionaryDialog dictionaryFragment = new DictionaryDialog();
         Bundle args = new Bundle();
         args.putString("word",wordToTranslate);
         args.putString("dialog",dialog);
@@ -79,6 +105,11 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container , Bundle savedInstanceState){
+        if(mSettings == null) {
+            mSettings = PreferenceManager.getDefaultSharedPreferences(getContext());
+            mLastFromLangugeSelectedItem = mSettings.getInt(LAST_FROM_LANGUAGE_SELECTED, 25);
+            mLastToLangugeSelectedItem = mSettings.getInt(LAST_to_LANGUAGE_SELECTED, 84);
+        }
         getDialog().setCancelable(true);
         getDialog().setCanceledOnTouchOutside(true);
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
@@ -93,6 +124,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         mTranslateTask = new Translate();
         mTranslateTask.execute(new String[]{word});
+        onlineTranslate(word);
     }
 
     @Override
@@ -104,10 +136,17 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         mWordToTranslateEditText = (EditText) view.findViewById(R.id.edit_text);
         mCaptionTextView = (TextView) view.findViewById(R.id.caption);
-        mTranslationTextView = (TextView) view.findViewById(R.id.translation);
-        mDictionaryLoading = (ProgressBar) view.findViewById(R.id.dictionary_loading);
         mSpeakButton = (ImageView) view.findViewById(R.id.speak);
         mainScrollView = (ScrollView) view.findViewById(R.id.main_scroll_view);
+
+        mOfflineTranslationTextView = (TextView) view.findViewById(R.id.offline_translation);
+        mOfflineDictionaryLoading = (ProgressBar) view.findViewById(R.id.offline_dictionary_loading);
+
+        mOnlineTranslationTextView = (TextView) view.findViewById(R.id.online_translation);
+        mOnlineDictionaryLoading = (ProgressBar) view.findViewById(R.id.online_dictionary_loading);
+
+        mOfflineDictionaryLayout = (LinearLayout) view.findViewById(R.id.offline_dictionary_layout);
+
 
         mWordToTranslateEditText.setText(word);
         mWordToTranslateEditText.setSelection(word.length());
@@ -116,7 +155,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         mCaptionTextView.setMovementMethod(new LinkTouchMovementMethod());
         mCaptionTextView.setHighlightColor(getResources().getColor(R.color.orange500));
 
-        mTranslationTextView.setMovementMethod(new LinkTouchMovementMethod());
+        mOfflineTranslationTextView.setMovementMethod(new LinkTouchMovementMethod());
 
         mSpeakButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,32 +178,110 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             }
         });
 
-        Spinner spinner = (Spinner) view.findViewById(R.id.language_list);
-        spinner.setOnItemSelectedListener(this);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.dictionaries_entries, R.layout.language_list_spinner_item);
-        dictionaryValues = getResources().getStringArray(R.array.dictionaries_values);
-        adapter.setDropDownViewResource(R.layout.language_list_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setSelection(lastSelectedItem);
+        Spinner fromLanguageSpinner = (Spinner) view.findViewById(R.id.language_from_list);
+        Spinner toLanguageSpinner = (Spinner) view.findViewById(R.id.language_to_list);
 
+        //From language spinner
+        fromLanguageSpinner.setOnItemSelectedListener(this);
+        ArrayAdapter<CharSequence> fromLangugeAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.online_from_language_entries, R.layout.language_list_spinner_item);
+        mFromLanguageValues = getResources().getStringArray(R.array.online_from_language_values);
+        fromLangugeAdapter.setDropDownViewResource(R.layout.language_list_spinner_dropdown_item);
+        fromLanguageSpinner.setAdapter(fromLangugeAdapter);
+        fromLanguageSpinner.setSelection(mLastFromLangugeSelectedItem);
+
+        //To language spinner
+        toLanguageSpinner.setOnItemSelectedListener(this);
+        ArrayAdapter<CharSequence> toLangugeAdapter = ArrayAdapter.createFromResource(getActivity(), R.array.online_to_language_entries, R.layout.language_list_spinner_item);
+        mToLanguageValues = getResources().getStringArray(R.array.online_to_language_values);
+        toLangugeAdapter.setDropDownViewResource(R.layout.language_list_spinner_dropdown_item);
+        toLanguageSpinner.setAdapter(fromLangugeAdapter);
+        toLanguageSpinner.setSelection(mLastToLangugeSelectedItem);
     }
-    private Translate mTranslateTask = null;
 
-    private static int lastSelectedItem = 0;
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        String dbName = dictionaryValues[position];
-        lastSelectedItem = position;
-        mDictionaryLoadertask = new DictionaryLoader();
-        mDictionaryLoadertask.execute(new String[]{dbName, mWordToTranslateEditText.getText().toString()});
+    public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+        SharedPreferences.Editor editor = mSettings.edit();
+        switch (parent.getId()){
+            case R.id.language_from_list:
+                mLastFromLangugeSelectedItem = position;
+                editor.putInt(LAST_FROM_LANGUAGE_SELECTED, mLastFromLangugeSelectedItem).commit();
+                break;
+            case R.id.language_to_list:
+                mLastToLangugeSelectedItem = position;
+                editor.putInt(LAST_to_LANGUAGE_SELECTED, mLastToLangugeSelectedItem).commit();
+                break;
+        }
+        String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
+        String fromLanguge = mFromLanguageValues[mLastFromLangugeSelectedItem];
 
+        String offlineDBName = "";
+        if(fromLanguge.equals("en") && toLanguage.equals("en"))
+            offlineDBName = "gcide";
+        else if (fromLanguge.equals("en") && toLanguage.equals("fa"))
+            offlineDBName = "ENG_PER";
+
+        mDictionaryLoadertask = new DictionaryLoader();
+        mDictionaryLoadertask.execute(new String[]{offlineDBName, mWordToTranslateEditText.getText().toString()});
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
+    private void getMeaning(String from, final String dest, String phrase){
+    }
+    private void onlineTranslate(String phrase){
+        mOnlineTranslationTextView.setVisibility(View.GONE);
+        mOnlineDictionaryLoading.setVisibility(View.VISIBLE);
 
+        final String fromLanguge = mFromLanguageValues[mLastFromLangugeSelectedItem];
+        final String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
+
+        mDictionary.getGlosbeService().getMeaning(fromLanguge, toLanguage, phrase.toLowerCase()).enqueue(new Callback<Glosbe>() {
+            @Override
+            public void onResponse(Call<Glosbe> call, Response<Glosbe> response) {
+                String translation = "";
+                if(response.isSuccessful()){
+                    List<Tuc> tuc = response.body().getTuc();
+                    if(tuc != null) {
+                        int tucSize = tuc.size();
+
+                        for (int i = 0; i < tucSize; i++) {
+                            Phrase phrase = tuc.get(i).getPhrase();
+                            if (phrase != null && phrase.getLanguage().equals(toLanguage)) {
+                                translation += phrase.getText();
+                                if (i < tucSize - 1) {
+                                    if (toLanguage.equals("fa"))
+                                        translation += "، ";
+                                    else if (toLanguage.equals("ja"))
+                                        translation += "、 ";
+                                    else
+                                        translation += ", ";
+
+                                }
+                            }
+                        }
+                    }
+                    Log.d(TAG,translation);
+                }
+                else{
+                    int statusCode = response.code();
+                    Log.d(TAG, "glosbe translation failed " + statusCode);
+                }
+
+                mOnlineTranslationTextView.setText(translation);
+                mOnlineDictionaryLoading.setVisibility(View.GONE);
+                mOnlineTranslationTextView.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onFailure(Call<Glosbe> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+    private Translate mTranslateTask = null;
     private class Translate extends AsyncTask<String, Void, String> {
 
         @Override
@@ -178,16 +295,17 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         @Override
         protected void onPostExecute (String translation) {
             SpannableStringBuilder translationWithLinks = getTranslationWithLinks(translation);
-            mTranslationTextView.setText(translationWithLinks);
-            mDictionaryLoading.setVisibility(View.GONE);
-            mTranslationTextView.setVisibility(View.VISIBLE);
-            focusOnView(mainScrollView,mTranslationTextView);
+            mOfflineTranslationTextView.setText(translationWithLinks);
+            mOfflineDictionaryLoading.setVisibility(View.GONE);
+            mOfflineTranslationTextView.setVisibility(View.VISIBLE);
+
+            focusOnView(mainScrollView, mOfflineDictionaryLayout);
         }
 
         @Override
         protected void onPreExecute() {
-            mTranslationTextView.setVisibility(View.GONE);
-            mDictionaryLoading.setVisibility(View.VISIBLE);
+            mOfflineTranslationTextView.setVisibility(View.GONE);
+            mOfflineDictionaryLoading.setVisibility(View.VISIBLE);
         }
 
     }
@@ -243,8 +361,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         @Override
         protected void onPreExecute() {
-            mTranslationTextView.setVisibility(View.GONE);
-            mDictionaryLoading.setVisibility(View.VISIBLE);
+            mOfflineTranslationTextView.setVisibility(View.GONE);
+            mOfflineDictionaryLoading.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -293,7 +411,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             window.setGravity(Gravity.CENTER);
         }
         else{
-            mTranslationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+            mOfflineTranslationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
             mCaptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
             window.setLayout((int) (width ), (int) (height * 0.85));
             window.setGravity(Gravity.TOP);
