@@ -50,7 +50,7 @@ public class Dictionary {
 
         if (dictionaryInstance == null || !dbName.equals(getDbName()))
             dictionaryInstance = new Dictionary(context, dbName);
-        mGlosbeService = DictionaryApi.getGlosbeService();
+        mGlosbeService = DictionaryApi.getGlosbeService(context);
 
         return dictionaryInstance;
     }

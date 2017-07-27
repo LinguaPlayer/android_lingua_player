@@ -44,16 +44,13 @@ import android.widget.Toast;
 import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.util.Dictionary.Dictionary;
-import org.videolan.vlc.util.Dictionary.model.Author;
 import org.videolan.vlc.util.Dictionary.model.Glosbe;
 import org.videolan.vlc.util.Dictionary.model.Phrase;
 import org.videolan.vlc.util.Dictionary.model.Tuc;
-import org.videolan.vlc.util.Dictionary.remote.DictionaryApi;
-import org.videolan.vlc.util.Dictionary.remote.GlosbeService;
+import org.videolan.vlc.util.NoConnectivityException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import retrofit2.Call;
@@ -240,6 +237,9 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         mDictionary.getGlosbeService().getMeaning(fromLanguge, toLanguage, phrase.toLowerCase()).enqueue(new Callback<Glosbe>() {
             @Override
             public void onResponse(Call<Glosbe> call, Response<Glosbe> response) {
+                mOnlineDictionaryLoading.setVisibility(View.GONE);
+                mOnlineTranslationTextView.setVisibility(View.VISIBLE);
+
                 String translation = "";
                 if(response.isSuccessful()){
                     List<Tuc> tuc = response.body().getTuc();
@@ -263,21 +263,31 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                         }
                     }
                     Log.d(TAG,translation);
+                    mOnlineTranslationTextView.setText(translation);
                 }
                 else{
                     int statusCode = response.code();
                     Log.d(TAG, "glosbe translation failed " + statusCode);
+                    mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
                 }
 
-                mOnlineTranslationTextView.setText(translation);
-                mOnlineDictionaryLoading.setVisibility(View.GONE);
-                mOnlineTranslationTextView.setVisibility(View.VISIBLE);
 
             }
 
             @Override
             public void onFailure(Call<Glosbe> call, Throwable t) {
-                t.printStackTrace();
+                Log.d(TAG, t.getMessage());
+                mOnlineDictionaryLoading.setVisibility(View.GONE);
+                mOnlineTranslationTextView.setVisibility(View.VISIBLE);
+                if(t instanceof NoConnectivityException) {
+                    final String message = "<font color='red' >" + "<b>" + getString(R.string.connection_error_title)+ "</b>" + "</font>"+
+                            "<br>" + getString(R.string.connection_error_message);
+                    SpannableStringBuilder styledTranslation = (SpannableStringBuilder) Html.fromHtml(message);
+                    mOnlineTranslationTextView.setText(styledTranslation);
+                }
+                else {
+                    mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                }
             }
         });
     }
