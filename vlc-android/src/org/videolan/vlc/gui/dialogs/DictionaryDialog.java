@@ -20,7 +20,6 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.Gravity;
@@ -262,13 +261,13 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                             }
                         }
                     }
-                    Log.d(TAG,translation);
                     mOnlineTranslationTextView.setText(translation);
                 }
                 else{
                     int statusCode = response.code();
-                    Log.d(TAG, "glosbe translation failed " + statusCode);
-                    mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                    if(isAdded()) {
+                        mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                    }
                 }
 
 
@@ -276,17 +275,20 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
             @Override
             public void onFailure(Call<Glosbe> call, Throwable t) {
-                Log.d(TAG, t.getMessage());
                 mOnlineDictionaryLoading.setVisibility(View.GONE);
                 mOnlineTranslationTextView.setVisibility(View.VISIBLE);
                 if(t instanceof NoConnectivityException) {
-                    final String message = "<font color='red' >" + "<b>" + getString(R.string.connection_error_title)+ "</b>" + "</font>"+
-                            "<br>" + getString(R.string.connection_error_message);
-                    SpannableStringBuilder styledTranslation = (SpannableStringBuilder) Html.fromHtml(message);
-                    mOnlineTranslationTextView.setText(styledTranslation);
+                    if(isAdded()) {
+                        final String message = "<font color='red' >" + "<b>" + getString(R.string.connection_error_title) + "</b>" + "</font>" +
+                                "<br>" + getString(R.string.connection_error_message);
+                        SpannableStringBuilder styledTranslation = (SpannableStringBuilder) Html.fromHtml(message);
+                        mOnlineTranslationTextView.setText(styledTranslation);
+                    }
                 }
                 else {
-                    mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                    if(isAdded()) {
+                        mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                    }
                 }
             }
         });
@@ -422,6 +424,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         }
         else{
             mOfflineTranslationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
+            mOnlineTranslationTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
             mCaptionTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
             window.setLayout((int) (width ), (int) (height * 0.85));
             window.setGravity(Gravity.TOP);
