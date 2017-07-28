@@ -782,7 +782,7 @@
     <string name="myket_is_not_installed">مایکت نصب نیست</string>
     <string name="bazaar_is_not_installed">بازار نصب نیست</string>
 
-    <string name="do_you_love_app">از برنامه راضی هستی؟</string>
+    <string name="do_you_love_app">از برنامه خوشتون اومده؟</string>
     <string name="I_love_it">بله</string>
     <string name="I_dont_love_it">خیر</string>
     <string name="send_email">با ارسال دیدگاه خود از طریق ایمیل به ما در بهبود برنامه کمک کن</string>
@@ -790,6 +790,6 @@
 
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Please check your internet connection and try again</string>
-    <string name="unexpected_error">Unexpected error occurred.Please contact with developer.</string>
+    <string name="unexpected_error">Unexpected error occurred.Please try again.</string>
 
 </resources>

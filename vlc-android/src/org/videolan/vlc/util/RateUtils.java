@@ -20,25 +20,20 @@ public class RateUtils {
     public final static String TAG = "VLC/RateUtils";
     private static AlertDialog mRateAppDialog;
     public static void showRateAppDialog(final Context context) {
+        SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(context);
+        final SharedPreferences.Editor editor = mSettings.edit();
 
         mRateAppDialog = new AlertDialog.Builder(context)
                 .setMessage(R.string.do_you_love_app)
                 .setPositiveButton(R.string.I_love_it, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        editor.putBoolean("show_rate_request", false).commit();
                         rateApp(context);
                     }
                 })
-                .setNeutralButton(R.string.dont_show_rate_dialog, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(context);
-                                SharedPreferences.Editor editor = mSettings.edit();
-                                editor.putBoolean("show_rate_request", false).commit();
-                            }
-                        }
-                )
                 .setNegativeButton(R.string.I_dont_love_it, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        editor.putBoolean("show_rate_request", false).commit();
                         emailMe(context);
                     }
                 }) .create();
