@@ -226,7 +226,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
     private void getMeaning(String from, final String dest, String phrase){
     }
-    private void onlineTranslate(String phrase){
+    private void onlineTranslate(final String phrase){
         mOnlineTranslationTextView.setVisibility(View.GONE);
         mOnlineDictionaryLoading.setVisibility(View.VISIBLE);
 
@@ -261,6 +261,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                             }
                         }
                     }
+                    if(translation.isEmpty())
+                        translation = phrase;
                     mOnlineTranslationTextView.setText(translation);
                 }
                 else{

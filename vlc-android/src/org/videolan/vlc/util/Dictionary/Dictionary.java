@@ -119,7 +119,7 @@ public class Dictionary {
     public String getTranslation(String word){
         //TODO:fix this later
         if(db == null)
-            return "";
+            return "Offline dictionary not exist for this language pair";
         String result = word;
         Cursor cursor = db.rawQuery("select definition from words where word=?", new String[] {word.toLowerCase()});
         if(cursor!=null && cursor.getCount()!=0){
