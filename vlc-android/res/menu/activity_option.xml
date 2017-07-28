@@ -21,12 +21,23 @@
         android:title="@string/sortby"
         android:icon="@drawable/ic_menu_sort"
         android:id="@+id/ml_menu_sortby"
-        vlc:showAsAction="ifRoom">
+        vlc:showAsAction="ifRoom"
+        android:visible="false">
         <menu>
             <item
                 android:orderInCategory="2"
                 android:id="@+id/ml_menu_sortby_name"
                 android:title="@string/sortby_name" />
+            <item
+                android:orderInCategory="2"
+                android:id="@+id/ml_menu_sortby_artist_name"
+                android:title="@string/sortby_artist_name"
+                android:visible="false" />
+            <item
+                android:orderInCategory="2"
+                android:id="@+id/ml_menu_sortby_album_name"
+                android:title="@string/sortby_album_name"
+                android:visible="false" />
             <item
                 android:orderInCategory="2"
                 android:id="@+id/ml_menu_sortby_length"

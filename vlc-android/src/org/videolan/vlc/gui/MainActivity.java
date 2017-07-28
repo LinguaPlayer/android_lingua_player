@@ -123,7 +123,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
             finish();
             return;
         }
-        
+
         Permissions.checkReadStoragePermission(this, false);
 
         /*** Start initializing the UI ***/
@@ -138,7 +138,8 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         if (savedInstanceState != null) {
             //Restore fragments stack
             for (Fragment fragment : getSupportFragmentManager().getFragments())
-                mFragmentsStack.put(fragment.getTag(), new WeakReference<>(fragment));
+                if (fragment != null)
+                    mFragmentsStack.put(fragment.getTag(), new WeakReference<>(fragment));
 
             mCurrentFragmentId = savedInstanceState.getInt("current");
             if (mCurrentFragmentId > 0) {

@@ -82,7 +82,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 
-public abstract class BaseBrowserFragment extends SortableFragment implements IRefreshable, MediaBrowser.EventListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, Filterable, IEventsHandler {
+public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAdapter> implements IRefreshable, MediaBrowser.EventListener, SwipeRefreshLayout.OnRefreshListener, View.OnClickListener, Filterable, IEventsHandler {
     protected static final String TAG = "VLC/BaseBrowserFragment";
 
     public static String ROOT = "smb";
@@ -99,7 +99,6 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
     protected MediaBrowser mMediaBrowser;
     protected ContextMenuRecyclerView mRecyclerView;
     private View mSearchButtonView;
-    protected BaseBrowserAdapter mAdapter;
     protected LinearLayoutManager mLayoutManager;
     protected TextView mEmptyView;
     public String mMrl;
@@ -109,16 +108,12 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
     protected boolean goBack = false;
     private final boolean mShowHiddenFiles;
 
-    private SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>> mFoldersContentLists = new SimpleArrayMap<>();
-    protected ArrayList<MediaLibraryItem> mediaList = new ArrayList<>();
+    private SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>> mFoldersContentLists;
     public int mCurrentParsedPosition = 0;
 
     protected abstract Fragment createFragment();
     protected abstract void browseRoot();
     protected abstract String getCategoryTitle();
-    public boolean isSortEnabled() {
-        return false;
-    }
 
     private Handler mBrowserHandler;
 
@@ -145,8 +140,8 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
         if (bundle != null) {
             if (VLCApplication.hasData(KEY_CONTENT_LIST))
                 mFoldersContentLists = (SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>>) VLCApplication.getData(KEY_CONTENT_LIST);
-            if (VLCApplication.hasData(KEY_MEDIA_LIST))
-                mediaList = (ArrayList<MediaLibraryItem>) VLCApplication.getData(KEY_MEDIA_LIST);
+            if (mFoldersContentLists == null)
+                mFoldersContentLists = new SimpleArrayMap<>();
             mCurrentMedia = bundle.getParcelable(KEY_MEDIA);
             if (mCurrentMedia != null)
                 mMrl = mCurrentMedia.getLocation();
@@ -161,11 +156,8 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        MenuItem item = menu.findItem(R.id.ml_menu_sortby);
-        item.setEnabled(isSortEnabled());
-        item.setVisible(isSortEnabled());
-        menu.findItem(R.id.ml_menu_filter).setVisible(enableSearchOption());
         super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.ml_menu_filter).setVisible(enableSearchOption());
     }
 
     protected int getLayoutId(){
@@ -173,26 +165,30 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(getLayoutId(), container, false);
-        mRecyclerView = (ContextMenuRecyclerView) v.findViewById(R.id.network_list);
-        mEmptyView = (TextView) v.findViewById(android.R.id.empty);
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-        registerForContextMenu(mRecyclerView);
-
-        mSwipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipeLayout);
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-        mSearchButtonView = v.findViewById(R.id.searchButton);
-        return v;
+        return inflater.inflate(getLayoutId(), container, false);
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (!Util.isListEmpty(mediaList))
-            mAdapter.addAll(mediaList);
-        else if (!(this instanceof NetworkBrowserFragment))
+        mRecyclerView = view.findViewById(R.id.network_list);
+        mEmptyView = view.findViewById(android.R.id.empty);
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+        registerForContextMenu(mRecyclerView);
+
+        mSwipeRefreshLayout = view.findViewById(R.id.swipeLayout);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mSearchButtonView = view.findViewById(R.id.searchButton);
+        if (savedInstanceState != null) {
+            if (VLCApplication.hasData(KEY_MEDIA_LIST+mMrl)) {
+                @SuppressWarnings("unchecked")
+                final ArrayList<MediaLibraryItem> mediaList = (ArrayList<MediaLibraryItem>) VLCApplication.getData(KEY_MEDIA_LIST+mMrl);
+                if (!Util.isListEmpty(mediaList))
+                    mAdapter.update(mediaList);
+            }
+        } else if (!(this instanceof NetworkBrowserFragment))
             refresh();
     }
 
@@ -243,11 +239,10 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
     public void onSaveInstanceState(Bundle outState){
         outState.putString(KEY_MRL, mMrl);
         outState.putParcelable(KEY_MEDIA, mCurrentMedia);
-        VLCApplication.storeData(KEY_MEDIA_LIST, mediaList);
+        VLCApplication.storeData(KEY_MEDIA_LIST+mMrl, mAdapter.getAll());
         VLCApplication.storeData(KEY_CONTENT_LIST, mFoldersContentLists);
-        if (mRecyclerView != null) {
+        if (mRecyclerView != null)
             outState.putInt(KEY_POSITION, mLayoutManager.findFirstCompletelyVisibleItemPosition());
-        }
         super.onSaveInstanceState(outState);
     }
 
@@ -288,9 +283,9 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
         FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
         Fragment next = createFragment();
         Bundle args = new Bundle();
-        ArrayList<MediaLibraryItem> list = mFoldersContentLists != null ? mFoldersContentLists.get(media) : null;
+        ArrayList<MediaLibraryItem> list = mFoldersContentLists.get(media);
         if (!Util.isListEmpty(list) && !(this instanceof StorageBrowserFragment))
-            VLCApplication.storeData(KEY_MEDIA_LIST, list);
+            VLCApplication.storeData(KEY_MEDIA_LIST+media.getLocation(), list);
         args.putParcelable(KEY_MEDIA, media);
         next.setArguments(args);
         if (isRootDirectory())
@@ -560,7 +555,7 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
                 return true;
             case R.id.directory_view_play_folder:
                 ArrayList<MediaWrapper> newMediaList = new ArrayList<>();
-                for (MediaLibraryItem mediaItem : mFoldersContentLists.get(mediaList.get(position))){
+                for (MediaLibraryItem mediaItem : mFoldersContentLists.get(mAdapter.get(position))){
                     if (((MediaWrapper)mediaItem).getType() == MediaWrapper.TYPE_AUDIO || (AndroidUtil.isHoneycombOrLater && ((MediaWrapper)mediaItem).getType() == MediaWrapper.TYPE_VIDEO))
                         newMediaList.add((MediaWrapper)mediaItem);
                 }
@@ -906,19 +901,7 @@ public abstract class BaseBrowserFragment extends SortableFragment implements IR
         }
     }
 
-    @Override
-    public void sortBy(int sortby) {
-        int sortDirection = mAdapter.getSortDirection();
-        int sortBy = mAdapter.getSortBy();
-        if (sortby == sortBy)
-            sortDirection*=-1;
-        else
-            sortDirection = 1;
-        mAdapter.sortBy(sortby, sortDirection);
-    }
-
-    @Override
-    public int sortDirection(int sortby) {
-        return mAdapter.sortDirection(sortby);
+    public boolean isSortEnabled() {
+        return false;
     }
 }

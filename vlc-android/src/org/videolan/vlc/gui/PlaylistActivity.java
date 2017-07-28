@@ -45,10 +45,12 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
+import org.videolan.medialibrary.media.Playlist;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.databinding.PlaylistActivityBinding;
@@ -79,6 +81,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
     private Medialibrary mMediaLibrary = VLCApplication.getMLInstance();
     private PlaylistActivityBinding mBinding;
     private ActionMode mActionMode;
+    private boolean mIsPlaylist;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,6 +95,7 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
         mPlaylist = (MediaLibraryItem) (savedInstanceState != null ?
                 savedInstanceState.getParcelable(AudioBrowserFragment.TAG_ITEM) :
                 getIntent().getParcelableExtra(AudioBrowserFragment.TAG_ITEM));
+        mIsPlaylist = mPlaylist.getItemType() == MediaLibraryItem.TYPE_PLAYLIST;
         mBinding.setPlaylist(mPlaylist);
         mAdapter = new AudioBrowserAdapter(this, MediaLibraryItem.TYPE_MEDIA, this, false);
 
@@ -240,9 +244,12 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             return false;
         }
         boolean isSong = count == 1 && mAdapter.getSelection().get(0).getItemType() == MediaLibraryItem.TYPE_MEDIA;
-        menu.findItem(R.id.action_mode_audio_set_song).setVisible(isSong && AndroidDevices.isPhone());
+        menu.findItem(R.id.action_mode_audio_playlist_up).setVisible(isSong && mIsPlaylist);
+        menu.findItem(R.id.action_mode_audio_playlist_down).setVisible(isSong && mIsPlaylist);
+        menu.findItem(R.id.action_mode_audio_set_song).setVisible(isSong && AndroidDevices.isPhone() && !mIsPlaylist);
         menu.findItem(R.id.action_mode_audio_info).setVisible(isSong);
         menu.findItem(R.id.action_mode_audio_append).setVisible(mService.hasMedia());
+        menu.findItem(R.id.action_mode_audio_delete).setVisible(mIsPlaylist);
         return true;
     }
 
@@ -252,6 +259,17 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
         ArrayList<MediaWrapper> tracks = new ArrayList<>();
         for (MediaLibraryItem mediaItem : list)
             tracks.addAll(Arrays.asList(mediaItem.getTracks()));
+
+        if (item.getItemId() == R.id.action_mode_audio_playlist_up) {
+            Toast.makeText(this, "UP !",
+                    Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_mode_audio_playlist_down) {
+            Toast.makeText(this, "DOWN !",
+                    Toast.LENGTH_SHORT).show();
+            return true;
+        }
         stopActionMode();
         switch (item.getItemId()) {
             case R.id.action_mode_audio_play:
@@ -268,6 +286,9 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
                 break;
             case R.id.action_mode_audio_set_song:
                 AudioUtil.setRingtone((MediaWrapper) list.get(0), this);
+                break;
+            case R.id.action_mode_audio_delete:
+                removeFromPlaylist(tracks);
                 break;
             default:
                 return false;
@@ -300,9 +321,9 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
         menu.setGroupVisible(R.id.songs_view_only, true);
         menu.findItem(R.id.audio_list_browser_play_all).setVisible(false);
         menu.setGroupVisible(R.id.phone_only, AndroidDevices.isPhone());
-        //Hide delete if we cannot
+        //Hide delete if we cannot. Always possible for a Playlist
         String location = ((MediaWrapper)mAdapter.getItem(position)).getLocation();
-        menu.findItem(R.id.audio_list_browser_delete).setVisible(FileUtils.canWrite(location));
+        menu.findItem(R.id.audio_list_browser_delete).setVisible(FileUtils.canWrite(location) || mIsPlaylist);
     }
 
     protected boolean handleContextItemSelected(MenuItem item, final int position) {
@@ -324,7 +345,10 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
             UiTools.snackerWithCancel(mBinding.getRoot(), getString(R.string.file_deleted), new Runnable() {
                 @Override
                 public void run() {
-                    deleteMedia(media);
+                    if (mIsPlaylist)
+                        ((Playlist) mPlaylist).remove(media.getId());
+                    else
+                        deleteMedia(media);
                 }
             }, new Runnable() {
                 @Override
@@ -397,5 +421,25 @@ public class PlaylistActivity extends AudioPlayerContainerActivity implements IE
     public void onClick(View v) {
         if (mService != null)
             mService.load(mPlaylist.getTracks(), 0);
+    }
+
+    private void removeFromPlaylist(final List<MediaWrapper> list){
+        final ArrayList<MediaLibraryItem> oldAdapter = new ArrayList<>(mAdapter.getAll());
+        for (MediaLibraryItem mediaItem : list)
+            mAdapter.remove(mediaItem);
+        UiTools.snackerWithCancel(mBinding.getRoot(), getString(R.string.file_deleted), new Runnable() {
+            @Override
+            public void run() {
+                for (MediaLibraryItem mediaItem : list)
+                    ((Playlist) mPlaylist).remove(mediaItem.getId());
+                if (mPlaylist.getTracks().length == 0)
+                    ((Playlist) mPlaylist).delete();
+            }
+        }, new Runnable() {
+            @Override
+            public void run() {
+                mAdapter.update(oldAdapter);
+            }
+        });
     }
 }

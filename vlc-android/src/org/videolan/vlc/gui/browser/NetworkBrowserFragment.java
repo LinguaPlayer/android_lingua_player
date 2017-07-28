@@ -60,10 +60,6 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
         mAdapter = new BaseBrowserAdapter(this);
     }
 
-    public boolean isSortEnabled() {
-        return !mRoot;
-    }
-
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -80,6 +76,7 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
         MenuItem item = menu.findItem(R.id.ml_menu_save);
         item.setVisible(isSortEnabled());
 
@@ -88,14 +85,13 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
                 R.drawable.ic_menu_bookmark_w :
                 R.drawable.ic_menu_bookmark_outline_w);
         item.setTitle(isFavorite ? R.string.favorites_remove : R.string.favorites_add);
-        super.onPrepareOptionsMenu(menu);
     }
 
     public void onStart() {
         super.onStart();
         //Handle network connection state
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        mSkipRefresh = mediaList != null && !mediaList.isEmpty();
+        mSkipRefresh = !mAdapter.isEmpty();
         getActivity().registerReceiver(networkReceiver, filter);
         if (!mRoot)
             LocalBroadcastManager.getInstance(VLCApplication.getAppContext()).registerReceiver(mLocalReceiver, new IntentFilter(VlcLoginDialog.ACTION_DIALOG_CANCELED));
@@ -307,6 +303,10 @@ public class NetworkBrowserFragment extends BaseBrowserFragment {
         if (mw != null)
             dialog.setServer(mw);
         dialog.show(fm, "fragment_add_server");
+    }
+
+    public boolean isSortEnabled() {
+        return !mRoot;
     }
 
     private boolean mSkipRefresh = false;

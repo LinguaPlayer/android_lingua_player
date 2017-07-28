@@ -26,7 +26,6 @@ import android.databinding.ViewDataBinding;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.annotation.MainThread;
-import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -40,14 +39,13 @@ import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.medialibrary.media.Storage;
 import org.videolan.vlc.R;
+import org.videolan.vlc.SortableAdapter;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.databinding.BrowserItemBinding;
 import org.videolan.vlc.databinding.BrowserItemSeparatorBinding;
-import org.videolan.vlc.gui.BaseQueuedAdapter;
 import org.videolan.vlc.gui.helpers.UiTools;
-import org.videolan.vlc.util.MediaItemDiffCallback;
 import org.videolan.vlc.util.MediaItemFilter;
-import org.videolan.vlc.util.MediaLibraryItemComparator;
+import org.videolan.vlc.util.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,12 +55,10 @@ import static org.videolan.medialibrary.media.MediaLibraryItem.FLAG_SELECTED;
 import static org.videolan.medialibrary.media.MediaLibraryItem.TYPE_MEDIA;
 import static org.videolan.medialibrary.media.MediaLibraryItem.TYPE_STORAGE;
 
-public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, BaseBrowserAdapter.ViewHolder> implements Filterable {
+public class BaseBrowserAdapter extends SortableAdapter<MediaLibraryItem, BaseBrowserAdapter.ViewHolder> implements Filterable {
     protected static final String TAG = "VLC/BaseBrowserAdapter";
 
     private static int FOLDER_RES_ID = R.drawable.ic_menu_folder;
-
-    private static MediaLibraryItemComparator sMediaComparator = new MediaLibraryItemComparator(MediaLibraryItemComparator.ADAPTER_FILE);
 
     private static final BitmapDrawable IMAGE_FOLDER = new BitmapDrawable(VLCApplication.getAppResources(), BitmapFactory.decodeResource(VLCApplication.getAppResources(), FOLDER_RES_ID));
     private static final BitmapDrawable IMAGE_AUDIO = new BitmapDrawable(VLCApplication.getAppResources(), BitmapFactory.decodeResource(VLCApplication.getAppResources(), R.drawable.ic_browser_audio_normal));
@@ -124,6 +120,10 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
     @Override
     public int getItemCount() {
         return mDataset.size();
+    }
+
+    public MediaLibraryItem get(int position) {
+        return mDataset.get(position);
     }
 
     public abstract class ViewHolder<T extends ViewDataBinding> extends RecyclerView.ViewHolder {
@@ -224,8 +224,7 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
     }
 
     public boolean isEmpty() {
-        ArrayList<MediaLibraryItem> newerList = peekLast();
-        return newerList == null || newerList.isEmpty();
+        return Util.isListEmpty(peekLast());
     }
 
     public void addItem(MediaLibraryItem item, boolean top) {
@@ -240,9 +239,6 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
         else
             position = top ? mTop : list.size();
 
-        if (item .getItemType() == TYPE_MEDIA && (((MediaWrapper) item).getType() == MediaWrapper.TYPE_VIDEO || ((MediaWrapper) item).getType() == MediaWrapper.TYPE_AUDIO))
-            mMediaCount++;
-
         if (position <= list.size()) {
             list.add(position, item);
             update(list);
@@ -251,10 +247,6 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
 
     public void setTop (int top) {
         mTop = top;
-    }
-
-    public void addAll(ArrayList<? extends MediaLibraryItem> mediaList) {
-        update((ArrayList<MediaLibraryItem>) mediaList);
     }
 
     void removeItem(int position) {
@@ -355,32 +347,22 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
         return mFilter;
     }
 
-    protected void internalUpdate(final ArrayList<MediaLibraryItem> items, final boolean detectMoves) {
-        mUpdateExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                if (detectMoves || fragment.isSortEnabled())
-                    Collections.sort(items, sMediaComparator);
-                final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new MediaItemDiffCallback(mDataset, items), detectMoves);
-                for (MediaLibraryItem item : items) {
-                    if (item.getItemType() == MediaLibraryItem.TYPE_MEDIA
-                            && (((MediaWrapper)item).getType() == MediaWrapper.TYPE_AUDIO|| (AndroidUtil.isHoneycombOrLater && ((MediaWrapper)item).getType() == MediaWrapper.TYPE_VIDEO)))
-                        mMediaCount++;
-                }
-                VLCApplication.runOnMainThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mDataset = items;
-                        result.dispatchUpdatesTo(BaseBrowserAdapter.this);
-                        processQueue();
-                    }
-                });
-            }
-        });
+    @Override
+    protected ArrayList<MediaLibraryItem> prepareList(ArrayList<MediaLibraryItem> list) {
+        if (fragment.isSortEnabled() && needsSorting())
+            Collections.sort(list, sMediaComparator);
+        mMediaCount = 0;
+        for (MediaLibraryItem item : list) {
+            if (item.getItemType() == MediaLibraryItem.TYPE_MEDIA
+                    && (((MediaWrapper)item).getType() == MediaWrapper.TYPE_AUDIO|| (AndroidUtil.isHoneycombOrLater && ((MediaWrapper)item).getType() == MediaWrapper.TYPE_VIDEO)))
+                ++mMediaCount;
+        }
+        return list;
     }
 
     @Override
     protected void onUpdateFinished() {
+        super.onUpdateFinished();
         fragment.onUpdateFinished(null);
     }
 
@@ -404,22 +386,5 @@ public class BaseBrowserAdapter extends BaseQueuedAdapter<MediaLibraryItem, Base
         protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
             update((ArrayList<MediaLibraryItem>) filterResults.values);
         }
-    }
-
-    int sortDirection(int sortby) {
-        return sMediaComparator.sortDirection(sortby);
-    }
-
-    int getSortDirection() {
-        return sMediaComparator.sortDirection;
-    }
-
-    int getSortBy() {
-        return sMediaComparator.sortBy;
-    }
-
-    void sortBy(int sortby, int direction) {
-        sMediaComparator.sortBy(sortby, direction);
-        update(new ArrayList<>(mDataset), true);
     }
 }

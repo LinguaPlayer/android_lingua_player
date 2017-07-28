@@ -29,18 +29,36 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import org.videolan.vlc.R;
+import org.videolan.vlc.SortableAdapter;
+import org.videolan.vlc.gui.helpers.UiTools;
 import org.videolan.vlc.util.MediaLibraryItemComparator;
-import org.videolan.vlc.util.Util;
 
-public abstract class SortableFragment extends MediaBrowserFragment {
+public abstract class SortableFragment<T extends SortableAdapter> extends MediaBrowserFragment {
+    protected T mAdapter;
 
-    public abstract void sortBy(int sortby);
-    public abstract int sortDirection(int sortby);
+    public T getCurrentAdapter() {
+        return mAdapter;
+    }
+
+    public int getSortBy() {
+        return getCurrentAdapter().getSortBy();
+    }
+
+    public int getDefaultSort() {
+        return getCurrentAdapter().getDefaultSort();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        getCurrentAdapter().updateIfSortChanged();
+    }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        Util.updateSortTitles(this, menu);
         super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.ml_menu_sortby).setVisible(isSortEnabled());
+        UiTools.updateSortTitles(this, menu);
     }
 
     @Override
@@ -54,6 +72,14 @@ public abstract class SortableFragment extends MediaBrowserFragment {
         switch (item.getItemId()) {
             case R.id.ml_menu_sortby_name:
                 sortBy(MediaLibraryItemComparator.SORT_BY_TITLE);
+                onPrepareOptionsMenu(mMenu);
+                return true;
+            case R.id.ml_menu_sortby_artist_name:
+                sortBy(MediaLibraryItemComparator.SORT_BY_ARTIST);
+                onPrepareOptionsMenu(mMenu);
+                return true;
+            case R.id.ml_menu_sortby_album_name:
+                sortBy(MediaLibraryItemComparator.SORT_BY_ALBUM);
                 onPrepareOptionsMenu(mMenu);
                 return true;
             case R.id.ml_menu_sortby_length:
@@ -71,5 +97,25 @@ public abstract class SortableFragment extends MediaBrowserFragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public boolean isSortEnabled() {
+        return true;
+    }
+
+    public void sortBy(int sortby) {
+        int sortDirection = getCurrentAdapter().getSortDirection();
+        int sortBy = getCurrentAdapter().getSortBy();
+        if (sortBy == MediaLibraryItemComparator.SORT_DEFAULT)
+            sortBy = getDefaultSort();
+        if (sortby == sortBy)
+            sortDirection*=-1;
+        else
+            sortDirection = 1;
+        getCurrentAdapter().sortBy(sortby, sortDirection);
+    }
+
+    public int sortDirection(int sortby) {
+        return getCurrentAdapter().sortDirection(sortby);
     }
 }
