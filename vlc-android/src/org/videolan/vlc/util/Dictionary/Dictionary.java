@@ -42,6 +42,8 @@ public class Dictionary {
         return "/data/data/"+ packageName + "/databases/dictionaries";
     }
     private Dictionary(Context context, String dbName){
+        if(db != null)
+            db.close();
         db = openDatabase(dbName, context);
         //TODO:get local from dictionary type
         initTts(context,Locale.US);
@@ -129,7 +131,7 @@ public class Dictionary {
                 }while(cursor.moveToNext());
             }
         }
-
+        cursor.close();
         return result;
     }
 
