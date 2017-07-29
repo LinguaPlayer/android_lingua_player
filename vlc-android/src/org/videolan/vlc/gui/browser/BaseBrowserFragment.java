@@ -108,7 +108,7 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
     protected boolean goBack = false;
     private final boolean mShowHiddenFiles;
 
-    private SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>> mFoldersContentLists;
+    private SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>> mFoldersContentLists = new SimpleArrayMap<>();
     public int mCurrentParsedPosition = 0;
 
     protected abstract Fragment createFragment();
