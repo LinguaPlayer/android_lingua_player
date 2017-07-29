@@ -226,30 +226,29 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
     private void getMeaning(String from, final String dest, String phrase){
     }
-    private void onlineTranslate(final String phrase){
+    private void onlineTranslate(final String word){
         mOnlineTranslationTextView.setVisibility(View.GONE);
         mOnlineDictionaryLoading.setVisibility(View.VISIBLE);
 
         final String fromLanguge = mFromLanguageValues[mLastFromLangugeSelectedItem];
         final String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
 
-        mDictionary.getGlosbeService().getMeaning(fromLanguge, toLanguage, phrase.toLowerCase()).enqueue(new Callback<Glosbe>() {
+        mDictionary.getGlosbeService().getMeaning(fromLanguge, toLanguage, word.toLowerCase()).enqueue(new Callback<Glosbe>() {
             @Override
             public void onResponse(Call<Glosbe> call, Response<Glosbe> response) {
                 mOnlineDictionaryLoading.setVisibility(View.GONE);
                 mOnlineTranslationTextView.setVisibility(View.VISIBLE);
 
                 String translation = "";
-                if(response.isSuccessful()){
+                if(response.isSuccessful()) {
                     List<Tuc> tuc = response.body().getTuc();
-                    if(tuc != null) {
+                    if (tuc != null) {
                         int tucSize = tuc.size();
-
+                        int meaningCount = 0;
                         for (int i = 0; i < tucSize; i++) {
                             Phrase phrase = tuc.get(i).getPhrase();
                             if (phrase != null && phrase.getLanguage().equals(toLanguage)) {
-                                translation += phrase.getText();
-                                if (i < tucSize - 1) {
+                                if (meaningCount++ > 0) {
                                     if (toLanguage.equals("fa"))
                                         translation += "، ";
                                     else if (toLanguage.equals("ja"))
@@ -258,15 +257,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                                         translation += ", ";
 
                                 }
+                                translation += phrase.getText();
                             }
                         }
+                        if (translation.isEmpty())
+                            translation = word;
+                        mOnlineTranslationTextView.setText(translation);
                     }
-                    if(translation.isEmpty())
-                        translation = phrase;
-                    mOnlineTranslationTextView.setText(translation);
                 }
+
                 else{
-                    int statusCode = response.code();
                     if(isAdded()) {
                         mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
                     }
