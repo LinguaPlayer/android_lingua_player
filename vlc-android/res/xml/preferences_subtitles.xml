@@ -32,7 +32,7 @@
         android:title="@string/subtitles_bottom_margins_title" />
 
     <ListPreference
-        android:defaultValue="4"
+        android:defaultValue="3"
         android:entries="@array/subtitles_outline_width_values"
         android:entryValues="@array/subtitles_outline_width_values"
         android:key="subtitles_outline_width"

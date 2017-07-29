@@ -570,7 +570,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSubtitleView.setTextColor(mSubtitleColor);
         mSubtitleView.setTextSize(Integer.parseInt(mSettings.getString("subtitles_size","30")));
         mSubtitleView.setStrokeColor(Color.parseColor(mSettings.getString("subtitles_outline_color","#000000")));
-        mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP,Integer.parseInt(mSettings.getString("subtitles_outline_width","4")));
+        mSubtitleView.setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP,Integer.parseInt(mSettings.getString("subtitles_outline_width","3")));
         mSubtitleView.setMovementMethod(LinkMovementMethod.getInstance());
 
         //set layout_marginBottom
