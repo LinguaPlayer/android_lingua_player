@@ -349,7 +349,8 @@ public class SubtitlesDownloader {
             while ((length = gzIS.read(buffer)) != -1) {
                 f.write(buffer, 0, length);
             }
-            MediaDatabase.getInstance().saveSubtitle(srtUrl, fileName,0);
+            String mediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(path).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, new File(path).lastModified());
+            MediaDatabase.getInstance().saveSubtitle(srtUrl, mediaUniqueName,0);
         } catch (IOException e) {
             if (BuildConfig.DEBUG) Log.e(TAG, "download fail", e);
         } catch (Throwable e) { //for various service outages

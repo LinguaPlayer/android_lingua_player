@@ -672,7 +672,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         super.onPause();
         hideOverlay(true);
         setHudClickListeners(false);
-        saveLastUsedSubtitle(mCurrentSubtitlePath);
         /* Stop the earliest possible to avoid vout error */
 
         if (!isInPictureInPictureMode()) {
@@ -2923,6 +2922,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         progressSubtitleCaption();
         if(!mService.isPlaying())
             showCaptionControls();
+        saveLastUsedSubtitle(mCurrentSubtitlePath);
 
     }
 
@@ -3002,6 +3002,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mLastCaption = null;
         hideSubtitleCaption();
         hideCaptionControls();
+        saveLastUsedSubtitle(mCurrentSubtitlePath);
 
     }
     private void hideSubtitleCaption(){
@@ -3664,7 +3665,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mSubtitleTracksList == null && mService.getSpuTracksCount() > 0) {
             mSubtitleTracksList = mService.getSpuTracks();
 
-            long lastModified = mService.getCurrentMediaWrapper().getLastModified();
+            long lastModified = new File(Uri.parse(mService.getCurrentMediaLocation()).getPath()).lastModified();
             File movieDirectory = FileUtils.createMovieEncodedSubtitleDirectory(getApplicationContext(), Uri.parse(mService.getCurrentMediaLocation()).getPath(), lastModified);
             if (movieDirectory == null) {
                 return;
@@ -3936,8 +3937,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
     private String mMediaUniqueName = null;
     private String getmediaUniqueName(){
-         if(mMediaUniqueName == null)
-              mMediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(mService.getCurrentMediaLocation()).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, mService.getCurrentMediaWrapper().getLastModified());
+         if(mMediaUniqueName == null) {
+             long lastModified = new File(Uri.parse(mService.getCurrentMediaLocation()).getPath()).lastModified();
+             mMediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(mService.getCurrentMediaLocation()).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, lastModified);
+         }
         return mMediaUniqueName;
     }
     private SubtitlesGetTask mSubtitlesGetTask = null;
