@@ -1638,6 +1638,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             sb.setAction(R.string.save_bluetooth_delay, mBtSaveListener);
             sb.show();
         }
+
+        if (mPlaybackSetting == DelayState.SUBS)
+            saveSubtitleDelay(Uri.parse(mCurrentSubtitlePath), mSubtitleDelay);
+
         mPlaybackSetting = DelayState.OFF;
         if (mPlaybackSettingMinus != null) {
             mPlaybackSettingMinus.setOnClickListener(null);
@@ -1647,7 +1651,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mPlaybackSettingPlus.setOnClickListener(null);
             mPlaybackSettingPlus.setVisibility(View.INVISIBLE);
         }
-        if(mPlaybackSettingSyncDone !=null){
+        if(mPlaybackSettingSyncDone != null){
             mPlaybackSettingSyncDone.setOnClickListener(null);
             mPlaybackSettingSyncDone.setVisibility(View.INVISIBLE);
         }
@@ -1671,7 +1675,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        saveSubtitleDelay(Uri.parse(mCurrentSubtitlePath), mSubtitleDelay);
         if (mPlayPause != null)
             mPlayPause.requestFocus();
     }
