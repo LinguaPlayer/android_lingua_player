@@ -1671,7 +1671,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             }
         });
 
-        saveSubtitleDelay(Uri.parse(mCurrentSubtitlePath),mSubtitleDelay);
+        saveSubtitleDelay(Uri.parse(mCurrentSubtitlePath), mSubtitleDelay);
         if (mPlayPause != null)
             mPlayPause.requestFocus();
     }
@@ -3904,11 +3904,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         }
     }
 
-    private void saveSubtitleDelay(final Uri subLocation, long delay, final String mediaName) {
+    private void saveSubtitleDelay(final Uri subLocation, final long delay, final String mediaName) {
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(), mediaName,0);
+                MediaDatabase.getInstance().saveSubtitle(subLocation.getPath(), mediaName, delay);
             }
         });
     }
