@@ -9,8 +9,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.preference.PreferenceManager;
 import android.widget.Toast;
 
+import net.hockeyapp.android.FeedbackManager;
+
 import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.R;
+import org.videolan.vlc.gui.MainActivity;
 
 /**
  * Created by habib on 7/25/17.
@@ -34,7 +37,7 @@ public class RateUtils {
                 .setNegativeButton(R.string.I_dont_love_it, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         editor.putBoolean("show_rate_request", false).commit();
-                        emailMe(context);
+                        Toast.makeText(context , R.string.feedback, Toast.LENGTH_LONG).show();
                     }
                 }) .create();
 
@@ -42,6 +45,9 @@ public class RateUtils {
         mRateAppDialog.show();
     }
 
+    public static void feedback(Context context){
+        FeedbackManager.showFeedbackActivity(context);
+    }
     public static void emailMe(Context context){
         String emailAddresses[] = {"playerlingua@gmail.com"};
         Toast.makeText(context , R.string.send_email, Toast.LENGTH_LONG).show();

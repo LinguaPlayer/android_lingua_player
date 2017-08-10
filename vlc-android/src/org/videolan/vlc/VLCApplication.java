@@ -33,6 +33,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.util.SimpleArrayMap;
 import android.util.Log;
 
+import com.github.anrwatchdog.ANRError;
+import com.github.anrwatchdog.ANRWatchDog;
 import com.squareup.leakcanary.LeakCanary;
 
 import org.videolan.libvlc.Dialog;
@@ -96,6 +98,15 @@ public class VLCApplication extends Application {
         }
         LeakCanary.install(this);
         // Normal app init code..
+
+        new ANRWatchDog().setANRListener(new ANRWatchDog.ANRListener() {
+            @Override
+            public void onAppNotResponding(ANRError error) {
+                // Handle the error. For example, log it to HockeyApp:
+                Log.d(TAG,"ANR DETECTED");
+            }
+        }).start();
+
         instance = this;
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 

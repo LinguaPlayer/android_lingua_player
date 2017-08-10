@@ -87,6 +87,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.hockeyapp.android.CrashManager;
+import net.hockeyapp.android.FeedbackManager;
+import net.hockeyapp.android.metrics.MetricsManager;
+
 import static org.videolan.vlc.util.RateUtils.showRateAppDialog;
 
 public class MainActivity extends ContentActivity implements FilterQueryProvider, NavigationView.OnNavigationItemSelectedListener, ExtensionManagerService.ExtensionManagerActivity {
@@ -212,8 +216,13 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putInt("launch_count", ++launchCount).commit();
 
-        if(launchCount != 0 && launchCount % 3 == 0)
+        MetricsManager.register(getApplication());
+        FeedbackManager.register(this);
+
+        if(launchCount != 0 && launchCount % 3 == 0) {
             showRateAppDialog(this);
+        }
+
     }
 
     private void setupNavigationView() {
@@ -347,6 +356,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         mNavigationView.setNavigationItemSelectedListener(this);
         mNavigationView.setCheckedItem(mCurrentFragmentId);
         mCurrentFragmentId = mSettings.getInt("fragment_id", R.id.nav_video);
+        checkForCrashes();
     }
 
     @Override
@@ -730,4 +740,10 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
                 ? getSupportFragmentManager().findFragmentById(R.id.fragment_placeholder)
                 : mCurrentFragment;
     }
+
+    //hockeySDK
+    private void checkForCrashes() {
+        CrashManager.register(this);
+    }
+
 }
