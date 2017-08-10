@@ -46,6 +46,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -1055,6 +1056,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         mService.setRate(1.0f, false);
         mService.stop();
+
+        //clear handlerThread
+        mProgressSubtitleCaptionThread = null;
     }
 
     private void cleanUI() {
@@ -1483,7 +1487,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         editor.apply();
         //to load caption again with new enableTouchSub option
         hideSubtitleCaption();
-        progressSubtitleCaption();
+        if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
+            mProgressSubtitleCaptionThread.progessCaption();
 
     }
 
@@ -1716,7 +1721,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             initPlaybackSettingInfo();
         }
 
-        progressSubtitleCaption();
+//        progressSubtitleCaption();
+        if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
+            mProgressSubtitleCaptionThread.progessCaption();
     }
 
 
@@ -1975,7 +1982,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 break;
             case MediaPlayer.Event.TimeChanged:
             case MediaPlayer.Event.PositionChanged:
-                progressSubtitleCaption();
+                if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
+                    mProgressSubtitleCaptionThread.progessCaption();
+//                progressSubtitleCaption();
                 break;
         }
     }
@@ -2922,7 +2931,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
-        progressSubtitleCaption();
+//        progressSubtitleCaption();
+        if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
+            mProgressSubtitleCaptionThread.progessCaption();
         if(!mService.isPlaying())
             showCaptionControls();
         saveLastUsedSubtitle(mCurrentSubtitlePath);
@@ -2930,6 +2941,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     private void parseSubtitle(String path){
+        prepareSubtitleThreadClass();
         removeCurrentSubtitle();
         SubtitleParser mSubtitleParser = SubtitleParser.getInstance();
         mSubtitleParser.setSubtitleParserListener(VideoPlayerActivity.this);
@@ -3184,40 +3196,91 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     }
 
     protected void showTimedCaptionText(final Caption text) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (text == null) {
-                    if (mSubtitleView.getText().length() > 0) {
+        if (text == null) {
+            if (mSubtitleView.getText().length() > 0) {
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
                         hideSubtitleCaption();
                     }
-                    return;
-                }
-                SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(text.content);
+                });
+            }
+            return;
+        }
+        SpannableStringBuilder styledString = (SpannableStringBuilder) Html.fromHtml(text.content);
 
-                  /*currently I use styledString.toString for clickable sub and I don't use the tags in it
-                   */
-                if(enableTouchSub){
-                    ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
-                    for (ForegroundColorSpan remove : toRemoveSpans) {
-                        styledString.removeSpan(remove);
-                    }
-                }
 
-                if (!mSubtitleView.getText().toString().equals(styledString.toString())) {
-                    mSubtitleView.setVisibility(View.VISIBLE);
-                    if(enableTouchSub) {
-                        SpannableStringBuilder clickableString = makeClickable(styledString.toString());
+        if (!mSubtitleView.getText().toString().equals(styledString.toString())) {
+            if(enableTouchSub) {
+//               /*currently I use styledString.toString for clickable sub and I don't use the tags in it */
+//                ForegroundColorSpan[] toRemoveSpans = styledString.getSpans(0, styledString.length(), ForegroundColorSpan.class);
+//                for (ForegroundColorSpan remove : toRemoveSpans) {
+//                    styledString.removeSpan(remove);
+//                }
+
+                final SpannableStringBuilder clickableString = makeClickable(styledString.toString());
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSubtitleView.setVisibility(View.VISIBLE);
                         mSubtitleView.setText(clickableString);
                     }
-                    else
-                        mSubtitleView.setText(styledString);
-                }
+                });
             }
-        });
+            else {
+                final SpannableStringBuilder regularStyledString = styledString;
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSubtitleView.setVisibility(View.VISIBLE);
+                        mSubtitleView.setText(regularStyledString);
+                    }
+                });
+            }
+        }
     }
 
+    public ProgressSubtitleCaptionThread mProgressSubtitleCaptionThread;
+    private void prepareSubtitleThreadClass(){
+        if (mProgressSubtitleCaptionThread != null)
+            return;
+        mProgressSubtitleCaptionThread = new ProgressSubtitleCaptionThread("ProgressSubtitleCaptionThread");
+        mProgressSubtitleCaptionThread.start();
+        mProgressSubtitleCaptionThread.prepareHanlder();
+    }
 
+    public class ProgressSubtitleCaptionThread extends HandlerThread implements Handler.Callback {
+        private Handler mProgressSubtitleHanlder;
+        private SpannableStringBuilder styledString;
+        public static final int PROGRESSCAPTION = 0;
+
+        public ProgressSubtitleCaptionThread(String name) {
+            super(name);
+        }
+
+//        public void parseCaption(SpannableStringBuilder styledString) {
+//            this.styledString = styledString;
+//            mProgressSubtitleHanlder.obtainMessage(PARSECAPTION);
+//        }
+        public void progessCaption(){
+            mProgressSubtitleHanlder.sendMessage(mProgressSubtitleHanlder.obtainMessage(PROGRESSCAPTION));
+        }
+
+        public void prepareHanlder() {
+            mProgressSubtitleHanlder = new Handler(getLooper(), this);
+        }
+
+        @Override
+        public boolean handleMessage(Message message) {
+            switch (message.what) {
+                case PROGRESSCAPTION:
+                    progressSubtitleCaption();
+                    break;
+
+            }
+            return false;
+        }
+    }
 
     private void showNavMenu() {
         if (mMenuIdx >= 0)
@@ -3302,7 +3365,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
         //when video is paused and user seeks
         if(!mService.isPlaying() && showCaption)
-            progressSubtitleCaption();
+            if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
+                mProgressSubtitleCaptionThread.progessCaption();
+//            progressSubtitleCaption();
     }
 
     private void seekDelta(int delta) {
