@@ -38,6 +38,7 @@ public class RateUtils {
                     public void onClick(DialogInterface dialog, int id) {
                         editor.putBoolean("show_rate_request", false).commit();
                         Toast.makeText(context , R.string.feedback, Toast.LENGTH_LONG).show();
+                        feedback(context);
                     }
                 }) .create();
 

@@ -219,7 +219,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         MetricsManager.register(getApplication());
         FeedbackManager.register(this);
 
-        if(launchCount != 0 && launchCount % 3 == 0) {
+        if(launchCount != 0 && launchCount % 5 == 0) {
             showRateAppDialog(this);
         }
 

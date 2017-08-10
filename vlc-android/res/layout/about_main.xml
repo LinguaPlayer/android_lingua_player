@@ -109,6 +109,12 @@
             android:text="@string/lingua_player_link"
             android:textSize="14sp" />
 
+        <Button
+            android:id="@+id/feedback_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Feedback"></Button>
+
     </LinearLayout>
 
 </ScrollView>

@@ -21,6 +21,7 @@
 package org.videolan.vlc.gui;
 
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -30,6 +31,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.Button;
 
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.vlc.BuildConfig;
@@ -37,6 +39,7 @@ import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 import org.videolan.vlc.gui.audio.AudioPagerAdapter;
 import org.videolan.vlc.gui.helpers.UiTools;
+import org.videolan.vlc.util.RateUtils;
 import org.videolan.vlc.util.Util;
 
 public class AboutFragment extends Fragment {
@@ -48,6 +51,7 @@ public class AboutFragment extends Fragment {
 
     private ViewPager mViewPager;
     private TabLayout mTabLayout;
+    private Button feedbackButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -78,6 +82,13 @@ public class AboutFragment extends Fragment {
 
         mTabLayout = v.findViewById(R.id.sliding_tabs);
         mTabLayout.setupWithViewPager(mViewPager);
+        feedbackButton = v.findViewById(R.id.feedback_button);
+        feedbackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                RateUtils.feedback(getContext());
+            }
+        });
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
