@@ -17,6 +17,7 @@ import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
@@ -32,6 +33,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -40,6 +42,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.magnetadservices.sdk.MagnetMobileBannerAd;
+
+import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
 import org.videolan.vlc.util.Dictionary.Dictionary;
@@ -111,7 +116,19 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View v = inflater.inflate(R.layout.dictionary,container);
+
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free"))
+            prepareAd(v);
         return v;
+    }
+
+    public void prepareAd(View v){
+        FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+        FrameLayout adLayout2 = v.findViewById(R.id.mobileBanner2);
+        MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
+        MagnetMobileBannerAd bannerAd2 = MagnetMobileBannerAd.create(getContext());
+        bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
+        bannerAd2.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout2);
     }
 
     private void translate(String word){

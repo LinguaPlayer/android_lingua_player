@@ -34,6 +34,7 @@ import android.util.Log;
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+import com.magnetadservices.sdk.MagnetSDK;
 
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.vlc.gui.AudioPlayerContainerActivity;
@@ -64,6 +65,9 @@ public class StartActivity extends Activity {
         Intent intent = getIntent();
         boolean tv =  showTvUi();
         String action = intent != null ? intent.getAction(): null;
+        //Initialize Magnet
+        MagnetSDK.initialize(getApplicationContext());
+//        MagnetSDK.getSettings().setTestMode(true);
 
         if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
             intent.setDataAndType(intent.getData(), intent.getType());

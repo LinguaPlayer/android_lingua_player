@@ -223,6 +223,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
             showRateAppDialog(this);
         }
 
+
     }
 
     private void setupNavigationView() {

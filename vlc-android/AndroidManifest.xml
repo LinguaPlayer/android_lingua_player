@@ -565,6 +565,9 @@
         <activity android:name=".gui.tv.LicenceActivity"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.VLC.TV"  />
+        <activity
+            android:name="com.magnetadservices.sdk.MagnetInterstitialActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <service
             android:name=".RecommendationsService"

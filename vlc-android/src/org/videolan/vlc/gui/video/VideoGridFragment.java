@@ -35,6 +35,7 @@ import android.support.annotation.MainThread;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -45,8 +46,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.magnetadservices.sdk.MagnetAdLoadListener;
+import com.magnetadservices.sdk.MagnetMobileBannerAd;
 
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.util.AndroidUtil;
@@ -55,6 +60,7 @@ import org.videolan.medialibrary.interfaces.MediaAddedCb;
 import org.videolan.medialibrary.interfaces.MediaUpdatedCb;
 import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
+import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.MediaParsingService;
 import org.videolan.vlc.PlaybackService;
 import org.videolan.vlc.R;
@@ -144,7 +150,41 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
         if (mAdapter.isListMode())
             mGridView.addItemDecoration(mDividerItemDecoration);
         mGridView.setAdapter(mAdapter);
+
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free"))
+            prepareAd(v);
         return v;
+    }
+
+    public void prepareAd(View v){
+        FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+        MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
+        bannerAd.setAdLoadListener(new MagnetAdLoadListener() {
+            @Override
+            public void onPreload(int i, String s) {
+                //این متد در Mobile Banner اجرا نمی شود.
+                Log.d("magnet","onPreLoad");
+            }
+
+            @Override
+            public void onReceive() {
+                //زمانی که بنر دریافت و نمایش داده می شود این متد فراخوانی می شود.
+            }
+
+            @Override
+            public void onFail(int i, String s) {
+                //زمانی که دریافت و نمایش بنر به مشکل بر می خورد این متد فراخوانی می شود .
+                Log.d("magnet","onFail"+s);
+            }
+
+            @Override
+            public void onClose() {
+                Log.d("magnet","onClose");
+
+            }
+        });
+
+        bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
     }
 
 
