@@ -2934,7 +2934,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 //        progressSubtitleCaption();
         if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
             mProgressSubtitleCaptionThread.progessCaption();
-        if(!mService.isPlaying())
+        if(mService != null && !mService.isPlaying())
             showCaptionControls();
         saveLastUsedSubtitle(mCurrentSubtitlePath);
 
