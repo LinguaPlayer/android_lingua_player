@@ -4006,8 +4006,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
     private String mMediaUniqueName = null;
     private String getmediaUniqueName(){
          if(mMediaUniqueName == null) {
-             long lastModified = new File(Uri.parse(mService.getCurrentMediaLocation()).getPath()).lastModified();
-             mMediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(mService.getCurrentMediaLocation()).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, lastModified);
+             String path =  mService.getCurrentMediaLocation();
+             if (path == null)
+                 return null;
+             long lastModified = new File(Uri.parse(path).getPath()).lastModified();
+             mMediaUniqueName = FileUtils.generateMediaUniqueName(Uri.parse(path).getPath()/*To prevent converting '[' , ']' , ... to %xxxx*/, lastModified);
          }
         return mMediaUniqueName;
     }
