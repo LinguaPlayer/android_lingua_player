@@ -64,7 +64,7 @@ public class RateUtils {
         Intent intent = new Intent();
         if(market.equals("bazaar")) {
             intent.setAction(Intent.ACTION_EDIT);
-            intent.setData(Uri.parse("bazaar://details?id=" + "ir.habibkazemi.linguaplayer" ));
+            intent.setData(Uri.parse("bazaar://details?id=" + "ir.habibkazemi.linguaplayer.pro" ));
             intent.setPackage("com.farsitel.bazaar");
             if(intent.resolveActivity(context.getPackageManager()) != null)
                 context.startActivity(intent);
@@ -73,7 +73,7 @@ public class RateUtils {
             }
         }
         if(market.equals("myket")) {
-            String url= "myket://comment?id=ir.habibkazemi.linguaplayer";
+            String url= "myket://comment?id=ir.habibkazemi.linguaplayer.pro";
             intent.setAction(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(url));
             if(intent.resolveActivity(context.getPackageManager()) != null)

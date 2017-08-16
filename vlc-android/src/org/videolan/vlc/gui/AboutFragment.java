@@ -62,7 +62,7 @@ public class AboutFragment extends Fragment {
     public void onViewCreated(final View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
         if (getActivity() instanceof AppCompatActivity)
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Lingua Player " + BuildConfig.VERSION_NAME);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(getString(R.string.app_name) + " " + BuildConfig.VERSION_NAME);
         //Fix android 7 Locale problem with webView
         //https://stackoverflow.com/questions/40398528/android-webview-locale-changes-abruptly-on-android-n
         if (AndroidUtil.isNougatOrLater)

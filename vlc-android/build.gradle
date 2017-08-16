@@ -101,9 +101,11 @@ android {
         pro {
             dimension "type"
             applicationIdSuffix ".pro"
+            resValue "string", "app_name", "Lingua Player Pro"
         }
         free {
             dimension "type"
+            resValue "string", "app_name", "Lingua Player"
         }
         myket {
             dimension "market"

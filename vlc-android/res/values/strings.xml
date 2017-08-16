@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Main VLC Interface -->
-    <string name="app_name" translatable="false">Lingua Player</string>
+    <!--<string name="app_name" translatable="false">Lingua Player</string>-->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="other">Other</string>
