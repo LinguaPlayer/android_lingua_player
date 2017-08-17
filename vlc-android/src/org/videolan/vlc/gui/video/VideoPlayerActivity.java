@@ -3476,7 +3476,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mUnlock.setVisibility(View.VISIBLE);
             }
             dimStatusBar(false);
-            mOverlayProgress.setVisibility(View.VISIBLE);
             if (mPresentation != null)
                 mOverlayBackground.setVisibility(View.VISIBLE);
             updateOverlayPausePlay();
