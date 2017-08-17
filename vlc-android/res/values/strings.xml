@@ -595,4 +595,11 @@
     <string name="connection_error_message">Please check your internet connection and try again</string>
     <string name="unexpected_error">Unexpected error occurred.Please try again.</string>
 
+
+    <!--Subtitle prefs-->
+    <string name="subtitle_settings">Subtitle Settings</string>
+    <string name="subtitle_outline_settings">Subtitle Outline Settings</string>
+    <string name="subtitle_other_settings">Other Settings</string>
+
+
 </resources>
