@@ -1661,7 +1661,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         mSyncCaption = null;
 
         UiTools.setViewVisibility(mOverlayInfo, View.INVISIBLE);
-        UiTools.setViewVisibility(mEditDelayLayout, View.VISIBLE);
+        UiTools.setViewVisibility(mEditDelayLayout, View.GONE);
         if(mInfo != null)
             mInfo.setText("");
         if(mEditDelayText != null)
@@ -1843,6 +1843,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         initInfoOverlay();
         UiTools.setViewVisibility(mOverlayInfoIcon, View.GONE);
         UiTools.setViewVisibility(mOverlayInfo, View.VISIBLE);
+        UiTools.setViewVisibility(mEditDelayLayout, View.GONE);
         mInfo.setText(textid);
         mHandler.removeMessages(FADE_OUT_INFO);
         mHandler.sendEmptyMessageDelayed(FADE_OUT_INFO, duration);
