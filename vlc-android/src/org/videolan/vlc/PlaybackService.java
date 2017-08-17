@@ -24,6 +24,7 @@ import android.annotation.TargetApi;
 import android.app.KeyguardManager;
 import android.app.PendingIntent;
 import android.app.SearchManager;
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -95,6 +96,8 @@ import org.videolan.vlc.util.VLCOptions;
 import org.videolan.vlc.util.VoiceSearchParams;
 import org.videolan.vlc.util.WeakHandler;
 import org.videolan.vlc.widget.VLCAppWidgetProvider;
+import org.videolan.vlc.widget.VLCAppWidgetProviderBlack;
+import org.videolan.vlc.widget.VLCAppWidgetProviderWhite;
 
 import java.io.File;
 import java.net.URI;
@@ -197,6 +200,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     public static final int REPEAT_NONE = 0;
     public static final int REPEAT_ONE = 1;
     public static final int REPEAT_ALL = 2;
+    private boolean mHasWidget;
     private boolean mShuffling = false;
     private int mRepeating = REPEAT_NONE;
     private Random mRandom = null; // Used in shuffling process
@@ -257,6 +261,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         PowerManager pm = (PowerManager) VLCApplication.getAppContext().getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 
+        updateHasWidget();
         initMediaSession();
 
         IntentFilter filter = new IntentFilter();
@@ -271,6 +276,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         filter.addAction(ACTION_REMOTE_LAST_VIDEO_PLAYLIST);
         filter.addAction(ACTION_REMOTE_SWITCH_VIDEO);
         filter.addAction(VLCAppWidgetProvider.ACTION_WIDGET_INIT);
+        filter.addAction(VLCAppWidgetProvider.ACTION_WIDGET_ENABLED);
+        filter.addAction(VLCAppWidgetProvider.ACTION_WIDGET_DISABLED);
         filter.addAction(Intent.ACTION_HEADSET_PLUG);
         filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         filter.addAction(VLCApplication.SLEEP_INTENT);
@@ -288,6 +295,12 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             registerReceiver(mRemoteControlClientReceiver, filter);
         }
         mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+    }
+
+    private void updateHasWidget() {
+        AppWidgetManager manager = AppWidgetManager.getInstance(this);
+        mHasWidget = manager.getAppWidgetIds(new ComponentName(this, VLCAppWidgetProviderWhite.class)).length != 0
+                || manager.getAppWidgetIds(new ComponentName(this, VLCAppWidgetProviderBlack.class)).length != 0;
     }
 
     @Override
@@ -473,8 +486,10 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 }
             } else if (action.equalsIgnoreCase(VLCAppWidgetProvider.ACTION_WIDGET_INIT)) {
                 updateWidget();
+            } else if (action.equalsIgnoreCase(VLCAppWidgetProvider.ACTION_WIDGET_ENABLED)
+                    || action.equalsIgnoreCase(VLCAppWidgetProvider.ACTION_WIDGET_DISABLED)) {
+               updateHasWidget();
             }
-
             /*
              * headset plug events
              */
@@ -783,17 +798,12 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void executeUpdate() {
-        executeUpdate(true);
-    }
-
-    private void executeUpdate(Boolean updateWidget) {
         synchronized (mCallbacks) {
             for (Callback callback : mCallbacks) {
                 callback.update();
             }
         }
-        if (updateWidget)
-            updateWidget();
+        updateWidget();
         updateMetadata();
         broadcastMetadata();
     }
@@ -968,8 +978,10 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         } else {
             /* Show audio player */
             final Intent notificationIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-            notificationIntent.setAction(AudioPlayerContainerActivity.ACTION_SHOW_PLAYER);
-            notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            if (notificationIntent != null) {
+                notificationIntent.setAction(AudioPlayerContainerActivity.ACTION_SHOW_PLAYER);
+                notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            }
             return PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
     }
@@ -1243,35 +1255,40 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 return;
             }
             mMediaSession.setPlaybackState(new PlaybackStateCompat.Builder().setState(PlaybackStateCompat.STATE_CONNECTING, getTime(), 1.0f).build());
-            VoiceSearchParams vsp = new VoiceSearchParams(query, extras);
-            MediaLibraryItem[] items = null;
-            MediaWrapper[] tracks = null;
-            if (vsp.isAny) {
-                items = mMedialibrary.getAudio();
-                if (!isShuffling())
-                    shuffle();
-            } else if (vsp.isArtistFocus) {
-                items = mMedialibrary.searchArtist(vsp.artist);
-            } else if (vsp.isAlbumFocus) {
-                items = mMedialibrary.searchAlbum(vsp.album);
-            } else if (vsp.isGenreFocus) {
-                items = mMedialibrary.searchGenre(vsp.genre);
-            } else if (vsp.isSongFocus) {
-                tracks = mMedialibrary.searchMedia(vsp.song).getTracks();
-            }
-            if (Tools.isArrayEmpty(tracks)){
-                SearchAggregate result = mMedialibrary.search(query);
-                if (!Tools.isArrayEmpty(result.getAlbums()))
-                    tracks = result.getAlbums()[0].getTracks();
-                else if (!Tools.isArrayEmpty(result.getArtists()))
-                    tracks = result.getArtists()[0].getTracks();
-                else if (!Tools.isArrayEmpty(result.getGenres()))
-                    tracks = result.getGenres()[0].getTracks();
-            }
-            if (tracks == null && !Tools.isArrayEmpty(items))
-                tracks = items[0].getTracks();
-            if (!Tools.isArrayEmpty(tracks))
-                load(tracks, 0);
+            VLCApplication.runBackground(new Runnable() {
+                @Override
+                public void run() {
+                    VoiceSearchParams vsp = new VoiceSearchParams(query, extras);
+                    MediaLibraryItem[] items = null;
+                    MediaWrapper[] tracks = null;
+                    if (vsp.isAny) {
+                        items = mMedialibrary.getAudio();
+                        if (!isShuffling())
+                            shuffle();
+                    } else if (vsp.isArtistFocus) {
+                        items = mMedialibrary.searchArtist(vsp.artist);
+                    } else if (vsp.isAlbumFocus) {
+                        items = mMedialibrary.searchAlbum(vsp.album);
+                    } else if (vsp.isGenreFocus) {
+                        items = mMedialibrary.searchGenre(vsp.genre);
+                    } else if (vsp.isSongFocus) {
+                        tracks = mMedialibrary.searchMedia(vsp.song).getTracks();
+                    }
+                    if (Tools.isArrayEmpty(tracks)){
+                        SearchAggregate result = mMedialibrary.search(query);
+                        if (!Tools.isArrayEmpty(result.getAlbums()))
+                            tracks = result.getAlbums()[0].getTracks();
+                        else if (!Tools.isArrayEmpty(result.getArtists()))
+                            tracks = result.getArtists()[0].getTracks();
+                        else if (!Tools.isArrayEmpty(result.getGenres()))
+                            tracks = result.getGenres()[0].getTracks();
+                    }
+                    if (tracks == null && !Tools.isArrayEmpty(items))
+                        tracks = items[0].getTracks();
+                    if (!Tools.isArrayEmpty(tracks))
+                        load(tracks, 0);
+                }
+            });
         }
 
         @Override
@@ -1475,7 +1492,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void updateWidget() {
-        if (!isVideoPlaying()) {
+        if (mHasWidget && !isVideoPlaying()) {
             updateWidgetState();
             updateWidgetCover();
         }
@@ -1483,7 +1500,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     private void updateWidgetState() {
         final MediaWrapper media = getCurrentMedia();
-        Intent widgetIntent = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE);
+        final Intent widgetIntent = new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE);
         if (hasCurrentMedia()) {
             widgetIntent.putExtra("title", media.getTitle());
             widgetIntent.putExtra("artist", media.isArtistUnknown() && media.getNowPlaying() != null ?
@@ -1497,17 +1514,23 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         sendBroadcast(widgetIntent);
     }
 
+    private String mCurrentWidgetCover = null;
     private void updateWidgetCover() {
-        sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER)
-                        .putExtra("artworkMrl", hasCurrentMedia() ? getCurrentMedia().getArtworkMrl() : null));
+    String newWidgetCover = hasCurrentMedia() ? getCurrentMedia().getArtworkMrl() : null;
+        if (!TextUtils.equals(mCurrentWidgetCover, newWidgetCover)) {
+            mCurrentWidgetCover = newWidgetCover;
+            sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_COVER)
+                            .putExtra("artworkMrl", newWidgetCover));
+        }
     }
 
     private void updateWidgetPosition(final float pos) {
+        if (!mHasWidget || isVideoPlaying())
+            return;
         // no more than one widget mUpdateMeta for each 1/50 of the song
-        long timestamp = Calendar.getInstance().getTimeInMillis();
+        long timestamp = System.currentTimeMillis();
         if (!hasCurrentMedia() || timestamp - mWidgetPositionTimestamp < getCurrentMedia().getLength() / 50)
             return;
-        updateWidgetState();
         mWidgetPositionTimestamp = timestamp;
         sendBroadcast(new Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE_POSITION)
                 .putExtra("position", pos));
@@ -1515,7 +1538,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     private void broadcastMetadata() {
         final MediaWrapper media = getCurrentMedia();
-        if (media == null || media.getType() != MediaWrapper.TYPE_AUDIO)
+        if (media == null || isVideoPlaying())
             return;
         sendBroadcast(new Intent("com.android.music.metachanged")
                 .putExtra("track", media.getTitle())
@@ -2503,8 +2526,14 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     public void restartMediaPlayer() {
         stop();
-        mMediaPlayer.release();
-        mMediaPlayer = newMediaPlayer();
+        // Thread restart while MediaPlayer.stop() is threaded.
+        VLCApplication.runBackground(new Runnable() {
+            @Override
+            public void run() {
+                mMediaPlayer.release();
+                mMediaPlayer = newMediaPlayer();
+            }
+        });
         /* TODO RESUME */
     }
 

@@ -140,8 +140,6 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
         if (bundle != null) {
             if (VLCApplication.hasData(KEY_CONTENT_LIST))
                 mFoldersContentLists = (SimpleArrayMap<MediaLibraryItem, ArrayList<MediaLibraryItem>>) VLCApplication.getData(KEY_CONTENT_LIST);
-            if (mFoldersContentLists == null)
-                mFoldersContentLists = new SimpleArrayMap<>();
             mCurrentMedia = bundle.getParcelable(KEY_MEDIA);
             if (mCurrentMedia != null)
                 mMrl = mCurrentMedia.getLocation();
@@ -152,6 +150,8 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
             mMrl = getActivity().getIntent().getDataString();
             getActivity().setIntent(null);
         }
+        if (mFoldersContentLists == null)
+            mFoldersContentLists = new SimpleArrayMap<>();
     }
 
     @Override
@@ -173,21 +173,23 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = view.findViewById(R.id.network_list);
         mEmptyView = view.findViewById(android.R.id.empty);
+        mSwipeRefreshLayout = view.findViewById(R.id.swipeLayout);
+        mSearchButtonView = view.findViewById(R.id.searchButton);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
         registerForContextMenu(mRecyclerView);
-
-        mSwipeRefreshLayout = view.findViewById(R.id.swipeLayout);
         mSwipeRefreshLayout.setOnRefreshListener(this);
-        mSearchButtonView = view.findViewById(R.id.searchButton);
         if (savedInstanceState != null) {
-            if (VLCApplication.hasData(KEY_MEDIA_LIST+mMrl)) {
-                @SuppressWarnings("unchecked")
-                final ArrayList<MediaLibraryItem> mediaList = (ArrayList<MediaLibraryItem>) VLCApplication.getData(KEY_MEDIA_LIST+mMrl);
-                if (!Util.isListEmpty(mediaList))
-                    mAdapter.update(mediaList);
-            }
+            @SuppressWarnings("unchecked")
+            final ArrayList<MediaLibraryItem> mediaList = (ArrayList<MediaLibraryItem>) VLCApplication.getData(KEY_MEDIA_LIST+mMrl);
+            if (!Util.isListEmpty(mediaList))
+                mAdapter.update(mediaList);
         } else if (!(this instanceof NetworkBrowserFragment))
             refresh();
     }

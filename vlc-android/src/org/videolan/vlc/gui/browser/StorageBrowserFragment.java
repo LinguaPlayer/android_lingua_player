@@ -105,17 +105,6 @@ public class StorageBrowserFragment extends FileBrowserFragment implements Entry
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if (VLCApplication.showTvUi()) {
-            if (mRoot && mFabPlay != null)
-                mFabPlay.requestFocus();
-            else
-                mRecyclerView.requestFocus();
-        }
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_IN_MEDIALIB, mScannedDirectory);
@@ -214,16 +203,16 @@ public class StorageBrowserFragment extends FileBrowserFragment implements Entry
         if (entryPoint.endsWith("/"))
             entryPoint = entryPoint.substring(0, entryPoint.length()-1);
         if (mProcessingFolders.containsKey(entryPoint)) {
-            final String finalMrl = entryPoint;
+            final CheckBox cb = mProcessingFolders.remove(entryPoint);
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mProcessingFolders.get(finalMrl).setEnabled(true);
+                    cb.setEnabled(true);
                     if (success) {
                         ((StorageBrowserAdapter)mAdapter).updateMediaDirs();
                         mAdapter.notifyDataSetChanged();
                     } else
-                        mProcessingFolders.get(finalMrl).setChecked(false);
+                        cb.setChecked(true);
                 }
             });
         }

@@ -33,8 +33,8 @@ import android.support.annotation.RequiresApi;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.widget.Row;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.LruCache;
 import android.text.TextUtils;
-import android.view.View;
 
 import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
@@ -48,6 +48,7 @@ import org.videolan.vlc.gui.tv.audioplayer.AudioPlayerActivity;
 import org.videolan.vlc.gui.tv.browser.VerticalGridActivity;
 import org.videolan.vlc.media.MediaUtils;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,10 +61,9 @@ import static org.videolan.vlc.gui.tv.browser.MusicFragment.CATEGORY_ALBUMS;
 public class TvUtil {
 
     public static void applyOverscanMargin(Activity activity) {
-        View content = activity.findViewById(android.R.id.content);
-        int hm = activity.getResources().getDimensionPixelSize(R.dimen.tv_overscan_horizontal);
-        int vm = activity.getResources().getDimensionPixelSize(R.dimen.tv_overscan_vertical);
-        content.setPadding(hm, vm, hm, vm);
+        final int hm = activity.getResources().getDimensionPixelSize(R.dimen.tv_overscan_horizontal);
+        final int vm = activity.getResources().getDimensionPixelSize(R.dimen.tv_overscan_vertical);
+        activity.findViewById(android.R.id.content).setPadding(hm, vm, hm, vm);
     }
 
     public static void playMedia(Activity activity, MediaWrapper media){
@@ -174,16 +174,27 @@ public class TvUtil {
         bm.setDrawable(null);
     }
 
+    private static LruCache<BackgroundManager, WeakReference<ValueAnimator>> refCache = new LruCache<>(5);
     //See https://issuetracker.google.com/issues/37135111
     public static void releaseBackgroundManager(BackgroundManager backgroundManager) {
         Field field;
-        try {
-            field = backgroundManager.getClass().getDeclaredField("mAnimator");
-            field.setAccessible(true);
-            ValueAnimator valueAnimator = (ValueAnimator) field.get(backgroundManager);
-            if (valueAnimator != null && valueAnimator.isStarted())
-                valueAnimator.cancel();
-        } catch (Exception ignored) {}
+        final WeakReference<ValueAnimator> ref = refCache.get(backgroundManager);
+        ValueAnimator valueAnimator = null;
+        if (ref != null) {
+            valueAnimator = ref.get();
+            if (valueAnimator == null)
+                refCache.remove(backgroundManager);
+        }
+        if (valueAnimator == null) {
+            try {
+                field = backgroundManager.getClass().getDeclaredField("mAnimator");
+                field.setAccessible(true);
+                valueAnimator = (ValueAnimator) field.get(backgroundManager);
+                refCache.put(backgroundManager, new WeakReference<>(valueAnimator));
+            } catch (Exception ignored) {}
+        }
+        if (valueAnimator != null && valueAnimator.isStarted())
+            valueAnimator.cancel();
         backgroundManager.release();
     }
 }

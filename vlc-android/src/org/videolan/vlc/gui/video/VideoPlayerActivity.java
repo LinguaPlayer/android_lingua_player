@@ -680,7 +680,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                     (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
                             && AndroidDevices.isAndroidTv() && !requestVisibleBehind(true)))
                 stopPlayback();
-            else if (!mShowingDialog && "2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
+            else if (!isFinishing() && !mShowingDialog && "2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
                 switchToPopup();
             }
         }
@@ -698,7 +698,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             if (Permissions.canDrawOverlays(this)) {
                 mSwitchingView = true;
                 mSwitchToPopup = true;
-                if (!mService.isPlaying())
+                if (mService != null && !mService.isPlaying())
                     mService.getCurrentMediaWrapper().addFlags(MediaWrapper.MEDIA_PAUSED);
                 cleanUI();
                 exitOK();
@@ -943,15 +943,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         loadMedia();
         boolean ratePref = mSettings.getBoolean(PreferencesActivity.KEY_AUDIO_PLAYBACK_SPEED_PERSIST, true);
         mService.setRate(ratePref || mRateHasChanged ? mSettings.getFloat(PreferencesActivity.VIDEO_RATE, 1.0f) : 1.0F, false);
-
-        initPlaylistUi();
     }
 
     private void initPlaylistUi() {
         if (mService.hasPlaylist()) {
             mPlaylistPrevious = (ImageView) findViewById(R.id.playlist_previous);
-            if (mPlaylistPrevious == null)
-                return; //player HUD not yet inflated
             mPlaylistNext = (ImageView) findViewById(R.id.playlist_next);
             mPlaylistAdapter = new PlaylistAdapter(this);
             mPlaylistAdapter.setService(mService);
@@ -964,7 +960,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mPlaylistToggle.setOnClickListener(VideoPlayerActivity.this);
             mPlaylistPrevious.setOnClickListener(VideoPlayerActivity.this);
             mPlaylistNext.setOnClickListener(VideoPlayerActivity.this);
-            mSeekbar.setNextFocusUpId(mPlaylistToggle.getId());
 
             ItemTouchHelper.Callback callback =  new SwipeDragItemTouchHelperCallback(mPlaylistAdapter);
             ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
@@ -3481,16 +3476,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 mUnlock.setVisibility(View.VISIBLE);
             }
             dimStatusBar(false);
-            if (mPresentation != null) mOverlayBackground.setVisibility(View.VISIBLE);
+            mOverlayProgress.setVisibility(View.VISIBLE);
+            if (mPresentation != null)
+                mOverlayBackground.setVisibility(View.VISIBLE);
+            updateOverlayPausePlay();
         }
         mHandler.removeMessages(FADE_OUT);
         if (mOverlayTimeout != OVERLAY_INFINITE)
             mHandler.sendMessageDelayed(mHandler.obtainMessage(FADE_OUT), mOverlayTimeout);
-        updateOverlayPausePlay();
-        if (mObjectFocused != null)
-            mObjectFocused.requestFocus();
-        else if (getCurrentFocus() == null)
-            mPlayPause.requestFocus();
     }
 
     private void initOverlay() {
@@ -3501,11 +3494,10 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mOverlayProgress = findViewById(R.id.progress_overlay);
             RelativeLayout.LayoutParams layoutParams =
                     (RelativeLayout.LayoutParams)mOverlayProgress.getLayoutParams();
-            if (AndroidDevices.isPhone() || !AndroidDevices.hasNavBar()) {
+            if (AndroidDevices.isPhone() || !AndroidDevices.hasNavBar())
                 layoutParams.width = LayoutParams.MATCH_PARENT;
-            } else {
+            else
                 layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-            }
             mOverlayProgress.setLayoutParams(layoutParams);
             mOverlayBackground = findViewById(R.id.player_overlay_background);
             mOverlayButtons =  findViewById(R.id.player_overlay_buttons);
@@ -3543,7 +3535,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mHandler.removeMessages(FADE_OUT);
             mHandler.removeMessages(SHOW_PROGRESS);
             Log.i(TAG, "remove View!");
-            mObjectFocused = getCurrentFocus();
             UiTools.setViewVisibility(mOverlayTips, View.INVISIBLE);
 
             if(mOverlayProgress !=null && !mIsLocked){
@@ -3663,16 +3654,15 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (mService.isPausable())
             mPlayPause.setImageResource(mService.isPlaying() ? R.drawable.ic_pause_circle
                     : R.drawable.ic_play_circle);
-
+        mPlayPause.requestFocus();
     }
 
     /**
      * update the overlay
      */
     private int setOverlayProgress() {
-        if (mService == null) {
+        if (mService == null)
             return -1;
-        }
         int time = (int) getTime();
         int length = (int) mService.getLength();
         return setOverlayProgress(time, length);
@@ -4428,14 +4418,12 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      */
     private void stopLoading() {
         mHandler.removeMessages(LOADING_ANIMATION);
+        UiTools.setViewVisibility(mTipsBackground, View.VISIBLE);
         if (!mIsLoading)
             return;
         mIsLoading = false;
         mLoading.setVisibility(View.INVISIBLE);
         mLoading.clearAnimation();
-        if (mPresentation != null) {
-            mTipsBackground.setVisibility(View.VISIBLE);
-        }
     }
 
     public void onClickOverlayTips(View v) {

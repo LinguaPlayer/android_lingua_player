@@ -55,26 +55,24 @@ abstract public class VLCAppWidgetProvider extends AppWidgetProvider {
     public static final String ACTION_WIDGET_UPDATE = ACTION_WIDGET_PREFIX+"UPDATE";
     public static final String ACTION_WIDGET_UPDATE_COVER = ACTION_WIDGET_PREFIX+"UPDATE_COVER";
     public static final String ACTION_WIDGET_UPDATE_POSITION = ACTION_WIDGET_PREFIX+"UPDATE_POSITION";
-    private static String sCurrentArtworkMrl;
+    public static final String ACTION_WIDGET_ENABLED = ACTION_WIDGET_PREFIX+"ENABLED";
+    public static final String ACTION_WIDGET_DISABLED = ACTION_WIDGET_PREFIX+"DISABLED";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
 
         /* init widget */
-        Intent i = new Intent(ACTION_WIDGET_INIT);
-        onReceive(context, i);
+        onReceive(context, new Intent(ACTION_WIDGET_INIT));
 
         /* ask a refresh from the service if there is one */
-        i = new Intent(ACTION_WIDGET_INIT);
-        i.setPackage(BuildConfig.APPLICATION_ID);
-        context.sendBroadcast(i);
+        context.sendBroadcast(new Intent(ACTION_WIDGET_INIT).setPackage(BuildConfig.APPLICATION_ID));
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        String action = intent.getAction();
+        final String action = intent.getAction();
         if (!action.startsWith(ACTION_WIDGET_PREFIX)) {
             super.onReceive(context, intent);
             return;
@@ -103,7 +101,7 @@ abstract public class VLCAppWidgetProvider extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.forward, piForward);
             views.setOnClickPendingIntent(R.id.cover, piVlc);
             if (AndroidUtil.isJellyBeanMR1OrLater && TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL) {
-                boolean black = this instanceof VLCAppWidgetProviderBlack;
+                final boolean black = this instanceof VLCAppWidgetProviderBlack;
                 views.setImageViewResource(R.id.forward, black ? R.drawable.ic_widget_previous_w : R.drawable.ic_widget_previous);
                 views.setImageViewResource(R.id.backward, black ? R.drawable.ic_widget_next_w : R.drawable.ic_widget_next);
             }
@@ -112,45 +110,43 @@ abstract public class VLCAppWidgetProvider extends AppWidgetProvider {
         if (ACTION_WIDGET_UPDATE.equals(action)) {
             String title = intent.getStringExtra("title");
             String artist = intent.getStringExtra("artist");
-            boolean isplaying = intent.getBooleanExtra("isplaying", false);
+            final boolean isplaying = intent.getBooleanExtra("isplaying", false);
 
             views.setTextViewText(R.id.songName, title);
             views.setTextViewText(R.id.artist, artist);
             views.setImageViewResource(R.id.play_pause, getPlayPauseImage(isplaying));
         } else if (ACTION_WIDGET_UPDATE_COVER.equals(action)) {
             final String artworkMrl = intent.getStringExtra("artworkMrl");
-            if (!TextUtils.equals(sCurrentArtworkMrl, artworkMrl)) {
-                sCurrentArtworkMrl = ""+artworkMrl;
-                if (!TextUtils.isEmpty(artworkMrl)) {
-                    VLCApplication.runBackground(new Runnable() {
-                        @Override
-                        public void run() {
-                            final Bitmap cover = AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), 320);
-                            VLCApplication.runOnMainThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (cover != null)
-                                        views.setImageViewBitmap(R.id.cover, cover);
-                                    else
-                                        views.setImageViewResource(R.id.cover, R.drawable.icon);
-                                    views.setProgressBar(R.id.timeline, 100, 0, false);
-                                    applyUpdate(context, views, partial);
-                                }
-                            });
-                        }
-                    });
-                } else
-                    views.setImageViewResource(R.id.cover, R.drawable.icon);
-                views.setProgressBar(R.id.timeline, 100, 0, false);
-            }
+            if (!TextUtils.isEmpty(artworkMrl)) {
+                VLCApplication.runBackground(new Runnable() {
+                    @Override
+                    public void run() {
+                        final Bitmap cover = AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), 320);
+                        VLCApplication.runOnMainThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (cover != null)
+                                    views.setImageViewBitmap(R.id.cover, cover);
+                                else
+                                    views.setImageViewResource(R.id.cover, R.drawable.icon);
+                                views.setProgressBar(R.id.timeline, 100, 0, false);
+                                applyUpdate(context, views, partial);
+                            }
+                        });
+                    }
+                });
+            } else
+                views.setImageViewResource(R.id.cover, R.drawable.icon);
+            views.setProgressBar(R.id.timeline, 100, 0, false);
         } else if (ACTION_WIDGET_UPDATE_POSITION.equals(action)) {
-            float pos = intent.getFloatExtra("position", 0f);
+            final float pos = intent.getFloatExtra("position", 0f);
             views.setProgressBar(R.id.timeline, 100, (int) (100 * pos), false);
         }
 
         applyUpdate(context, views, partial);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void applyUpdate(Context context, RemoteViews views, boolean partial) {
         ComponentName widget = new ComponentName(context, this.getClass());
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
@@ -164,4 +160,15 @@ abstract public class VLCAppWidgetProvider extends AppWidgetProvider {
 
     abstract protected int getPlayPauseImage(boolean isPlaying);
 
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        context.sendBroadcast(new Intent(ACTION_WIDGET_ENABLED));
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        context.sendBroadcast(new Intent(ACTION_WIDGET_DISABLED));
+    }
 }

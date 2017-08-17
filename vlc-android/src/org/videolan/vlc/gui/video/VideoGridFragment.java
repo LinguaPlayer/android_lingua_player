@@ -32,11 +32,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.MainThread;
+import android.support.annotation.Nullable;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -77,6 +77,7 @@ import org.videolan.vlc.interfaces.IEventsHandler;
 import org.videolan.vlc.media.MediaGroup;
 import org.videolan.vlc.media.MediaUtils;
 import org.videolan.vlc.util.FileUtils;
+import org.videolan.vlc.util.Util;
 import org.videolan.vlc.util.VLCInstance;
 
 import java.util.ArrayList;
@@ -102,8 +103,6 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mAdapter = new VideoListAdapter(this);
 
         if (savedInstanceState != null)
             setGroup(savedInstanceState.getString(KEY_GROUP));
@@ -133,60 +132,44 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+        return inflater.inflate(R.layout.video_grid, container, false);
+    }
 
-        View v = inflater.inflate(R.layout.video_grid, container, false);
-
-        // init the information for the scan (1/2)
-        mLayoutFlipperLoading = (LinearLayout) v.findViewById(R.id.layout_flipper_loading);
-        mTextViewNomedia = (TextView) v.findViewById(R.id.textview_nomedia);
+    @Override
+    public void onViewCreated(View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
+        mLayoutFlipperLoading = v.findViewById(R.id.layout_flipper_loading);
+        mTextViewNomedia = v.findViewById(R.id.textview_nomedia);
         mViewNomedia = v.findViewById(android.R.id.empty);
-        mGridView = (AutoFitRecyclerView) v.findViewById(android.R.id.list);
-        mSwipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipeLayout);
+        mGridView = v.findViewById(android.R.id.list);
+        mSwipeRefreshLayout = v.findViewById(R.id.swipeLayout);
         mSearchButtonView = v.findViewById(R.id.searchButton);
-
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-
-        mDividerItemDecoration = new DividerItemDecoration(v.getContext(), DividerItemDecoration.VERTICAL);
-        if (mAdapter.isListMode())
-            mGridView.addItemDecoration(mDividerItemDecoration);
-        mGridView.setAdapter(mAdapter);
 
         if(TextUtils.equals(BuildConfig.FLAVOR_type,"free"))
             prepareAd(v);
-        return v;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mDividerItemDecoration = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
+        mAdapter = new VideoListAdapter(this);
+        if (mAdapter.isListMode())
+            mGridView.addItemDecoration(mDividerItemDecoration);
+        if (savedInstanceState != null) {
+            final ArrayList<MediaWrapper> list = (ArrayList<MediaWrapper>) VLCApplication.getData("list"+getTitle());
+            if (!Util.isListEmpty(list))
+                mAdapter.addAll(list);
+        }
+        mGridView.setAdapter(mAdapter);
     }
 
     public void prepareAd(View v){
         FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
         MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
-        bannerAd.setAdLoadListener(new MagnetAdLoadListener() {
-            @Override
-            public void onPreload(int i, String s) {
-                //این متد در Mobile Banner اجرا نمی شود.
-                Log.d("magnet","onPreLoad");
-            }
-
-            @Override
-            public void onReceive() {
-                //زمانی که بنر دریافت و نمایش داده می شود این متد فراخوانی می شود.
-            }
-
-            @Override
-            public void onFail(int i, String s) {
-                //زمانی که دریافت و نمایش بنر به مشکل بر می خورد این متد فراخوانی می شود .
-                Log.d("magnet","onFail"+s);
-            }
-
-            @Override
-            public void onClose() {
-                Log.d("magnet","onClose");
-
-            }
-        });
-
         bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
     }
-
 
     public void onStart() {
         if (mMediaLibrary.isInitiated())
@@ -220,12 +203,7 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(KEY_GROUP, mGroup);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mAdapter.clear();
+        VLCApplication.storeData("list"+getTitle(), mAdapter.getAll());
     }
 
     protected void onMedialibraryReady() {
@@ -234,14 +212,12 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
             mMediaLibrary.setMediaUpdatedCb(this, Medialibrary.FLAG_MEDIA_UPDATED_VIDEO);
             mMediaLibrary.setMediaAddedCb(this, Medialibrary.FLAG_MEDIA_ADDED_VIDEO);
         }
-        mHandler.sendEmptyMessage(UPDATE_LIST);
+        if (!isHidden() && mAdapter.isEmpty())
+            mHandler.sendEmptyMessage(UPDATE_LIST);
     }
 
-    public String getTitle(){
-        if (mGroup == null)
-            return getString(R.string.video);
-        else
-            return mGroup + "\u2026";
+    public String getTitle() {
+        return mGroup == null ? getString(R.string.video) : mGroup + "\u2026";
     }
 
     private void updateViewMode() {
@@ -249,18 +225,16 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
             Log.w(TAG, "Unable to setup the view");
             return;
         }
-        Resources res = getResources();
-        boolean listMode = res.getBoolean(R.bool.list_mode);
-        listMode |= res.getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT &&
-                PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("force_list_portrait", false);
-        // Compute the left/right padding dynamically
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        getActivity().getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+        final Resources res = getResources();
+        final boolean listMode = res.getBoolean(R.bool.list_mode)
+                || (res.getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT &&
+                    PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("force_list_portrait", false));
 
         // Select between grid or list
         if (!listMode) {
-            int thumbnailWidth = res.getDimensionPixelSize(R.dimen.grid_card_thumb_width);
-            mGridView.setColumnWidth(mGridView.getPerfectColumnWidth(thumbnailWidth, res.getDimensionPixelSize(R.dimen.default_margin)));
+            final int thumbnailWidth = res.getDimensionPixelSize(R.dimen.grid_card_thumb_width);
+            final int margin = res.getDimensionPixelSize(R.dimen.default_margin);
+            mGridView.setColumnWidth(mGridView.getPerfectColumnWidth(thumbnailWidth, margin));
             mAdapter.setGridCardWidth(mGridView.getColumnWidth());
         }
         mGridView.setNumColumns(listMode ? 1 : -1);
@@ -462,6 +436,8 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
 
     @Override
     protected void onParsingServiceFinished() {
+        mMediaLibrary.removeMediaUpdatedCb();
+        mMediaLibrary.removeMediaAddedCb();
         mHandler.sendEmptyMessage(UPDATE_LIST);
     }
 
@@ -617,9 +593,8 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
 
     @Override
     public void onCtxClick(View v, int position, MediaLibraryItem item) {
-            if (mActionMode != null)
-                return;
-            mGridView.openContextMenu(position);
+            if (mActionMode == null)
+                mGridView.openContextMenu(position);
     }
 
     @Override

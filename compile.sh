@@ -37,6 +37,7 @@ while [ $# -gt 0 ]; do
             echo "  Myket "
             echo "  Bazaar "
             echo "Use --release to build in release mode"
+            echo "Use --signrelease to build in release mode and sign apk, see vlc-android/build.gradle"
             echo "Use -s to set your keystore file and -p for the password"
             echo "Use -c to get a ChromeOS build"
             echo "Use -l to build only LibVLC"
@@ -58,6 +59,10 @@ while [ $# -gt 0 ]; do
             CHROME_OS=1
             ;;
         -r|release|--release)
+            RELEASE=1
+            ;;
+        signrelease|--signrelease)
+            SIGNED_RELEASE=1
             RELEASE=1
             ;;
         -s|--signature)
@@ -248,7 +253,7 @@ fi
 # Fetch VLC source #
 ####################
 
-TESTED_HASH=3fdb5dc
+TESTED_HASH=bdb4031
 if [ ! -d "vlc" ]; then
     diagnostic "VLC source not found, cloning"
     git clone http://git.videolan.org/git/vlc.git vlc
@@ -293,7 +298,9 @@ fi
 ##################
 PLATFORM="Vanilla"
 BUILDTYPE="Debug"
-if [ "$RELEASE" = 1 ]; then
+if [ "$SIGNED_RELEASE" = 1 ]; then
+    BUILDTYPE="signedRelease"
+elif [ "$RELEASE" = 1 ]; then
     BUILDTYPE="Release"
 fi
 if [ "$CHROME_OS" = 1 ]; then
