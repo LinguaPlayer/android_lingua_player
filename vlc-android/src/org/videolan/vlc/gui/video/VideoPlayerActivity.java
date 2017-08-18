@@ -74,8 +74,6 @@ import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
-import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -156,9 +154,7 @@ import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.widget.StrokedRobotoTextView;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -169,7 +165,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Pattern;
 
-import static java.security.AccessController.getContext;
 
 
 public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.Callback, IVLCVout.OnNewVideoLayoutListener,
@@ -1716,7 +1711,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             initPlaybackSettingInfo();
         }
 
-//        progressSubtitleCaption();
         if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
             mProgressSubtitleCaptionThread.progessCaption();
     }
@@ -1980,7 +1974,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             case MediaPlayer.Event.PositionChanged:
                 if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
                     mProgressSubtitleCaptionThread.progessCaption();
-//                progressSubtitleCaption();
                 break;
         }
     }
@@ -2927,7 +2920,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         //usage of below :
         // A- when video is paused and user loads the subtitle
         // B- to change the current caption when user switches the subtitle
-//        progressSubtitleCaption();
         if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
             mProgressSubtitleCaptionThread.progessCaption();
         if(mService != null && !mService.isPlaying())
@@ -3254,10 +3246,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             super(name);
         }
 
-//        public void parseCaption(SpannableStringBuilder styledString) {
-//            this.styledString = styledString;
-//            mProgressSubtitleHanlder.obtainMessage(PARSECAPTION);
-//        }
         public void progessCaption(){
             mProgressSubtitleHanlder.sendMessage(mProgressSubtitleHanlder.obtainMessage(PROGRESSCAPTION));
         }
@@ -3363,7 +3351,6 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if(!mService.isPlaying() && showCaption)
             if(mProgressSubtitleCaptionThread != null && mProgressSubtitleCaptionThread.mProgressSubtitleHanlder != null)
                 mProgressSubtitleCaptionThread.progessCaption();
-//            progressSubtitleCaption();
     }
 
     private void seekDelta(int delta) {
