@@ -593,7 +593,8 @@
 
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Please check your internet connection and try again</string>
-    <string name="unexpected_error">Unexpected error occurred.Please try again.</string>
+    <string name="unexpected_error">Network error.Please check you internet connection and try again</string>
+    <string name="online_translation_error">Server error.There is a problem with online translation server, try again later</string>
 
 
     <!--Subtitle prefs-->

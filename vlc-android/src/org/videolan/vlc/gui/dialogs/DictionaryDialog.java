@@ -285,7 +285,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
                 else{
                     if(isAdded()) {
-                        mOnlineTranslationTextView.setText(getString(R.string.unexpected_error));
+                        mOnlineTranslationTextView.setText(getString(R.string.online_translation_error));
                     }
                 }
 
