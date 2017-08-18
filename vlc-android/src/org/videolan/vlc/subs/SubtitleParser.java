@@ -39,7 +39,7 @@ public class SubtitleParser {
             mSubtitleParseTask.cancel(true);
 
         mSubtitleParseTask = new SubtitleParseTask(subtitleLanguage,manualEncoding, listener );
-        mSubtitleParseTask.execute(subtitleFilePath);
+        mSubtitleParseTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, subtitleFilePath);
     }
 
     private SubtitleParseTask mSubtitleParseTask = null;
