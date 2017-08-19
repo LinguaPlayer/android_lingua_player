@@ -220,7 +220,7 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
                 if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
                     mPlaybackController = (IPlaybackSettingsController) getActivity();
                 //To hide audio sync and subtitle sync
-                if(mPlaybackController.getPlaybackSetting() != IPlaybackSettingsController.DelayState.OFF)
+                if(mPlaybackController != null && mPlaybackController.getPlaybackSetting() != IPlaybackSettingsController.DelayState.OFF)
                     mPlaybackController.endPlaybackSetting();
                 newFragment = PlaybackSpeedDialog.newInstance(mTheme);
                 tag = "playback_speed";
@@ -287,6 +287,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private void enableDisableCaptionControls(){
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
+        if(mPlaybackController == null)
+            return;
         mPlaybackController.enableDisableCaptionControls();
         mCaptionController.setCompoundDrawablesWithIntrinsicBounds(0,
                 mPlaybackController.isCaptionControllerEnabled()
@@ -298,6 +300,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private void enableDisableTouchSub(){
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
+        if(mPlaybackController == null)
+            return;
         mPlaybackController.enableDisableTouchSub();
 
         mTouchSub.setCompoundDrawablesWithIntrinsicBounds(0,
@@ -440,6 +444,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private void initCaptionController(){
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
+        if(mPlaybackController == null)
+            return;
 
         mCaptionController.setCompoundDrawablesWithIntrinsicBounds(0,
                 mPlaybackController.isCaptionControllerEnabled()
@@ -451,6 +457,8 @@ public class AdvOptionsDialog extends DialogFragment implements View.OnClickList
     private void initTouchSub(){
         if (mPlaybackController == null && getActivity() instanceof IPlaybackSettingsController)
             mPlaybackController = (IPlaybackSettingsController) getActivity();
+        if(mPlaybackController == null)
+            return;
 
         mTouchSub.setCompoundDrawablesWithIntrinsicBounds(0,
                 mPlaybackController.isTouchSubEnabled()
