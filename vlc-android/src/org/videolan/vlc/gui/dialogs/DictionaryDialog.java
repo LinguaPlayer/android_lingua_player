@@ -91,6 +91,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     public final static String TAG = "VLC/DictionaryDialog";
     public final static String  LAST_FROM_LANGUAGE_SELECTED = "last_from_language_selected";
     public final static String  LAST_to_LANGUAGE_SELECTED = "last_to_language_selected";
+    private boolean toLanguageInitialized = false;
+    private boolean fromLanguageInitialized = false;
 
 
     public DictionaryDialog(){ }
@@ -218,10 +220,12 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             case R.id.language_from_list:
                 mLastFromLangugeSelectedItem = position;
                 editor.putInt(LAST_FROM_LANGUAGE_SELECTED, mLastFromLangugeSelectedItem).commit();
+                fromLanguageInitialized = true;
                 break;
             case R.id.language_to_list:
                 mLastToLangugeSelectedItem = position;
                 editor.putInt(LAST_to_LANGUAGE_SELECTED, mLastToLangugeSelectedItem).commit();
+                toLanguageInitialized = true;
                 break;
         }
         String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
@@ -233,8 +237,11 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         else if (fromLanguge.equals("en") && toLanguage.equals("fa"))
             offlineDBName = "ENG_PER";
 
-        mDictionaryLoadertask = new DictionaryLoader();
-        mDictionaryLoadertask.execute(new String[]{offlineDBName, mWordToTranslateEditText.getText().toString()});
+        //prevent to translate two time
+        if(toLanguageInitialized && fromLanguageInitialized) {
+            mDictionaryLoadertask = new DictionaryLoader();
+            mDictionaryLoadertask.execute(new String[]{offlineDBName, mWordToTranslateEditText.getText().toString()});
+        }
     }
 
     @Override
