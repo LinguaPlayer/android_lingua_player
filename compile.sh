@@ -36,6 +36,7 @@ while [ $# -gt 0 ]; do
             echo "Use -m to set the MARKET:"
             echo "  Myket "
             echo "  Bazaar "
+            echo "  Googleplay "
             echo "Use --release to build in release mode"
             echo "Use --signrelease to build in release mode and sign apk, see vlc-android/build.gradle"
             echo "Use -s to set your keystore file and -p for the password"
@@ -123,7 +124,7 @@ fi
 if [ -z "$MARKET" ]; then
    diagnostic "*** No MARKET flavor defined : using Bazaar"
    MARKET="Bazaar"
-elif [ "$MARKET" != "Bazaar" -a "$MARKET" != "Myket" ]; then
+elif [ "$MARKET" != "Bazaar" -a "$MARKET" != "Myket" -a  "$MARKET" != "Googleplay" ]; then
    diagnostic "*** ${MARKET} MARKET is not valid"
    exit 1
 fi

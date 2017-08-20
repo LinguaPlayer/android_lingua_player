@@ -138,6 +138,9 @@ android {
         bazaar {
             dimension "market"
         }
+        googleplay {
+            dimension "market"
+        }
         vanilla {
             dimension "target"
             versionCode = 1
