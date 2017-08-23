@@ -125,12 +125,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
 
     public void prepareAd(View v){
-        FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
-        FrameLayout adLayout2 = v.findViewById(R.id.mobileBanner2);
-        MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
-        MagnetMobileBannerAd bannerAd2 = MagnetMobileBannerAd.create(getContext());
-        bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
-        bannerAd2.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout2);
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")) {
+            if (!TextUtils.equals(BuildConfig.FLAVOR_market, "googleplay")) {
+                FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+                FrameLayout adLayout2 = v.findViewById(R.id.mobileBanner2);
+                MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
+                MagnetMobileBannerAd bannerAd2 = MagnetMobileBannerAd.create(getContext());
+                bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
+                bannerAd2.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout2);
+            }
+        }
     }
 
     private void translate(String word){

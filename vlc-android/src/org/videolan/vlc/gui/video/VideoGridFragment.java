@@ -50,7 +50,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.magnetadservices.sdk.MagnetAdLoadListener;
 import com.magnetadservices.sdk.MagnetMobileBannerAd;
 
 import org.videolan.libvlc.Media;
@@ -166,9 +165,13 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
     }
 
     public void prepareAd(View v){
-        FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
-        MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
-        bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
+            if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
+                FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+                MagnetMobileBannerAd bannerAd = MagnetMobileBannerAd.create(getContext());
+                bannerAd.load("e2a623f64dfc417d9bb810aecd879e9f", adLayout);
+            }
+        }
     }
 
     public void onStart() {

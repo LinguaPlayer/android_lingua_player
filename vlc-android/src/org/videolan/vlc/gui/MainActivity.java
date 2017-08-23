@@ -57,6 +57,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FilterQueryProvider;
 
+import com.appodeal.ads.Appodeal;
+
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.MediaParsingService;
@@ -216,20 +218,30 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         mExtensionsManager = ExtensionsManager.getInstance();
         mMediaLibrary = VLCApplication.getMLInstance();
 
+        MetricsManager.register(getApplication());
+        FeedbackManager.register(this);
+
+
+    }
+
+    private void checkAdShow(){
+        int launchCount = mSettings.getInt("launch_count", 0);
+
+        if(launchCount != 0 && launchCount % 4 == 0) {
+            if(Appodeal.isLoaded(Appodeal.SKIPPABLE_VIDEO)){
+                Appodeal.show(this, Appodeal.SKIPPABLE_VIDEO);
+            }
+        }
+    }
+
+    private void checkRateApp(){
         boolean showRateRequest = mSettings.getBoolean("show_rate_request", true);
         if(!showRateRequest){
             return;
         }
-
-        //count number of times app launchs and ask to rate it
         int launchCount = mSettings.getInt("launch_count", 0);
-        SharedPreferences.Editor editor = mSettings.edit();
-        editor.putInt("launch_count", ++launchCount).commit();
 
-        MetricsManager.register(getApplication());
-        FeedbackManager.register(this);
-
-        if(launchCount != 0 && launchCount % 5 == 0) {
+        if(launchCount != 0 && launchCount % 7 == 0) {
             showRateAppDialog(this);
         }
 
@@ -373,6 +385,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     protected void onResume() {
         super.onResume();
+
         if (mMediaLibrary.isInitiated()) {
             /* Load media items from database and storage */
             if (mScanNeeded && Permissions.canReadStorage())
@@ -382,7 +395,15 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         }
         mNavigationView.setNavigationItemSelectedListener(this);
         mCurrentFragmentId = mSettings.getInt("fragment_id", R.id.nav_video);
+
+        //count number of times onResume called
+        int launchCount = mSettings.getInt("launch_count", 0);
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putInt("launch_count", ++launchCount).commit();
+
         checkForCrashes();
+        checkRateApp();
+        checkAdShow();
     }
 
     @Override

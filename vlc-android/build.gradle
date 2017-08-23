@@ -118,7 +118,7 @@ android {
             signingConfig = signingConfigs.release
         }
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             jniDebuggable true
         }
     }
@@ -245,7 +245,10 @@ dependencies {
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
     compile 'com.github.anrwatchdog:anrwatchdog:1.3.0'
     compile 'net.hockeyapp.android:HockeySDK:4.1.4'
-    compile files('libs/magnet-android-sdk-4.3.2.jar')
+    compile project(':cheetah-mobile-3.4.7')
+    compile 'com.google.android.gms:play-services-ads:9.8.0'
+    compile 'com.google.android.gms:play-services-location:9.8.0'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 static def buildTime() {
