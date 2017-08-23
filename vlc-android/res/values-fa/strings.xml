@@ -471,4 +471,18 @@
     <string name="use_and_add_subtitle">این زیرنویس را استفاده کن</string>
     <string name="preparing_embeded_subs">آماده‌سازی زیرنویس‌های ‌درون فیلم ممکن است چند ثانیه طول بکشد</string>
 
+    <!--Rate app -->
+    <string name="myket_is_not_installed">مایکت نصب نیست</string>
+    <string name="bazaar_is_not_installed">بازار نصب نیست</string>
+    <string name="playstore_is_not_installed">پلی استور نصب نیست</string>
+
+    <string name="do_you_love_app">از لینگوا پلیر خوشتون اومده؟</string>
+    <string name="I_love_it">آره</string>
+    <string name="I_dont_love_it">نه</string>
+    <string name="ask_to_rate">مچکریم لطفا به برنامه رای بدین. </string>
+    <string name="rate_now">رای میدم</string>
+    <string name="rate_later">شاید یه وقت دیگه</string>
+    <string name="rate_never">نه ممنون</string>
+    <string name="feedback">خوشحال میشیم دلایلتون رو بشنویم</string>
+
 </resources>

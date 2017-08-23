@@ -580,18 +580,18 @@
     <string name="preparing_embeded_subs">Preparing embedded subtitles might take few seconds</string>
 
     <!--Rate app -->
-    <string name="rate_app_request_myket">با امتیاز و نظر دادن در مایکت از برنامه حمایت کن</string>
-    <string name="rate_app_request_bazaar">با امتیاز و نظر دادن در کافه بازار از برنامه حمایت کن</string>
-    <string name="dont_show_rate_dialog">دیگه نشون نده</string>
     <string name="myket_is_not_installed">مایکت نصب نیست</string>
     <string name="bazaar_is_not_installed">بازار نصب نیست</string>
+    <string name="playstore_is_not_installed">play store is not installed</string>
 
-    <string name="do_you_love_app">از برنامه خوشتون اومده؟</string>
-    <string name="I_love_it">بله</string>
-    <string name="I_dont_love_it">خیر</string>
-    <string name="send_email">با ارسال دیدگاه خود از طریق ایمیل به ما در بهبود برنامه کمک کن</string>
-    <string name="send_email_in">ارسال نظر از طریق :</string>
-    <string name="feedback">با ارسال دیدگاه خود به بهبود برنامه کمک کنید.</string>
+    <string name="do_you_love_app">Do you love using Lingua Player ?</string>
+    <string name="I_love_it">Yes</string>
+    <string name="I_dont_love_it">No</string>
+    <string name="ask_to_rate">Thank You \n We\'re so happy to hear that! Will you please rate us</string>
+    <string name="rate_now">Rate Lingua Player</string>
+    <string name="rate_later">Remind me later</string>
+    <string name="rate_never">No thanks</string>
+    <string name="feedback">So please tell the reason to help use fix them</string>
 
     <string name="connection_error_title">Connection error</string>
     <string name="connection_error_message">Please check your internet connection and try again</string>

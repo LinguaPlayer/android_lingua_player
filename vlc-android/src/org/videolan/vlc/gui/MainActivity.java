@@ -96,6 +96,7 @@ import net.hockeyapp.android.FeedbackManager;
 import net.hockeyapp.android.metrics.MetricsManager;
 
 import static org.videolan.vlc.util.RateUtils.showRateAppDialog;
+import static org.videolan.vlc.util.RateUtils.showUserLoveAppDialog;
 
 public class MainActivity extends ContentActivity implements FilterQueryProvider, NavigationView.OnNavigationItemSelectedListener, ExtensionManagerService.ExtensionManagerActivity {
     public final static String TAG = "VLC/MainActivity";
@@ -242,7 +243,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         int launchCount = mSettings.getInt("launch_count", 0);
 
         if(launchCount != 0 && launchCount % 7 == 0) {
-            showRateAppDialog(this);
+            showUserLoveAppDialog(this);
         }
 
     }

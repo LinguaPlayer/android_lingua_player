@@ -1,5 +1,6 @@
 package org.videolan.vlc.util;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,7 +23,7 @@ import org.videolan.vlc.gui.MainActivity;
 public class RateUtils {
     public final static String TAG = "VLC/RateUtils";
     private static AlertDialog mRateAppDialog;
-    public static void showRateAppDialog(final Context context) {
+    public static void showUserLoveAppDialog(final Context context) {
         SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(context);
         final SharedPreferences.Editor editor = mSettings.edit();
 
@@ -30,8 +31,7 @@ public class RateUtils {
                 .setMessage(R.string.do_you_love_app)
                 .setPositiveButton(R.string.I_love_it, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        editor.putBoolean("show_rate_request", false).commit();
-                        rateApp(context);
+                        showRateAppDialog(context);
                     }
                 })
                 .setNegativeButton(R.string.I_dont_love_it, new DialogInterface.OnClickListener() {
@@ -46,21 +46,42 @@ public class RateUtils {
         mRateAppDialog.show();
     }
 
+    public static void showRateAppDialog(final Context context) {
+        SharedPreferences mSettings = PreferenceManager.getDefaultSharedPreferences(context);
+        final SharedPreferences.Editor editor = mSettings.edit();
+
+        mRateAppDialog = new AlertDialog.Builder(context)
+                .setMessage(R.string.ask_to_rate)
+                .setPositiveButton(R.string.rate_now, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        editor.putBoolean("show_rate_request", false).commit();
+                        rateApp(context);
+                    }
+                })
+                .setNegativeButton(R.string.rate_later, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Toast.makeText(context , R.string.feedback, Toast.LENGTH_LONG).show();
+                        feedback(context);
+                    }
+
+                })
+                .setNeutralButton(R.string.rate_never, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        editor.putBoolean("show_rate_request", false).commit();
+                    }
+                })
+                .create();
+
+        mRateAppDialog.setCancelable(true);
+        mRateAppDialog.show();
+    }
+
     public static void feedback(Context context){
         FeedbackManager.showFeedbackActivity(context);
     }
-    public static void emailMe(Context context){
-        String emailAddresses[] = {"playerlingua@gmail.com"};
-        Toast.makeText(context , R.string.send_email, Toast.LENGTH_LONG).show();
-
-        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, emailAddresses);
-        emailIntent.setType("plain/text");
-        context.startActivity(Intent.createChooser(emailIntent, context.getString(R.string.send_email_in)));
-    }
     public static void rateApp(Context context){
         String market = BuildConfig.FLAVOR_market;
-        Toast.makeText(context , market.equals("bazaar") ? R.string.rate_app_request_bazaar : R.string.rate_app_request_myket,Toast.LENGTH_LONG).show();
         Intent intent = new Intent();
         if(market.equals("bazaar")) {
             intent.setAction(Intent.ACTION_EDIT);
@@ -72,7 +93,7 @@ public class RateUtils {
                 Toast.makeText(context, R.string.bazaar_is_not_installed, Toast.LENGTH_SHORT);
             }
         }
-        if(market.equals("myket")) {
+        else if(market.equals("myket")) {
             String url= "myket://comment?id=ir.habibkazemi.linguaplayer.pro";
             intent.setAction(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(url));
@@ -81,6 +102,22 @@ public class RateUtils {
             else{
                 Toast.makeText(context, R.string.myket_is_not_installed, Toast.LENGTH_SHORT);
             }
+        }
+        else if(market.equals(("googleplay"))){
+            Uri uri = Uri.parse("market://details?id=" + context.getPackageName());
+            Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+            // To count with Play market backstack, After pressing back button,
+            // to taken back to our application, we need to add following flags to intent.
+            goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                    Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                    Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+            try {
+                context.startActivity(goToMarket);
+            } catch (ActivityNotFoundException e) {
+                context.startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("http://play.google.com/store/apps/details?id=" + context.getPackageName())));
+            }
+
         }
     }
 }
