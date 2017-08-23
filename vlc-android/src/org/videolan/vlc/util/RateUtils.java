@@ -60,8 +60,7 @@ public class RateUtils {
                 })
                 .setNegativeButton(R.string.rate_later, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Toast.makeText(context , R.string.feedback, Toast.LENGTH_LONG).show();
-                        feedback(context);
+                        //Do nothing
                     }
 
                 })

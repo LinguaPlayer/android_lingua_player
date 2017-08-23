@@ -32,7 +32,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.appodeal.ads.Appodeal;
+//import com.appodeal.ads.Appodeal;
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
@@ -75,14 +75,14 @@ public class StartActivity extends Activity {
                 MagnetSDK.initialize(getApplicationContext());
                 MagnetSDK.getSettings().setTestMode(true);
             }
-            else{
-                String appKey = "ddf381d16f86da3228c6ccfb6aaa68824020728c10980169";
-                Appodeal.disableLocationPermissionCheck();
-                Appodeal.setTesting(true);
-                Appodeal.initialize(this, appKey, Appodeal.SKIPPABLE_VIDEO);
-                Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.debug);
-
-            }
+//            else{
+//                String appKey = "ddf381d16f86da3228c6ccfb6aaa68824020728c10980169";
+//                Appodeal.disableLocationPermissionCheck();
+//                Appodeal.setTesting(true);
+//                Appodeal.initialize(this, appKey, Appodeal.SKIPPABLE_VIDEO);
+//                Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.debug);
+//
+//            }
         }
 
         if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {

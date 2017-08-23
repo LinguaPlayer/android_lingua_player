@@ -57,7 +57,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FilterQueryProvider;
 
-import com.appodeal.ads.Appodeal;
+//import com.appodeal.ads.Appodeal;
 
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
@@ -228,11 +228,11 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     private void checkAdShow(){
         int launchCount = mSettings.getInt("launch_count", 0);
 
-        if(launchCount != 0 && launchCount % 4 == 0) {
-            if(Appodeal.isLoaded(Appodeal.SKIPPABLE_VIDEO)){
-                Appodeal.show(this, Appodeal.SKIPPABLE_VIDEO);
-            }
-        }
+//        if(launchCount != 0 && launchCount % 4 == 0) {
+//            if(Appodeal.isLoaded(Appodeal.SKIPPABLE_VIDEO)){
+//                Appodeal.show(this, Appodeal.SKIPPABLE_VIDEO);
+//            }
+//        }
     }
 
     private void checkRateApp(){
