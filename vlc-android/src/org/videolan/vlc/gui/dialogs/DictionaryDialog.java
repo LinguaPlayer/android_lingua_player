@@ -179,8 +179,12 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         mSpeakButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               if(mDictionary != null)
-                   mDictionary.speakOut(mWordToTranslateEditText.getText().toString());
+               if(mDictionary != null){
+                   if(mDictionary.ttsForLanguageAvailable)
+                       mDictionary.speakOut(mWordToTranslateEditText.getText().toString());
+                   else
+                       Toast.makeText(getContext(),getText(R.string.tts_not_available),Toast.LENGTH_SHORT).show();
+               }
             }
         });
 
@@ -235,16 +239,11 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
         String fromLanguge = mFromLanguageValues[mLastFromLangugeSelectedItem];
 
-        String offlineDBName = "";
-        if(fromLanguge.equals("en") && toLanguage.equals("en"))
-            offlineDBName = "gcide";
-        else if (fromLanguge.equals("en") && toLanguage.equals("fa"))
-            offlineDBName = "ENG_PER";
 
         //prevent to translate two time
         if(toLanguageInitialized && fromLanguageInitialized) {
             mDictionaryLoadertask = new DictionaryLoader();
-            mDictionaryLoadertask.execute(new String[]{offlineDBName, mWordToTranslateEditText.getText().toString()});
+            mDictionaryLoadertask.execute(new String[]{fromLanguge, toLanguage, mWordToTranslateEditText.getText().toString()});
         }
     }
 
@@ -383,10 +382,11 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         private String word;
         @Override
         protected Dictionary doInBackground(String... params) {
-            String dbName = params[0];
-            word = params[1];
+            String fromLanguage = params[0];
+            String toLanguage = params[1];
+            word = params[2];
             try {
-                mDictionary = Dictionary.getInstance(getContext(), dbName);
+                mDictionary = Dictionary.getInstance(getContext(), fromLanguage, toLanguage);
                 return mDictionary;
             } catch (IOException e) {
                 e.printStackTrace();

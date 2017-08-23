@@ -45,14 +45,20 @@ public class Dictionary {
         if(db != null)
             db.close();
         db = openDatabase(dbName, context);
-        //TODO:get local from dictionary type
-        initTts(context,Locale.US);
     }
-    public static Dictionary getInstance(Context context, String dbName) throws IOException {
+    public static Dictionary getInstance(Context context, String fromLanguage, String toLanguage) throws IOException {
+
+        String dbName = "";
+        if(fromLanguage.equals("en") && toLanguage.equals("en"))
+            dbName = "gcide";
+        else if (fromLanguage.equals("en") && toLanguage.equals("fa"))
+            dbName = "ENG_PER";
 
         if (dictionaryInstance == null || !dbName.equals(getDbName()))
             dictionaryInstance = new Dictionary(context, dbName);
         mGlosbeService = DictionaryApi.getGlosbeService(context);
+        if(dictionaryInstance != null)
+            dictionaryInstance.initTts(context, new Locale(fromLanguage));
 
         return dictionaryInstance;
     }
@@ -135,6 +141,7 @@ public class Dictionary {
         return result;
     }
 
+    public boolean ttsForLanguageAvailable = false;
     public void initTts(Context context, final Locale locale){
         tts = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
@@ -143,7 +150,11 @@ public class Dictionary {
                     int result = tts.setLanguage(locale);
 
                     if(result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED){
+                        ttsForLanguageAvailable = false;
                         Log.e("language not support", locale.toString());
+                    }
+                    else{
+                        ttsForLanguageAvailable = true;
                     }
 
                 } else {
@@ -155,7 +166,8 @@ public class Dictionary {
     }
 
     public void speakOut(String toSpeak){
-        tts.speak(toSpeak,TextToSpeech.QUEUE_FLUSH,null);
+        if(tts != null)
+            tts.speak(toSpeak,TextToSpeech.QUEUE_FLUSH,null);
     }
 
 }
