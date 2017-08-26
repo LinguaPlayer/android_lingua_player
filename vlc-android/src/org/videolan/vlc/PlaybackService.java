@@ -22,6 +22,7 @@ package org.videolan.vlc;
 
 import android.annotation.TargetApi;
 import android.app.KeyguardManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.appwidget.AppWidgetManager;
@@ -58,7 +59,6 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -79,6 +79,7 @@ import org.videolan.medialibrary.media.SearchAggregate;
 import org.videolan.vlc.gui.AudioPlayerContainerActivity;
 import org.videolan.vlc.gui.helpers.AudioUtil;
 import org.videolan.vlc.gui.helpers.BitmapUtil;
+import org.videolan.vlc.gui.helpers.NotificationHelper;
 import org.videolan.vlc.gui.preferences.PreferencesActivity;
 import org.videolan.vlc.gui.preferences.PreferencesFragment;
 import org.videolan.vlc.gui.video.PopupManager;
@@ -91,6 +92,7 @@ import org.videolan.vlc.util.AndroidDevices;
 import org.videolan.vlc.util.FileUtils;
 import org.videolan.vlc.util.Permissions;
 import org.videolan.vlc.util.Strings;
+import org.videolan.vlc.util.Util;
 import org.videolan.vlc.util.VLCInstance;
 import org.videolan.vlc.util.VLCOptions;
 import org.videolan.vlc.util.VoiceSearchParams;
@@ -104,7 +106,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -243,7 +244,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         hideNotification();
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
         mMediaPlayer = newMediaPlayer();
-        mMediaPlayer.setEqualizer(VLCOptions.getEqualizer(this));
+        mMediaPlayer.setEqualizer(VLCOptions.getEqualizerSetFromSettings(this));
 
         if (!VLCInstance.testCompatibleCPU(this)) {
             stopSelf();
@@ -580,7 +581,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             switch (event.type) {
                 case MediaPlayer.Event.Playing:
                     loadMediaMeta();
-                    if(mSavedTime > 0L)
+                    if (mSavedTime > 0L)
                         seek(mSavedTime);
                     mSavedTime = 0L;
 
@@ -627,10 +628,15 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     executeUpdateProgress();
                     previousMediaStats = mMediaPlayer.getMedia().getStats();
                     determinePrevAndNextIndices(true);
-                    next();
-                    if (mWakeLock.isHeld())
-                        mWakeLock.release();
-                    changeAudioFocus(false);
+                    if (mNextIndex != -1) {
+                        next();
+                    } else {
+                        if (mWakeLock.isHeld())
+                            mWakeLock.release();
+                        changeAudioFocus(false);
+                        executeUpdate();
+                        publishState();
+                    }
                     break;
                 case MediaPlayer.Event.EncounteredError:
                     showToast(getString(
@@ -886,10 +892,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 @Override
                 public void run() {
                     try {
-                        NotificationCompat.Builder builder;
-                        //Watch notification dismissed
-                        PendingIntent piStop = PendingIntent.getBroadcast(ctx, 0,
-                                new Intent(ACTION_REMOTE_STOP), PendingIntent.FLAG_UPDATE_CURRENT);
                         Bitmap cover;
                         String title, artist, album;
                         synchronized (mUpdateMeta) {
@@ -905,49 +907,17 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                                     metaData.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART) :
                                     AudioUtil.readCoverBitmap(Uri.decode(mw.getArtworkMrl()), width);
                         }
-                            if (cover == null || cover.isRecycled())
-                                cover = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.icon);
+                        if (cover == null || cover.isRecycled())
+                            cover = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.icon);
 
-                            boolean video = mw.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO);
-                            // add notification to status bar
-                            builder = new NotificationCompat.Builder(ctx);
-                            builder.setSmallIcon(video ? R.drawable.ic_notif_video : R.drawable.ic_notif_audio)
-                                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                                    .setContentTitle(title)
-                                    .setContentText(getMediaDescription(artist, album))
-                                    .setLargeIcon(cover)
-                                    .setTicker(title + " - " + artist)
-                                    .setAutoCancel(!playing)
-                                    .setOngoing(playing)
-                                    .setDeleteIntent(piStop);
-
-                        builder.setContentIntent(getSessionPendingIntent());
-
-                        PendingIntent piBackward = PendingIntent.getBroadcast(ctx, 0, new Intent(ACTION_REMOTE_BACKWARD), PendingIntent.FLAG_UPDATE_CURRENT);
-                        PendingIntent piPlay = PendingIntent.getBroadcast(ctx, 0, new Intent(ACTION_REMOTE_PLAYPAUSE), PendingIntent.FLAG_UPDATE_CURRENT);
-                        PendingIntent piForward = PendingIntent.getBroadcast(ctx, 0, new Intent(ACTION_REMOTE_FORWARD), PendingIntent.FLAG_UPDATE_CURRENT);
-
-                        builder.addAction(R.drawable.ic_previous_w, getString(R.string.previous), piBackward);
-                        if (mMediaPlayer.isPlaying())
-                            builder.addAction(R.drawable.ic_pause_w, getString(R.string.pause), piPlay);
-                        else
-                            builder.addAction(R.drawable.ic_play_w, getString(R.string.play), piPlay);
-                        builder.addAction(R.drawable.ic_next_w, getString(R.string.next), piForward);
-
-                        if (AndroidDevices.showMediaStyle) {
-                            builder.setStyle(new NotificationCompat.MediaStyle()
-                                    .setMediaSession(sessionToken)
-                                    .setShowActionsInCompactView(0,1,2)
-                                    .setShowCancelButton(true)
-                                    .setCancelButtonIntent(piStop)
-                            );
-                        }
-                        startService(new Intent(ctx, PlaybackService.class));
+                        Notification notification = NotificationHelper.createPlaybackNotification(PlaybackService.this,
+                                mw.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO), title, artist, album,
+                                cover, playing, sessionToken, getSessionPendingIntent());
                         if (!AndroidUtil.isLolliPopOrLater || playing)
-                            PlaybackService.this.startForeground(3, builder.build());
+                            PlaybackService.this.startForeground(3, notification);
                         else {
                             PlaybackService.this.stopForeground(false);
-                            NotificationManagerCompat.from(ctx).notify(3, builder.build());
+                            NotificationManagerCompat.from(ctx).notify(3, notification);
                         }
                     } catch (IllegalArgumentException e){
                         // On somme crappy firmwares, shit can happen
@@ -956,15 +926,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 }
             });
         }
-    }
-
-    @NonNull
-    private String getMediaDescription(String artist, String album) {
-        StringBuilder contentBuilder = new StringBuilder(artist);
-        if (contentBuilder.length() > 0 && !TextUtils.isEmpty(album))
-            contentBuilder.append(" - ");
-        contentBuilder.append(album);
-        return contentBuilder.toString();
     }
 
     private PendingIntent getSessionPendingIntent() {
@@ -1021,8 +982,14 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             saveMediaMeta();
             media.setEventListener(null);
             mMediaPlayer.setEventListener(null);
-            mMediaPlayer.stop();
-            mMediaPlayer.setMedia(null);
+            final MediaPlayer mp = mMediaPlayer;
+            VLCApplication.runBackground(new Runnable() {
+                @Override
+                public void run() {
+                    mp.stop();
+                    mp.setMedia(null);
+                }
+            });
             media.release();
             publishState();
         }
@@ -1932,7 +1899,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 title = media.getTitle();
                 MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder();
                 builder.setTitle(title)
-                        .setDescription(getMediaDescription(MediaUtils.getMediaArtist(this, media), MediaUtils.getMediaAlbum(this, media)))
+                        .setDescription(Util.getMediaDescription(MediaUtils.getMediaArtist(this, media), MediaUtils.getMediaAlbum(this, media)))
                         .setIconBitmap(BitmapUtil.getPictureFromCache(media))
                         .setMediaUri(media.getUri())
                         .setMediaId(BrowserProvider.generateMediaId(media));
@@ -2021,7 +1988,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         media.release();
 
         if (mw .getType() != MediaWrapper.TYPE_VIDEO || isVideoPlaying || mw.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO)) {
-            mMediaPlayer.setEqualizer(VLCOptions.getEqualizer(this));
+            mMediaPlayer.setEqualizer(VLCOptions.getEqualizerSetFromSettings(this));
             mMediaPlayer.setVideoTitleDisplay(MediaPlayer.Position.Disable, 0);
             changeAudioFocus(true);
             mMediaPlayer.setEventListener(mMediaPlayerListener);
@@ -2526,14 +2493,14 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
 
     public void restartMediaPlayer() {
         stop();
-        // Thread restart while MediaPlayer.stop() is threaded.
+        final MediaPlayer mp = mMediaPlayer;
         VLCApplication.runBackground(new Runnable() {
             @Override
             public void run() {
-                mMediaPlayer.release();
-                mMediaPlayer = newMediaPlayer();
+                mp.release();
             }
         });
+        mMediaPlayer = newMediaPlayer();
         /* TODO RESUME */
     }
 

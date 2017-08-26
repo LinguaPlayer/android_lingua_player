@@ -28,6 +28,10 @@
     </plurals>
 
     <string name="play">Play</string>
+    <string name="playback">Playback</string>
+    <string name="playback_controls">Playback controls</string>
+    <string name="medialibrary_scan">Media library scan</string>
+    <string name="Medialibrary_progress">Media library scanning progress updates</string>
     <string name="play_from_start">Play from start</string>
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
@@ -145,7 +149,7 @@
     <string name="navmenu">navigation menu</string>
     <string name="advanced">advanced options</string>
     <string name="subtitle_parse_fail">Selected file is not a valid subtitle file or selected encoding is not correct</string>
-
+    <string name="audio_boost_warning">Slide up again to go beyond 100%</string>
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 channel\n</item>
         <item quantity="other">%1$d channels\n</item>
@@ -372,6 +376,8 @@
     <string name="audio_title_alignment_marquee">Marquee</string>
     <string name="audio_save_repeat_title">Save repeat mode</string>
     <string name="audio_save_repeat_summary">Remember repeat mode when loading audio playlists</string>
+    <string name="audio_boost_title">Audio-boost</string>
+    <string name="audio_boost_summary">Enable volume up to 200%</string>
     <string name="headset_prefs_category">Headset</string>
     <string name="enable_headset_detection">Detect headset</string>
     <string name="enable_headset_detection_summary">Detect headset insertion and removal</string>
@@ -387,6 +393,14 @@
     <string name="gesture_controls_prefs_category">Gesture controls</string>
     <string name="gesture_controls_prefs_category_lock">Gesture controls lock mode</string>
     <string name="other_controls_prefs_category">Other controls</string>
+
+    <string name="extensions_prefs_category">Extensions</string>
+    <string name="extensions_enable_category">Chose extensions to enable</string>
+    <string name="extensions_empty">No extension detected</string>
+    <string name="extension_permission_title">New extension \"%1$s\" detected</string>
+    <string name="extension_permission_subtitle">Activate extension\?</string>
+
+    <string name="controls_prefs_category">Controls</string>
 
     <string name="performance_prefs_category">Performance</string>
     <string name="chroma_format">Force video chroma</string>
@@ -486,7 +500,7 @@
     <!--Accessibility-->
     <string name="more_actions">More Actions</string>
     <string name="move">Move</string>
-    <string name="back_quit_lock">Press back again to quit video</string>
+    <string name="back_quit_lock">Press Back again to quit video</string>
     <string name="playlist_deleted">Playlist deleted</string>
     <string name="file_deleted">File deleted</string>
     <string name="no_subs_found">No subtitles in this directory</string>
@@ -605,4 +619,15 @@
     <string name="subtitle_other_settings">Other Settings</string>
 
 
+    <string name="custom_set_save_title">Unsaved changes</string>
+    <string name="custom_set_save_warning">Warning: unsaved changes</string>
+    <string name="existing_custom_set_save_message">Save equalizer-set as...</string>
+    <string name="new_custom_set_save_message">Save new equalizer-set as...</string>
+    <string name="save">Save</string>
+    <string name="do_not_save">Do not save</string>
+    <string name="custom_set_deleted_message">Custom equalizer-set \"%1$s\" deleted.</string>
+    <string name="custom_set_wrong_input">Invalid name.</string>
+    <string name="custom_set_already_exist">Equalizer-set with this name already exists</string>
+    <string name="custom_set_restored">Custom equalizer-set restored.</string>
+    <string name="unsaved_set_deleted_message">Unsaved equalizer-set deleted.</string>
 </resources>

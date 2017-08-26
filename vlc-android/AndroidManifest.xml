@@ -58,9 +58,11 @@
         android:logo="@drawable/icon"
         android:theme="@style/Theme.VLC.Transparent"
         android:supportsRtl="true"
-        tools:targetAPI="lollipop">
+        android:appCategory="video"
+        tools:targetApi="o">
         <!--hockySDK-->
         <meta-data android:name="net.hockeyapp.android.appIdentifier" android:value="${HOCKEYAPP_APP_ID}" />
+
         <!-- Enable VLC in Samsung multiwindow mode -->
         <meta-data android:name="com.samsung.android.sdk.multiwindow.enable" android:value="true" />
         <!-- Enable VLC in LG split window mode -->
@@ -466,7 +468,7 @@
             android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.VLC.Player" />
 
         <activity
