@@ -64,7 +64,8 @@
         <item name="ic_close">@drawable/ic_close</item>
         <item name="ic_save">@drawable/ic_save</item>
         <item name="ic_move_media">@drawable/ic_move_media</item>
-        <item name="ic_trash_small_normal">@drawable/ic_trash_small_normal</item>
+        <item name="ic_trash">@drawable/ic_trash</item>
+        <item name="ic_reset">@drawable/ic_reset</item>
         <item name="shadow_top_9patch">@drawable/shadow_top</item>
         <item name="shadow_bottom_9patch">@drawable/shadow_bottom</item>
         <item name="gridview_progressbar">@drawable/gridview_progressbar</item>
@@ -161,7 +162,8 @@
         <item name="ic_close">@drawable/ic_close_w</item>
         <item name="ic_save">@drawable/ic_save_w</item>
         <item name="ic_move_media">@drawable/ic_move_media_w</item>
-        <item name="ic_trash_small_normal">@drawable/ic_trash_small_normal_w</item>
+        <item name="ic_trash">@drawable/ic_trash_w</item>
+        <item name="ic_reset">@drawable/ic_reset_w</item>
         <item name="shadow_top_9patch">@drawable/shadow_top_dark</item>
         <item name="shadow_bottom_9patch">@drawable/shadow_bottom_dark</item>
         <item name="gridview_progressbar">@drawable/gridview_progressbar_w</item>
@@ -254,6 +256,9 @@
         <item name="ic_touch_sub">@drawable/ic_touch_sub_w</item>
         <item name="ic_repeat">@drawable/ic_repeat_w</item>
         <item name="ic_shuffle">@drawable/ic_shuffle_w</item>
+        <item name="ic_trash">@drawable/ic_trash_w</item>
+        <item name="ic_reset">@drawable/ic_reset_w</item>
+        <item name="ic_save">@drawable/ic_save_w</item>
 
         <item name="list_subtitle">@color/grey400</item>
         <item name="list_title_last">@color/list_title_last</item>
