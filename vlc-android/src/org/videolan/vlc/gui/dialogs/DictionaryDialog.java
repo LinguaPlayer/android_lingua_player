@@ -51,6 +51,7 @@ import org.videolan.vlc.util.Dictionary.Dictionary;
 import org.videolan.vlc.util.Dictionary.model.Glosbe;
 import org.videolan.vlc.util.Dictionary.model.Phrase;
 import org.videolan.vlc.util.Dictionary.model.Tuc;
+import org.videolan.vlc.util.Dictionary.remote.GlosbeService;
 import org.videolan.vlc.util.NoConnectivityException;
 
 import java.io.IOException;
@@ -260,7 +261,16 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         final String fromLanguge = mFromLanguageValues[mLastFromLangugeSelectedItem];
         final String toLanguage = mToLanguageValues[mLastToLangugeSelectedItem];
 
-        mDictionary.getGlosbeService().getMeaning(fromLanguge, toLanguage, word.toLowerCase()).enqueue(new Callback<Glosbe>() {
+        GlosbeService mGlosbeService = mDictionary.getGlosbeService();
+        if(mGlosbeService == null){
+            if(isAdded()) {
+                mOnlineDictionaryLoading.setVisibility(View.GONE);
+                mOnlineTranslationTextView.setVisibility(View.VISIBLE);
+                mOnlineTranslationTextView.setText(getString(R.string.online_translation_error));
+            }
+            return;
+        }
+        mGlosbeService.getMeaning(fromLanguge, toLanguage, word.toLowerCase()).enqueue(new Callback<Glosbe>() {
             @Override
             public void onResponse(Call<Glosbe> call, Response<Glosbe> response) {
                 mOnlineDictionaryLoading.setVisibility(View.GONE);
