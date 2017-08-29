@@ -618,9 +618,9 @@
 
 
     <!--Subtitle prefs-->
-    <string name="subtitle_settings">Subtitle Settings</string>
-    <string name="subtitle_outline_settings">Subtitle Outline Settings</string>
-    <string name="subtitle_other_settings">Other Settings</string>
+    <string name="subtitle_settings">Subtitle settings</string>
+    <string name="subtitle_outline_settings">Subtitle outline settings</string>
+    <string name="subtitle_other_settings">Other settings</string>
 
 
     <string name="custom_set_save_title">Unsaved changes</string>
