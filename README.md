@@ -1,7 +1,8 @@
 # Lingua Player
 Powerful video and audio player with language learning feature.
 
-[<img alt="Get it on Cafebazaar" height="80" src="https://s.cafebazaar.ir/2/images/badge-g-fullsize.png">](https://cafebazaar.ir/app/ir.habibkazemi.linguaplayer/?l=en)   [<img alt="Get it on Myket" height="80" src="./linguaRepo/assets/myket.png">](http://myket.ir/app/ir.habibkazemi.linguaplayer/?lang=fa)  [<img alt="Get it on Aptoide" height="80" src="./linguaRepo/assets/Aptoide.png">](https://habibkazemi.store.aptoide.com/app/market/ir.habibkazemi.linguaplayer/11020004/28708313/Lingua+Player)      
+<a href='https://play.google.com/store/apps/details?id=ir.habibkazemi.linguaplayer&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png'/></a>
+[<img alt="Get it on Cafebazaar" height="80" src="https://s.cafebazaar.ir/2/images/badge-g-fullsize.png">](https://cafebazaar.ir/app/ir.habibkazemi.linguaplayer/?l=en)   [<img alt="Get it on Myket" height="80" src="./linguaRepo/assets/myket.png">](http://myket.ir/app/ir.habibkazemi.linguaplayer/?lang=fa)  
 
 
 # Overview
