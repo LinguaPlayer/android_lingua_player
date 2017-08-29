@@ -76,6 +76,7 @@ import org.videolan.medialibrary.Tools;
 import org.videolan.medialibrary.media.MediaLibraryItem;
 import org.videolan.medialibrary.media.MediaWrapper;
 import org.videolan.medialibrary.media.SearchAggregate;
+import org.videolan.vlc.extensions.ExtensionsManager;
 import org.videolan.vlc.gui.AudioPlayerContainerActivity;
 import org.videolan.vlc.gui.helpers.AudioUtil;
 import org.videolan.vlc.gui.helpers.BitmapUtil;
@@ -135,6 +136,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     public static final String ACTION_REMOTE_LAST_VIDEO_PLAYLIST = ACTION_REMOTE_GENERIC+"LastVideoPlaylist";
     public static final String ACTION_REMOTE_SWITCH_VIDEO = ACTION_REMOTE_GENERIC+"SwitchToVideo";
     public static final String ACTION_PLAY_FROM_SEARCH = ACTION_REMOTE_GENERIC+"play_from_search";
+    public static final String ACTION_CAR_MODE_EXIT = "android.app.action.EXIT_CAR_MODE";
 
     public static final String EXTRA_SEARCH_BUNDLE = ACTION_REMOTE_GENERIC+"extra_search_bundle";
 
@@ -282,6 +284,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         filter.addAction(Intent.ACTION_HEADSET_PLUG);
         filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
         filter.addAction(VLCApplication.SLEEP_INTENT);
+        filter.addAction(ACTION_CAR_MODE_EXIT);
         registerReceiver(mReceiver, filter);
 
         boolean stealRemoteControl = mSettings.getBoolean("enable_steal_remote_control", false);
@@ -505,7 +508,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     if (wasPlaying && hasCurrentMedia() && mSettings.getBoolean("enable_play_on_headset_insertion", false))
                         play();
                 }
-            }
+            } else if (action.equalsIgnoreCase(ACTION_CAR_MODE_EXIT))
+                BrowserProvider.unbindExtensionConnection();
         }
     };
 
@@ -580,6 +584,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         public void onEvent(MediaPlayer.Event event) {
             switch (event.type) {
                 case MediaPlayer.Event.Playing:
+                    mStopped = false;
                     loadMediaMeta();
                     if (mSavedTime > 0L)
                         seek(mSavedTime);
@@ -604,6 +609,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                         mMedialibrary.addToHistory(getCurrentMediaLocation(), getCurrentMediaWrapper().getTitle());
                     break;
                 case MediaPlayer.Event.Paused:
+                    mStopped = false;
                     Log.i(TAG, "MediaPlayer.Event.Paused");
                     executeUpdate();
                     publishState();
@@ -615,28 +621,14 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                     break;
                 case MediaPlayer.Event.Stopped:
                     Log.i(TAG, "MediaPlayer.Event.Stopped");
-                    saveMediaMeta();
-                    executeUpdate();
-                    publishState();
-                    executeUpdateProgress();
-                    if (mWakeLock.isHeld())
-                        mWakeLock.release();
-                    changeAudioFocus(false);
+                    onPlaybackStopped();
                     break;
                 case MediaPlayer.Event.EndReached:
                     saveMediaMeta();
                     executeUpdateProgress();
                     previousMediaStats = mMediaPlayer.getMedia().getStats();
                     determinePrevAndNextIndices(true);
-                    if (mNextIndex != -1) {
-                        next();
-                    } else {
-                        if (mWakeLock.isHeld())
-                            mWakeLock.release();
-                        changeAudioFocus(false);
-                        executeUpdate();
-                        publishState();
-                    }
+                    next();
                     break;
                 case MediaPlayer.Event.EncounteredError:
                     showToast(getString(
@@ -679,23 +671,37 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         }
     };
 
+    private void onPlaybackStopped() {
+        if (mStopped)
+            return;
+        mStopped = true;
+        hideNotification();
+        saveMediaMeta();
+        executeUpdate();
+        publishState();
+        executeUpdateProgress();
+        if (mWakeLock.isHeld())
+            mWakeLock.release();
+        changeAudioFocus(false);
+    }
+
     private void showPlayer() {
         sendBroadcast(new Intent(AudioPlayerContainerActivity.ACTION_SHOW_PLAYER));
     }
 
     public void saveMediaMeta() {
-        MediaWrapper media = mMedialibrary.findMedia(getCurrentMediaWrapper());
+        final MediaWrapper media = mMedialibrary.findMedia(getCurrentMediaWrapper());
         if (media == null || media.getId() == 0)
             return;
-        boolean canSwitchToVideo = canSwitchToVideo();
+        final boolean canSwitchToVideo = canSwitchToVideo();
         if (canSwitchToVideo || media.isPodcast()) {
             //Save progress
-            long time = getTime();
+            final long time = getTime();
             float progress = time / (float)media.getLength();
             if (progress > 0.90f) {
                 //increase seen counter if more than 90% of the media have been seen
                 //and reset progress to 0
-                long incSeen = media.getSeen() + 1L;
+                final long incSeen = media.getSeen() + 1L;
                 media.setLongMeta(MediaWrapper.META_SEEN, incSeen);
                 media.setSeen(incSeen);
                 progress = 0f;
@@ -713,7 +719,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
     }
 
     private void loadMediaMeta() {
-        MediaWrapper media = mMedialibrary.findMedia(getCurrentMediaWrapper());
+        final MediaWrapper media = mMedialibrary.findMedia(getCurrentMediaWrapper());
         if (media == null || media.getId() == 0)
             return;
         if (canSwitchToVideo()) {
@@ -979,7 +985,6 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         savePosition();
         final Media media = mMediaPlayer.getMedia();
         if (media != null) {
-            saveMediaMeta();
             media.setEventListener(null);
             mMediaPlayer.setEventListener(null);
             final MediaPlayer mp = mMediaPlayer;
@@ -991,17 +996,11 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 }
             });
             media.release();
-            publishState();
         }
         mMediaList.removeEventListener(mListEventListener);
-        mCurrentIndex = -1;
         mPrevious.clear();
         mHandler.removeMessages(SHOW_PROGRESS);
-        hideNotification();
-        broadcastMetadata();
-        executeUpdate();
-        executeUpdateProgress();
-        changeAudioFocus(false);
+        onPlaybackStopped();
     }
 
     private void determinePrevAndNextIndices() {
@@ -1194,6 +1193,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 load(mMedialibrary.getAlbum(Long.parseLong(mediaId.split("_")[1])).getTracks(), 0);
             } else if (mediaId.startsWith(BrowserProvider.PLAYLIST_PREFIX)) {
                 load(mMedialibrary.getPlaylist(Long.parseLong(mediaId.split("_")[1])).getTracks(), 0);
+            } else if (mediaId.startsWith(ExtensionsManager.EXTENSION_PREFIX)) {
+                onPlayFromUri(Uri.parse(mediaId.replace(ExtensionsManager.EXTENSION_PREFIX + "_" + mediaId.split("_")[1] + "_", "")), null);
             } else
                 try {
                     load(mMedialibrary.getMedia(Long.parseLong(mediaId)));
@@ -1346,15 +1347,16 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         });
     }
 
+    private volatile boolean mStopped = true;
     protected void publishState() {
         if (mMediaSession == null)
             return;
         PlaybackStateCompat.Builder pscb = new PlaybackStateCompat.Builder();
         long actions = PLAYBACK_BASE_ACTIONS;
-        if (isPlaying()) {
+        if (!mStopped && isPlaying()) {
             actions |= PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_STOP;
             pscb.setState(PlaybackStateCompat.STATE_PLAYING, getTime(), getRate());
-        } else if (hasMedia()) {
+        } else if (!mStopped && hasMedia()) {
             actions |= PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_STOP;
             pscb.setState(PlaybackStateCompat.STATE_PAUSED, getTime(), getRate());
         } else {

@@ -21,6 +21,7 @@ import org.videolan.vlc.R;
 import org.videolan.vlc.gui.MainActivity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +32,12 @@ public class ExtensionsManager {
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_MENU_ICON = "menuicon";
     private static final String KEY_SETTINGS_ACTIVITY = "settingsActivity";
+    private static final String KEY_ANDROID_AUTO_ENABLED = "androidAutoEnabled";
     private static final String ACTION_EXTENSION = "org.videolan.vlc.Extension";
     private static final int PROTOCOLE_VERSION = 1;
+    public final static String EXTENSION_PREFIX = "extension";
+    public final static String ANDROID_AUTO_SUFFIX = "androidAuto";
+    public static boolean androidAutoInstalled = false;
 
     private static ExtensionsManager sExtensionsManager;
     private final List<ExtensionListing> mExtensions = new ArrayList<>();
@@ -44,6 +49,7 @@ public class ExtensionsManager {
     }
 
     private List<ExtensionListing> updateAvailableExtensions(Context context) {
+        androidAutoInstalled = isAndroidAutoInstalled(context);
         PackageManager pm = context.getPackageManager();
         List<ResolveInfo> resolveInfos = pm.queryIntentServices(
                 new Intent(ACTION_EXTENSION), PackageManager.GET_META_DATA);
@@ -67,6 +73,7 @@ public class ExtensionsManager {
                     extension.settingsActivity(ComponentName.unflattenFromString(
                             resolveInfo.serviceInfo.packageName + "/" + settingsActivity));
                 }
+                extension.androidAutoEnabled(metaData.getBoolean(KEY_ANDROID_AUTO_ENABLED, false));
                 extension.menuIcon(metaData.getInt(KEY_MENU_ICON, 0));
                 extensions.add(extension);
             }
@@ -107,7 +114,7 @@ public class ExtensionsManager {
 
     public boolean previousExtensionIsEnabled(Context context) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        String key = "extension_" + settings.getString("current_extension_name", null);
+        String key = EXTENSION_PREFIX + "_" + settings.getString("current_extension_name", null);
         return settings.contains(key) && settings.getBoolean(key, false);
     }
 
@@ -117,8 +124,11 @@ public class ExtensionsManager {
         for (ExtensionListing extension : list)
             extensionNames.add(extension.componentName().getPackageName());
         for (Map.Entry<String, ?> entry : settings.getAll().entrySet())
-            if (entry.getKey().startsWith("extension_") && !extensionNames.contains(entry.getKey().replace("extension_", ""))) {
+            if (entry.getKey().startsWith(EXTENSION_PREFIX + "_")
+                    && !entry.getKey().endsWith("_" + ANDROID_AUTO_SUFFIX)
+                    && !extensionNames.contains(entry.getKey().replace(EXTENSION_PREFIX + "_", ""))) {
                 settings.edit().remove(entry.getKey()).apply();
+                settings.edit().remove(entry.getKey() + "_" + ANDROID_AUTO_SUFFIX).apply();
                 extensionMissing = true;
             }
         return extensionMissing;
@@ -150,12 +160,32 @@ public class ExtensionsManager {
     }
 
     public void showExtensionPermissionDialog(final Activity activity, final int id, final ExtensionListing extension, final String key) {
+        final List<CharSequence> extraTitles = new ArrayList<>();
+        final List<String> extraKeys = new ArrayList<>();
+
+        //Add necessary checkboxes
+        if (androidAutoInstalled && extension.androidAutoEnabled()) {
+            extraTitles.add(activity.getString(R.string.extension_permission_checkbox_title, activity.getString(R.string.android_auto)));
+            extraKeys.add(key + "_" + ANDROID_AUTO_SUFFIX);
+        }
+
+        final boolean[] extraCheckedStates = new boolean[extraTitles.size()];
+        Arrays.fill(extraCheckedStates, Boolean.TRUE);
         new AlertDialog.Builder(activity).setTitle(activity.getString(R.string.extension_permission_title, extension.title()))
-                .setMessage(R.string.extension_permission_subtitle)
+                .setMultiChoiceItems(extraTitles.toArray(new CharSequence[extraTitles.size()]),
+                        extraCheckedStates,
+                        new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int pos, boolean b) {
+                                extraCheckedStates[pos] = b;
+                            }
+                        })
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(DialogInterface dialogInterface, int _) {
                         PreferenceManager.getDefaultSharedPreferences(activity.getApplication()).edit().putBoolean(key, true).apply();
+                        for (int i=0; i<extraTitles.size(); i++)
+                            PreferenceManager.getDefaultSharedPreferences(activity.getApplication()).edit().putBoolean(extraKeys.get(i), extraCheckedStates[i]).apply();
                         displayPlugin(activity, id, extension, true);
                         activity.findViewById(R.id.navigation).postInvalidate();
                     }
@@ -163,15 +193,36 @@ public class ExtensionsManager {
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        PreferenceManager.getDefaultSharedPreferences(activity.getApplication()).edit().putBoolean(key, false).apply();
+                        dialogInterface.cancel();
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
                         PreferenceManager.getDefaultSharedPreferences(activity.getApplication()).edit().putBoolean(key, false).apply();
+                        for (int i=0; i<extraTitles.size(); i++)
+                            PreferenceManager.getDefaultSharedPreferences(activity.getApplication()).edit().putBoolean(extraKeys.get(i), false).apply();
                     }
                 })
                 .show();
+    }
+
+    public int getExtensionId(String packageName) {
+        if (mExtensions == null || mExtensions.isEmpty())
+            return 0;
+        for (int i=0; i<mExtensions.size(); i++)
+            if (mExtensions.get(i).componentName().getPackageName().equals(packageName))
+                return i;
+        return 0;
+    }
+
+    private boolean isAndroidAutoInstalled(Context context) {
+        final PackageManager packageManager = context.getPackageManager();
+        try {
+            packageManager.getPackageInfo("com.google.android.projection.gearhead", 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 }

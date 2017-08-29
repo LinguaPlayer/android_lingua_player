@@ -212,27 +212,17 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
     @Override
     public void onHiddenChanged(boolean hidden) {
         super.onHiddenChanged(hidden);
-        if (mRoot) {
+        if (hidden || mRoot) {
             runOnBrowserThread(new Runnable() {
                 @Override
                 public void run() {
                     releaseBrowser();
                 }
             });
-        } else if (!hidden && mFabPlay != null) {
+        } else if (mFabPlay != null) {
             mFabPlay.setImageResource(R.drawable.ic_fab_play);
             updateFab();
         }
-    }
-
-    public void onStop(){
-        super.onStop();
-        runOnBrowserThread(new Runnable() {
-            @Override
-            public void run() {
-                releaseBrowser();
-            }
-        });
     }
 
     private void releaseBrowser() {
@@ -768,7 +758,8 @@ public abstract class BaseBrowserFragment extends SortableFragment<BaseBrowserAd
     }
 
     public void restoreList() {
-        mAdapter.restoreList();
+        if (mAdapter != null)
+            mAdapter.restoreList();
     }
     public void setSearchVisibility(boolean visible) {
         UiTools.setViewVisibility(mSearchButtonView, visible ? View.VISIBLE : View.GONE);

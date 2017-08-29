@@ -53,7 +53,7 @@ import android.view.ViewGroup;
 import android.widget.FilterQueryProvider;
 
 //import com.appodeal.ads.Appodeal;
-
+import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
 import org.videolan.vlc.MediaParsingService;
@@ -400,7 +400,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     public void onBackPressed() {
         /* Close the menu first */
-        if(mDrawerLayout.isDrawerOpen(mNavigationView)) {
+        if (mDrawerLayout.isDrawerOpen(mNavigationView)) {
             mDrawerLayout.closeDrawer(mNavigationView);
             return;
         }
@@ -416,6 +416,10 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
             return;
         } else if (fragment instanceof ExtensionBrowser) {
             ((ExtensionBrowser) fragment).goBack();
+            return;
+        }
+        if (AndroidUtil.isNougatOrLater && isInMultiWindowMode()) {
+            UiTools.confirmExit(this);
             return;
         }
         finish();

@@ -353,6 +353,7 @@
     <string name="subtitles_size_huge">Huge</string>
     <string name="subtitles_color_title">Subtitles Color</string>
     <string name="subtitles_color_white">White</string>
+    <string name="subtitles_color_gray">Gray</string>
     <string name="subtitles_color_pink">Pink</string>
     <string name="subtitles_color_blue">Blue</string>
     <string name="subtitles_color_yellow">Yellow</string>
@@ -397,8 +398,10 @@
     <string name="extensions_prefs_category">Extensions</string>
     <string name="extensions_enable_category">Chose extensions to enable</string>
     <string name="extensions_empty">No extension detected</string>
-    <string name="extension_permission_title">New extension \"%1$s\" detected</string>
-    <string name="extension_permission_subtitle">Activate extension\?</string>
+    <string name="extension_permission_title">Activate new extension \"%1$s\"?</string>
+    <string name="extension_permission_checkbox_title">Show in %1$s</string>
+    <string name="extension_prefs_activation_title">Activate</string>
+    <string name="android_auto">Android auto</string>
 
     <string name="controls_prefs_category">Controls</string>
 
@@ -520,6 +523,7 @@
     <string name="allow_sdraw_overlays_description">Lingua Player needs you to grant this permission display your video in a popup over other applications.</string>
     <string name="permission_ask_again">Grant permission</string>
     <string name="exit_app">Close Lingua Player</string>
+    <string name="exit_app_msg">Are you sur you want to quit Lingua Player?</string>
 
     <!-- fast scroller -->
     <string name="fastscroller_track">FastScroller track</string>
