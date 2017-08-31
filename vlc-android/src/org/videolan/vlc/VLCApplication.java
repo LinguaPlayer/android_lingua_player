@@ -91,21 +91,21 @@ public class VLCApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            // This process is dedicated to LeakCanary for heap analysis.
-            // You should not init your app in this process.
-            return;
-        }
-        LeakCanary.install(this);
-        // Normal app init code..
-
-        new ANRWatchDog().setANRListener(new ANRWatchDog.ANRListener() {
-            @Override
-            public void onAppNotResponding(ANRError error) {
-                // Handle the error. For example, log it to HockeyApp:
-                Log.d(TAG,"ANR DETECTED");
-            }
-        }).start();
+//        if (LeakCanary.isInAnalyzerProcess(this)) {
+//            // This process is dedicated to LeakCanary for heap analysis.
+//            // You should not init your app in this process.
+//            return;
+//        }
+//        LeakCanary.install(this);
+//        // Normal app init code..
+//
+//        new ANRWatchDog().setANRListener(new ANRWatchDog.ANRListener() {
+//            @Override
+//            public void onAppNotResponding(ANRError error) {
+//                // Handle the error. For example, log it to HockeyApp:
+//                Log.d(TAG,"ANR DETECTED");
+//            }
+//        }).start();
 
         instance = this;
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
