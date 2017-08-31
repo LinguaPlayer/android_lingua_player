@@ -401,7 +401,7 @@
     <string name="extension_permission_title">Activate new extension \"%1$s\"?</string>
     <string name="extension_permission_checkbox_title">Show in %1$s</string>
     <string name="extension_prefs_activation_title">Activate</string>
-    <string name="android_auto">Android auto</string>
+    <string name="android_auto">Android Auto</string>
 
     <string name="controls_prefs_category">Controls</string>
 
@@ -522,8 +522,9 @@
     <string name="allow_draw_overlays_title">Allow Lingua Player player popup over other apps</string>
     <string name="allow_sdraw_overlays_description">Lingua Player needs you to grant this permission display your video in a popup over other applications.</string>
     <string name="permission_ask_again">Grant permission</string>
+
     <string name="exit_app">Close Lingua Player</string>
-    <string name="exit_app_msg">Are you sur you want to quit Lingua Player?</string>
+    <string name="exit_app_msg">Are you sure you want to quit Lingua Player?</string>
 
     <!-- fast scroller -->
     <string name="fastscroller_track">FastScroller track</string>
@@ -581,7 +582,7 @@
     <string name="last_added_media">last added</string>
     <string name="no">No</string>
     <string name="loading_medialibrary">Loading Medialibrary...</string>
-    <string name="yes">yes</string>
+    <string name="yes">Yes</string>
 
     <string name="subtitle_track">Subtitle Track</string>
     <string name="replace_subtitle">Use this subtitle now or just add it to subtitle track list?</string>

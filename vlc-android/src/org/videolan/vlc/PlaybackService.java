@@ -254,7 +254,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         }
 
         mMedialibrary = VLCApplication.getMLInstance();
-        if (!AndroidDevices.hasTsp() && !AndroidDevices.hasPlayServices())
+        if (!AndroidDevices.hasTsp && !AndroidDevices.hasPlayServices)
             AndroidDevices.setRemoteControlReceiverEnabled(true);
 
         mDetectHeadset = mSettings.getBoolean("enable_headset_detection", true);
@@ -346,7 +346,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             mMediaSession = null;
         }
 
-        if (!AndroidDevices.hasTsp() && !AndroidDevices.hasPlayServices())
+        if (!AndroidDevices.hasTsp && !AndroidDevices.hasPlayServices)
             AndroidDevices.setRemoteControlReceiverEnabled(false);
 
         if (mWakeLock.isHeld())
@@ -586,9 +586,11 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                 case MediaPlayer.Event.Playing:
                     mStopped = false;
                     loadMediaMeta();
-                    if (mSavedTime > 0L)
-                        seek(mSavedTime);
-                    mSavedTime = 0L;
+                    if (mSavedTime > 0L) {
+                        if (mSavedTime < 0.95*getLength())
+                            seek(mSavedTime);
+                        mSavedTime = 0L;
+                    }
 
                     Log.i(TAG, "MediaPlayer.Event.Playing");
                     executeUpdate();
@@ -675,8 +677,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
         if (mStopped)
             return;
         mStopped = true;
+        mCurrentIndex = -1;
         hideNotification();
-        saveMediaMeta();
         executeUpdate();
         publishState();
         executeUpdateProgress();
@@ -698,8 +700,8 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
             //Save progress
             final long time = getTime();
             float progress = time / (float)media.getLength();
-            if (progress > 0.90f) {
-                //increase seen counter if more than 90% of the media have been seen
+            if (progress > 0.95f) {
+                //increase seen counter if more than 95% of the media have been seen
                 //and reset progress to 0
                 final long incSeen = media.getSeen() + 1L;
                 media.setLongMeta(MediaWrapper.META_SEEN, incSeen);
@@ -1128,7 +1130,7 @@ public class PlaybackService extends MediaBrowserServiceCompat implements IVLCVo
                             }
                             break;
                         case KeyEvent.ACTION_UP:
-                            if (AndroidDevices.hasTsp()) { //no backward/forward on TV
+                            if (AndroidDevices.hasTsp) { //no backward/forward on TV
                                 if (time - mHeadsetDownTime >= DELAY_LONG_CLICK) { // long click
                                     mHeadsetUpTime = time;
                                     previous(false);

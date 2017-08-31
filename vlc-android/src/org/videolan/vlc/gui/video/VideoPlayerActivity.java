@@ -677,7 +677,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (!isInPictureInPictureMode()) {
             if (isFinishing() ||
                     (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
-                            && AndroidDevices.isAndroidTv() && !requestVisibleBehind(true)))
+                            && AndroidDevices.isAndroidTv && !requestVisibleBehind(true)))
                 stopPlayback();
             else if (!isFinishing() && !mShowingDialog && "2".equals(mSettings.getString(PreferencesActivity.KEY_VIDEO_APP_SWITCH, "0")) && isInteractive()) {
                 switchToPopup();
@@ -3524,7 +3524,9 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             else{
                 mUnlock.setVisibility(View.VISIBLE);
             }
-            dimStatusBar(false);
+            if (!AndroidDevices.isChromeBook)
+                dimStatusBar(false);
+            mOverlayProgress.setVisibility(View.VISIBLE);
             if (mPresentation != null)
                 mOverlayBackground.setVisibility(View.VISIBLE);
             updateOverlayPausePlay();
@@ -3542,7 +3544,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mOverlayProgress = findViewById(R.id.progress_overlay);
             RelativeLayout.LayoutParams layoutParams =
                     (RelativeLayout.LayoutParams)mOverlayProgress.getLayoutParams();
-            if (AndroidDevices.isPhone() || !AndroidDevices.hasNavBar())
+            if (AndroidDevices.isPhone || !AndroidDevices.hasNavBar)
                 layoutParams.width = LayoutParams.MATCH_PARENT;
             else
                 layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
@@ -3619,7 +3621,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             UiTools.setViewVisibility(mUnlock, View.INVISIBLE);
             mShowing = false;
-            dimStatusBar(true);
+            if (!AndroidDevices.isChromeBook)
+                dimStatusBar(true);
         } else if (!fromUser) {
             /*
              * Try to hide the Nav Bar again.
@@ -3634,6 +3637,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
      * Dim the status bar and/or navigation icons when needed on Android 3.x.
      * Hide it on Android 4.0 and later
      */
+    @SuppressWarnings("deprecation")
     @TargetApi(Build.VERSION_CODES.KITKAT)
     private void dimStatusBar(boolean dim) {
         if (dim || mIsLocked)
@@ -3655,7 +3659,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 navbar |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
             else
                 visibility |= View.STATUS_BAR_HIDDEN;
-            if (!AndroidDevices.hasCombBar()) {
+            if (!AndroidDevices.hasCombBar) {
                 navbar |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
                 if (AndroidUtil.isKitKatOrLater)
                     visibility |= View.SYSTEM_UI_FLAG_IMMERSIVE;
@@ -3671,7 +3675,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
                 visibility |= View.STATUS_BAR_VISIBLE;
         }
 
-        if (AndroidDevices.hasNavBar())
+        if (AndroidDevices.hasNavBar)
             visibility |= navbar;
         getWindow().getDecorView().setSystemUiVisibility(visibility);
     }
@@ -3690,7 +3694,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         if (AndroidUtil.isICSOrLater)
             navbar |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-        if (AndroidDevices.hasNavBar())
+        if (AndroidDevices.hasNavBar)
             visibility |= navbar;
         getWindow().getDecorView().setSystemUiVisibility(visibility);
 
@@ -3952,11 +3956,14 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             // Start playback & seek
             mService.addCallback(this);
             /* prepare playback */
-            boolean hasMedia = mService.hasMedia();
-            if (hasMedia)
-                media = mService.getCurrentMediaWrapper();
-            else if (media == null)
-                media = new MediaWrapper(mUri);
+            final boolean hasMedia = mService.hasMedia();
+            final boolean medialoaded = media != null;
+            if (!medialoaded) {
+                if (hasMedia)
+                    media = mService.getCurrentMediaWrapper();
+                else
+                    media = new MediaWrapper(mUri);
+            }
             if (mWasPaused)
                 media.addFlags(MediaWrapper.MEDIA_PAUSED);
             if (intent.hasExtra(PLAY_DISABLE_HARDWARE))
@@ -3971,7 +3978,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
 
             // Handle playback
             if (!hasMedia) {
-                if (positionInPlaylist != -1)
+                if (!medialoaded && positionInPlaylist != -1)
                     mService.loadLastPlaylist(PlaybackService.TYPE_VIDEO);
                 else
                     mService.load(media);
