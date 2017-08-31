@@ -29,14 +29,11 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.util.Log;
 
-//import com.appodeal.ads.Appodeal;
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
 import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
-import com.magnetadservices.sdk.MagnetSDK;
 
 
 import org.videolan.libvlc.util.AndroidUtil;
@@ -68,22 +65,6 @@ public class StartActivity extends Activity {
         Intent intent = getIntent();
         boolean tv =  showTvUi();
         String action = intent != null ? intent.getAction(): null;
-
-        //Initialize Magnet
-        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
-            if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
-                MagnetSDK.initialize(getApplicationContext());
-//                MagnetSDK.getSettings().setTestMode(true);
-            }
-//            else{
-//                String appKey = "ddf381d16f86da3228c6ccfb6aaa68824020728c10980169";
-//                Appodeal.disableLocationPermissionCheck();
-//                Appodeal.setTesting(true);
-//                Appodeal.initialize(this, appKey, Appodeal.SKIPPABLE_VIDEO);
-//                Appodeal.setLogLevel(com.appodeal.ads.utils.Log.LogLevel.debug);
-//
-//            }
-        }
 
         if (Intent.ACTION_VIEW.equals(action) && intent.getData() != null) {
             intent.setDataAndType(intent.getData(), intent.getType());
