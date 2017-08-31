@@ -119,12 +119,6 @@
                     android:paddingLeft="10dp"
                     android:textSize="@dimen/dictionary_font"
                     android:visibility="gone"/>
-                <FrameLayout
-                    android:id="@+id/mobileBanner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                </FrameLayout>
-
             </LinearLayout>
 
             <LinearLayout
@@ -157,11 +151,6 @@
                     android:paddingLeft="10dp"
                     android:textSize="@dimen/dictionary_font"
                     android:visibility="gone"/>
-                <FrameLayout
-                    android:id="@+id/mobileBanner2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                </FrameLayout>
 
             </LinearLayout>
 

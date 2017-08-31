@@ -586,6 +586,10 @@
             <action android:name="android.intent.action.BOOT_COMPLETED"/>
           </intent-filter>
         </receiver>
+
+        <!--tapsell-->
+        <activity android:name="ir.tapsell.sdk.TapsellAdActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" ></activity>
     </application>
 
 </manifest>

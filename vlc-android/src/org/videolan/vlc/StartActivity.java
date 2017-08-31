@@ -73,7 +73,7 @@ public class StartActivity extends Activity {
         if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
             if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
                 MagnetSDK.initialize(getApplicationContext());
-                MagnetSDK.getSettings().setTestMode(true);
+//                MagnetSDK.getSettings().setTestMode(true);
             }
 //            else{
 //                String appKey = "ddf381d16f86da3228c6ccfb6aaa68824020728c10980169";

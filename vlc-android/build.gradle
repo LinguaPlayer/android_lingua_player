@@ -118,7 +118,7 @@ android {
             signingConfig = signingConfigs.release
         }
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             jniDebuggable true
         }
     }
@@ -226,6 +226,7 @@ dependencies {
     compile project(':api')
     compile project(':axmlrpc')
     compile project(':ffmpeg_arm.0.3.2')
+    compile project(':tapsell-android-3.0.31')
     compile 'com.github.johnkil.android-robototextview:robototextview:3.0.0'
     compile "com.android.support:recyclerview-v7:$rootProject.ext.appCompatVersion"
     compile "com.android.support:design:$rootProject.ext.appCompatVersion"
@@ -239,11 +240,6 @@ dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.google.code.gson:gson:2.6.1'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
-    //leak canary
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-    compile 'com.github.anrwatchdog:anrwatchdog:1.3.0'
     compile 'net.hockeyapp.android:HockeySDK:4.1.4'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

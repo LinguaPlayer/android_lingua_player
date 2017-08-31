@@ -46,6 +46,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.view.ActionMode;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -90,7 +91,13 @@ import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.FeedbackManager;
 import net.hockeyapp.android.metrics.MetricsManager;
 
-import static org.videolan.vlc.util.RateUtils.showRateAppDialog;
+import ir.tapsell.sdk.Tapsell;
+import ir.tapsell.sdk.TapsellAd;
+import ir.tapsell.sdk.TapsellAdRequestListener;
+import ir.tapsell.sdk.TapsellAdRequestOptions;
+import ir.tapsell.sdk.TapsellAdShowListener;
+import ir.tapsell.sdk.TapsellShowOptions;
+
 import static org.videolan.vlc.util.RateUtils.showUserLoveAppDialog;
 
 public class MainActivity extends ContentActivity implements FilterQueryProvider, NavigationView.OnNavigationItemSelectedListener, ExtensionManagerService.ExtensionManagerActivity {
@@ -122,7 +129,6 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (!VLCInstance.testCompatibleCPU(this)) {
             finish();
             return;
@@ -218,14 +224,74 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
 
     }
 
+    private boolean adShown = true; //To show ads next time when ad was not available,no network,... previous time
     private void checkAdShow(){
         int launchCount = mSettings.getInt("launch_count", 0);
 
-//        if(launchCount != 0 && launchCount % 4 == 0) {
-//            if(Appodeal.isLoaded(Appodeal.SKIPPABLE_VIDEO)){
-//                Appodeal.show(this, Appodeal.SKIPPABLE_VIDEO);
-//            }
-//        }
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
+            if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
+                if((launchCount != 0 && launchCount % 4 == 0) || !adShown) {
+                    adShown = false;
+                    showTapsellAd();
+                }
+            }
+        }
+    }
+
+    private boolean onStopIsCalled = false; //To prevent showing ads after activity stoped
+    private void showTapsellAd () {
+        Log.d(TAG,"showTapsellAd");
+        final TapsellShowOptions tapsellShowOptions = new TapsellShowOptions();
+        tapsellShowOptions.setBackDisabled(true);
+        tapsellShowOptions.setImmersiveMode(true);
+        tapsellShowOptions.setRotationMode(TapsellShowOptions.ROTATION_UNLOCKED);
+
+        final TapsellAdRequestOptions tapsellAdRequestOptions = new TapsellAdRequestOptions();
+        tapsellAdRequestOptions.setCacheType(TapsellAdRequestOptions.CACHE_TYPE_CACHED);
+
+        Tapsell.requestAd(getApplicationContext(), "59a84c24468465718dbe2fdd", tapsellAdRequestOptions , new TapsellAdRequestListener() {
+            @Override
+            public void onError (String error) {
+                Log.d(TAG, "tapsell ad error " + error);
+            }
+
+            @Override
+            public void onAdAvailable (TapsellAd ad)
+            {
+                if(isFinishing() || onStopIsCalled)
+                    return;
+
+                ad.show(MainActivity.this, tapsellShowOptions, new TapsellAdShowListener() {
+                    @Override
+                    public void onOpened (TapsellAd ad)
+                    {
+                        adShown = true;
+                        Log.d(TAG,"tapsell ad opened");
+                    }
+                    @Override
+                    public void onClosed (TapsellAd ad)
+                    {
+                        Log.d(TAG,"tapsell ad closed");
+
+                    }
+                });
+            }
+
+            @Override
+            public void onNoAdAvailable () {
+                Log.d(TAG, "tapsell ad NoAd");
+            }
+
+            @Override
+            public void onNoNetwork () {
+                Log.d(TAG, "tapsell ad No Network");
+            }
+
+            @Override
+            public void onExpiring (TapsellAd ad) {
+                Log.d(TAG, "tapsell ad Expiring");
+            }
+        });
     }
 
     private void checkRateApp(){
@@ -304,6 +370,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     protected void onStop() {
         super.onStop();
+        onStopIsCalled = true;
         mNavigationView.setNavigationItemSelectedListener(null);
         if (getChangingConfigurations() == 0) {
             /* Check for an ongoing scan that needs to be resumed during onResume */
@@ -374,7 +441,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     protected void onResume() {
         super.onResume();
-
+        onStopIsCalled = false;
         //count number of times onResume called
         int launchCount = mSettings.getInt("launch_count", 0);
         SharedPreferences.Editor editor = mSettings.edit();

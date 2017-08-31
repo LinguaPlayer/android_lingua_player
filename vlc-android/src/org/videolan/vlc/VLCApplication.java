@@ -31,11 +31,9 @@ import android.os.Process;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.util.SimpleArrayMap;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.github.anrwatchdog.ANRError;
-import com.github.anrwatchdog.ANRWatchDog;
-import com.squareup.leakcanary.LeakCanary;
 
 import org.videolan.libvlc.Dialog;
 import org.videolan.libvlc.util.AndroidUtil;
@@ -56,6 +54,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import ir.tapsell.sdk.*;
 
 public class VLCApplication extends Application {
     public final static String TAG = "VLC/VLCApplication";
@@ -91,21 +90,6 @@ public class VLCApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        if (LeakCanary.isInAnalyzerProcess(this)) {
-//            // This process is dedicated to LeakCanary for heap analysis.
-//            // You should not init your app in this process.
-//            return;
-//        }
-//        LeakCanary.install(this);
-//        // Normal app init code..
-//
-//        new ANRWatchDog().setANRListener(new ANRWatchDog.ANRListener() {
-//            @Override
-//            public void onAppNotResponding(ANRError error) {
-//                // Handle the error. For example, log it to HockeyApp:
-//                Log.d(TAG,"ANR DETECTED");
-//            }
-//        }).start();
 
         instance = this;
         mSettings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -131,6 +115,12 @@ public class VLCApplication extends Application {
                     AndroidDevices.setRemoteControlReceiverEnabled(false);
             }
         });
+
+        if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
+            if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
+                Tapsell.initialize(instance, "rfphlcpcgdohjknidajdkjnpilgbtnjjfnspmriqjsqtssamotfirhqmsltqbaimriamhc");
+            }
+        }
     }
 
     @Override
