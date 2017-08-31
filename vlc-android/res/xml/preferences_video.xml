@@ -107,7 +107,7 @@
 
     <PreferenceCategory android:title="@string/other_controls_prefs_category">
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="audio_boost"
             android:summary="@string/audio_boost_summary"
             android:title="@string/audio_boost_title" />
