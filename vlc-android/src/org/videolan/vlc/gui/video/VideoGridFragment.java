@@ -80,6 +80,9 @@ import org.videolan.vlc.util.VLCInstance;
 import java.util.ArrayList;
 import java.util.List;
 
+import ir.tapsell.sdk.nativeads.android.TapsellNativeBannerAdLoadListener;
+import ir.tapsell.sdk.nativeads.android.TapsellNativeBannerAdLoader;
+
 public class VideoGridFragment extends SortableFragment<VideoListAdapter> implements MediaUpdatedCb, SwipeRefreshLayout.OnRefreshListener, MediaAddedCb, Filterable, IEventsHandler {
 
     public final static String TAG = "VLC/VideoListFragment";
@@ -165,7 +168,37 @@ public class VideoGridFragment extends SortableFragment<VideoListAdapter> implem
     public void prepareAd(View v){
         if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
             if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
-                FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+                final FrameLayout adLayout = v.findViewById(R.id.mobileBanner);
+                new TapsellNativeBannerAdLoader.Builder()
+                        .setContentViewTemplate(R.layout.tapsell_banner_ad)
+                        .setAppInstallationViewTemplate(R.layout.tapsell_app_installation_banner_ad)
+                        .loadAd(getActivity(), "599c616e468465367517621c", adLayout, new TapsellNativeBannerAdLoadListener() {
+
+                            @Override
+                            public void onNoNetwork() {
+                                adLayout.setVisibility(View.GONE);
+                                Log.d("Tapsell","No Network Available");
+                            }
+
+                            @Override
+                            public void onNoAdAvailable() {
+                                adLayout.setVisibility(View.GONE);
+                                Log.d("Tapsell","No Native Banner Ad Available");
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                adLayout.setVisibility(View.GONE);
+                                Log.d("Tapsell","Error: "+error);
+                            }
+
+                            @Override
+                            public void onRequestFilled(View adView, ViewGroup parentView) {
+                                adLayout.setVisibility(View.VISIBLE);
+                                parentView.addView(adView);
+                            }
+                        });
+
             }
         }
     }

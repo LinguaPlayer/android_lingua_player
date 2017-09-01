@@ -5,18 +5,23 @@
 
     <include layout="@layout/button_search" />
 
-    <FrameLayout
-        android:id="@+id/mobileBanner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/searchButton">
-    </FrameLayout>
 
     <org.videolan.vlc.gui.view.SwipeRefreshLayout
                 android:id="@+id/swipeLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@+id/mobileBanner">
+                android:layout_below="@+id/searchButton">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true">
+            <FrameLayout
+                android:id="@+id/mobileBanner"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
+            </FrameLayout>
         <org.videolan.vlc.gui.view.AutoFitRecyclerView
             android:id="@id/android:list"
             android:layout_width="match_parent"
@@ -30,6 +35,7 @@
             android:fadingEdge="none"
             android:stretchMode="none"
             android:gravity="center" />
+        </LinearLayout>
     </org.videolan.vlc.gui.view.SwipeRefreshLayout>
 
     <LinearLayout

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="4dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@id/tapsell_nativead_logo"
+        android:contentDescription="Logo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@id/tapsell_nativead_sponsored">
+    </ImageView>
+
+    <TextView
+        android:id="@id/tapsell_nativead_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Title"
+        android:paddingRight="4dp"
+        android:textColor="@android:color/white"
+        android:textSize="15sp"
+        android:gravity="right"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@id/tapsell_nativead_logo">
+    </TextView>
+
+    <TextView
+        android:id="@id/tapsell_nativead_sponsored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AD"
+        android:textSize="10dp"
+        android:padding="2dp"
+        android:textColor="#ffffff"
+        android:background="#32dedede"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"/>
+
+    <Button
+        android:id="@id/tapsell_nativead_cta"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:layout_alignParentRight="true"
+        android:background="@color/orange500"
+        android:text="Btn"/>
+
+</RelativeLayout>
