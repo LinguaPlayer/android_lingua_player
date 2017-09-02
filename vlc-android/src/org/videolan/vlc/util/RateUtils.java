@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import net.hockeyapp.android.FeedbackManager;
@@ -81,10 +82,11 @@ public class RateUtils {
     }
     public static void rateApp(Context context){
         String market = BuildConfig.FLAVOR_market;
+        String type = BuildConfig.FLAVOR_type;
         Intent intent = new Intent();
         if(market.equals("bazaar")) {
             intent.setAction(Intent.ACTION_EDIT);
-            intent.setData(Uri.parse("bazaar://details?id=" + "ir.habibkazemi.linguaplayer.pro" ));
+            intent.setData(Uri.parse("bazaar://details?id=" + "ir.habibkazemi.linguaplayer" ));
             intent.setPackage("com.farsitel.bazaar");
             if(intent.resolveActivity(context.getPackageManager()) != null)
                 context.startActivity(intent);
@@ -92,7 +94,18 @@ public class RateUtils {
                 Toast.makeText(context, R.string.bazaar_is_not_installed, Toast.LENGTH_SHORT);
             }
         }
-        else if(market.equals("myket")) {
+        else if(market.equals("myket") && type.equals("free")) {
+            String url= "myket://comment?id=ir.habibkazemi.linguaplayer";
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+            if(intent.resolveActivity(context.getPackageManager()) != null)
+                context.startActivity(intent);
+            else{
+                Toast.makeText(context, R.string.myket_is_not_installed, Toast.LENGTH_SHORT);
+            }
+        }
+
+        else if(market.equals("myket") && type.equals("pro")) {
             String url= "myket://comment?id=ir.habibkazemi.linguaplayer.pro";
             intent.setAction(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(url));
@@ -102,6 +115,7 @@ public class RateUtils {
                 Toast.makeText(context, R.string.myket_is_not_installed, Toast.LENGTH_SHORT);
             }
         }
+
         else if(market.equals(("googleplay"))){
             Uri uri = Uri.parse("market://details?id=" + context.getPackageName());
             Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
