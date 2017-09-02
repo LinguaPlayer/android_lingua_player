@@ -224,21 +224,19 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
 
     }
 
-    private boolean adShown = true; //To show ads next time when ad was not available,no network,... previous time
     private void checkAdShow(){
         int launchCount = mSettings.getInt("launch_count", 0);
 
         if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
             if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
-                if((launchCount != 0 && launchCount % 4 == 0) || !adShown) {
-                    adShown = false;
+                if((launchCount != 0 && launchCount % 4 == 0) ) {
                     showTapsellAd();
                 }
             }
         }
     }
 
-    private boolean onStopIsCalled = false; //To prevent showing ads after activity stoped
+    private boolean onPauseIsCalled = false; //To prevent showing ads after activity stoped
     private void showTapsellAd () {
         Log.d(TAG,"showTapsellAd");
         final TapsellShowOptions tapsellShowOptions = new TapsellShowOptions();
@@ -258,14 +256,13 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
             @Override
             public void onAdAvailable (TapsellAd ad)
             {
-                if(isFinishing() || onStopIsCalled)
+                if(isFinishing() || onPauseIsCalled)
                     return;
 
                 ad.show(MainActivity.this, tapsellShowOptions, new TapsellAdShowListener() {
                     @Override
                     public void onOpened (TapsellAd ad)
                     {
-                        adShown = true;
                         Log.d(TAG,"tapsell ad opened");
                     }
                     @Override
@@ -368,9 +365,13 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     }
 
     @Override
+    protected void onPause(){
+        super.onPause();
+        onPauseIsCalled = true;
+    }
+    @Override
     protected void onStop() {
         super.onStop();
-        onStopIsCalled = true;
         mNavigationView.setNavigationItemSelectedListener(null);
         if (getChangingConfigurations() == 0) {
             /* Check for an ongoing scan that needs to be resumed during onResume */
@@ -441,7 +442,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
     @Override
     protected void onResume() {
         super.onResume();
-        onStopIsCalled = false;
+        onPauseIsCalled = false;
         //count number of times onResume called
         int launchCount = mSettings.getInt("launch_count", 0);
         SharedPreferences.Editor editor = mSettings.edit();
