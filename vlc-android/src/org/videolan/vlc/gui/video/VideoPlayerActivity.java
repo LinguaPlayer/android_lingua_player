@@ -452,7 +452,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
         /* Services and miscellaneous */
         mAudioManager = (AudioManager) getApplicationContext().getSystemService(AUDIO_SERVICE);
         mAudioMax = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        audioBoostEnabled = mSettings.getBoolean("audio_boost", false);
+        audioBoostEnabled = mSettings.getBoolean("audio_boost", true);
 
         mEnableCloneMode = mSettings.getBoolean("enable_clone_mode", false);
         createPresentation();
