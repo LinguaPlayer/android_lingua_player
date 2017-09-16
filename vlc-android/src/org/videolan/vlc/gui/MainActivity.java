@@ -54,6 +54,8 @@ import android.view.ViewGroup;
 import android.widget.FilterQueryProvider;
 
 //import com.appodeal.ads.Appodeal;
+import com.tappx.sdk.android.TappxInterstitial;
+
 import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.medialibrary.Medialibrary;
 import org.videolan.vlc.BuildConfig;
@@ -221,21 +223,28 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
         MetricsManager.register(getApplication());
         FeedbackManager.register(this);
 
-
     }
 
-    private void checkAdShow(){
-        int launchCount = mSettings.getInt("launch_count", 0);
+    TappxInterstitial tappxInterstitial;
+    private void showTappxAd(){
+        if(tappxInterstitial == null)
+            tappxInterstitial = new TappxInterstitial(this, "/120940746/Pub-22662-Android-5514");
 
+        if(!tappxInterstitial.isReady()){
+            tappxInterstitial.loadAd();
+        }
+
+        int launchCount = mSettings.getInt("launch_count", 0);
         if(TextUtils.equals(BuildConfig.FLAVOR_type,"free")){
-            if(!TextUtils.equals(BuildConfig.FLAVOR_market,"googleplay")) {
-                if((launchCount != 0 && launchCount % 4 == 0) ) {
-                    showTapsellAd();
+            if((launchCount != 0 && launchCount % 4 == 0) ) {
+                if(tappxInterstitial.isReady()){
+                    if(isFinishing() || onPauseIsCalled)
+                        return;
+                    tappxInterstitial.show();
                 }
             }
         }
     }
-
     private boolean onPauseIsCalled = false; //To prevent showing ads after activity stoped
     private void showTapsellAd () {
         Log.d(TAG,"showTapsellAd");
@@ -450,7 +459,7 @@ public class MainActivity extends ContentActivity implements FilterQueryProvider
 
         checkForCrashes();
         checkRateApp();
-        checkAdShow();
+        showTappxAd();
     }
 
     protected void onSaveInstanceState(Bundle outState) {

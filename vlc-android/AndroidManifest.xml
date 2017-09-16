@@ -569,9 +569,9 @@
         <activity android:name=".gui.tv.LicenceActivity"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.VLC.TV"  />
-        <activity
-            android:name="com.magnetadservices.sdk.MagnetInterstitialActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <!--<activity-->
+            <!--android:name="com.magnetadservices.sdk.MagnetInterstitialActivity"-->
+            <!--android:theme="@android:style/Theme.Translucent.NoTitleBar"/>-->
 
         <service
             android:name=".RecommendationsService"
@@ -590,6 +590,23 @@
         <!--tapsell-->
         <activity android:name="ir.tapsell.sdk.TapsellAdActivity"
             android:configChanges="keyboardHidden|orientation|screenSize" ></activity>
+        <!--tappx-->
+        <receiver
+            android:name="com.tappx.sdk.android.TrackInstallReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER"/>
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@android:style/Theme.Translucent" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <!--tappx end-->
     </application>
 
 </manifest>
