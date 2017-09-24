@@ -485,4 +485,10 @@
     <string name="rate_never">نه ممنون</string>
     <string name="feedback">خوشحال میشیم دلایلتون رو بشنویم</string>
 
+    <string name="Anki_storage_permission">انکی را باز کنید و دسترسی لازم را به آن بدهید</string>
+    <string name="Anki_added">به انکی اضافه شد</string>
+    <string name="Anki_not_installed">انکی نصب نیست</string>
+    <string name="Anki_unexpected_error">مشکلی در انکی پیش آمده است</string>
+    <string name="Anki_word_exist_already">قبلا به انکی اضافه شده است</string>
+
 </resources>
