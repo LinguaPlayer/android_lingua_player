@@ -249,6 +249,8 @@ dependencies {
 
     compile 'com.tappx.sdk.android:tappx-sdk:3.+'
     compile 'com.google.android.gms:play-services-ads:10.0.1'
+
+    compile 'com.ichi2.anki:api:1.1.0alpha5'
 }
 
 static def buildTime() {

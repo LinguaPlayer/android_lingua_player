@@ -128,6 +128,11 @@ public class MediaDatabase {
     private static final String NETWORK_FAV_TITLE = "title";
     private static final String NETWORK_FAV_ICON_URL = "icon_url";
 
+    private static final String ANKI_WORDS_TABLE_NAME = "anki_words_table";
+    private static final String ANKI_WORD = "anki_word";
+    private static final String ANKI_NOTE_ID = "anki_note_id";
+    private static final String ID = "_ID";
+
     //    public static final int INDEX_MEDIA_TABLE_NAME = 0;
 //    public static final int INDEX_MEDIA_PATH = 1;
     public static final int INDEX_MEDIA_TIME = 2;
@@ -372,6 +377,16 @@ public class MediaDatabase {
             db.execSQL(createMrlTableQuery);
         }
 
+        private void createAnkiWordsTableQuery(SQLiteDatabase db) {
+            String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
+                    ANKI_WORDS_TABLE_NAME + " (" +
+                    ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    ANKI_WORD + " TEXT NOT NULL, " +
+                    ANKI_NOTE_ID + " Long NOT NULL " +
+                    ");";
+            db.execSQL(createMrlTableQuery);
+        }
+
         private void createSlavesTableQuery(SQLiteDatabase db) {
             String createMrlTableQuery = "CREATE TABLE IF NOT EXISTS " +
                     SLAVES_TABLE_NAME + " (" +
@@ -421,6 +436,8 @@ public class MediaDatabase {
                 createLastUsedSubsTableQuery(db);
 
                 createSlavesTableQuery(db);
+
+                createAnkiWordsTableQuery(db);
             }
         }
 
@@ -433,6 +450,8 @@ public class MediaDatabase {
                 // Upgrade incrementally from oldVersion to newVersion
                 for(int i = oldVersion+1; i <= newVersion; i++) {
                     switch(i) {
+                        case 2:
+                            createAnkiWordsTableQuery(db);
 //                        case 9:
 //                             Remodelled playlist tables: re-create them
 //                            db.execSQL("DROP TABLE " + PLAYLIST_MEDIA_TABLE_NAME + ";");
@@ -1353,6 +1372,32 @@ public class MediaDatabase {
             cursor.close();
         }
         return lastUsedSubtitle;
+    }
+
+    public synchronized  void saveAnkiWord(String word, long noteId){
+        if(TextUtils.isEmpty(word))
+            return;
+
+        ContentValues values = new ContentValues();
+        values.put(ANKI_WORD, word);
+        values.put(ANKI_NOTE_ID, noteId);
+        mDb.replace(ANKI_WORDS_TABLE_NAME, null, values);
+
+    }
+
+    public synchronized ArrayList<Long> getAnkiNoteId(String word){
+        ArrayList<Long> noteIdList = new ArrayList<Long>();
+        if (TextUtils.isEmpty(word))
+            return noteIdList;
+        Cursor cursor = mDb.query(ANKI_WORDS_TABLE_NAME, new String[] {ANKI_NOTE_ID}, ANKI_WORD + "=?",new String[]{word}, null, null, null);
+        if(cursor != null) {
+            while(cursor.moveToNext()){
+                long noteID = cursor.getLong(0);
+                noteIdList.add(noteID);
+            }
+        }
+        cursor.close();
+        return noteIdList;
     }
 
 

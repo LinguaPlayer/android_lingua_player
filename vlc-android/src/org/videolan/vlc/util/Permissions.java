@@ -45,6 +45,8 @@ import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.vlc.R;
 import org.videolan.vlc.VLCApplication;
 
+import static com.ichi2.anki.FlashCardsContract.READ_WRITE_PERMISSION;
+
 public class Permissions {
 
     public static final int PERMISSION_STORAGE_TAG = 255;
@@ -101,6 +103,8 @@ public class Permissions {
             showSettingsPermissionDialog(activity, mode);
         }
     }
+
+
 
     private static Dialog sAlertDialog;
 
@@ -239,5 +243,17 @@ public class Permissions {
         ActivityCompat.requestPermissions(activity,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                 PERMISSION_STORAGE_TAG);
+    }
+
+
+    public static boolean shouldRequestAnkiPermission(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return false;
+        }
+        return ContextCompat.checkSelfPermission(context, READ_WRITE_PERMISSION) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static void requestAnkiPermission(Activity callbackActivity, int callbackCode) {
+        ActivityCompat.requestPermissions(callbackActivity, new String[]{READ_WRITE_PERMISSION}, callbackCode);
     }
 }

@@ -635,4 +635,12 @@
     <string name="custom_set_already_exist">Equalizer-set with this name already exists</string>
     <string name="custom_set_restored">Custom equalizer-set restored.</string>
     <string name="unsaved_set_deleted_message">Unsaved equalizer-set deleted.</string>
+
+
+    <string name="Anki_storage_permission">Open the ankidroid and grant storage permission for that</string>
+    <string name="Anki_added">Added to ankidroid</string>
+    <string name="Anki_not_installed">Ankidroid is not installed</string>
+    <string name="Anki_unexpected_error">Some error happened in ankidroid</string>
+    <string name="Anki_word_exist_already">Already added to ankidroid</string>
+
 </resources>

@@ -122,14 +122,35 @@ public class Dictionary {
         }
     }
 
-    public String getTranslation(String word){
+    public class TranslateResult{
+        private String translation;
+        private boolean translated;
+        public void setTranslation(final String translation){
+            this.translation = translation;
+        }
+        public void setTranslated(final boolean translated){
+           this.translated = translated;
+        }
+
+        public String getTranslation(){
+            return translation;
+        }
+        public boolean getTranslated(){
+            return translated;
+        }
+
+    }
+    public TranslateResult getTranslation(String word){
         //TODO:fix this later
-        if(db == null)
-            return "Offline dictionary not exist for this language pair";
-        String result = word;
+        TranslateResult translateResult = new TranslateResult();
+        if(db == null) {
+            translateResult.setTranslation("Offline dictionary not exist for this language pair");
+            translateResult.setTranslated(false);
+            return translateResult;
+        }
+        String result = "";
         Cursor cursor = db.rawQuery("select definition from words where word=?", new String[] {word.toLowerCase()});
         if(cursor!=null && cursor.getCount()!=0){
-            result = "";
             if(cursor.moveToFirst()){
                 do{
                     result += cursor.getString(0);
@@ -137,8 +158,16 @@ public class Dictionary {
                 }while(cursor.moveToNext());
             }
         }
+        if(result.isEmpty()){
+            translateResult.setTranslation(word);
+            translateResult.setTranslated(false);
+        }
+        else {
+            translateResult.setTranslation(result);
+            translateResult.setTranslated(true);
+        }
         cursor.close();
-        return result;
+        return translateResult;
     }
 
     public boolean ttsForLanguageAvailable = false;

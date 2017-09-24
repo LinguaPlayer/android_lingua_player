@@ -25,33 +25,45 @@
             android:layout_gravity="center_horizontal" />
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:orientation="horizontal"
         android:background="@color/orange50">
         <ImageView
+            android:layout_alignParentLeft="true"
             android:id="@+id/speak"
             android:layout_width="35dp"
             android:layout_height="35dp"
             android:clickable="true"
             android:focusable="true"
-            android:layout_gravity="left|center_vertical"
+            android:layout_centerVertical="true"
             android:src="@drawable/ic_speech" />
 
-
         <EditText
+            android:layout_toRightOf="@+id/speak"
+            android:layout_toLeftOf="@+id/bookmark"
             android:id="@+id/edit_text"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:textColor="@color/black"
             android:background="@color/orange50"
             android:inputType="textNoSuggestions"
-            android:maxLines="1"
-            android:paddingRight="10dp"
-            android:paddingEnd="10dp"/>
+            android:maxLines="1" />
 
-    </LinearLayout>
+        <ImageView
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/bookmark"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_bookmark"
+            android:visibility="invisible"/>
+
+
+
+    </RelativeLayout>
 
 
     <ScrollView
@@ -80,15 +92,6 @@
 
             </android.support.v4.widget.NestedScrollView>
 
-            <ImageView
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginTop="10dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_gravity="left"
-                android:src="@drawable/ic_bookmark"
-                android:visibility="gone"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

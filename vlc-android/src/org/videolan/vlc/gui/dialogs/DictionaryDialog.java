@@ -17,7 +17,6 @@ import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextPaint;
-import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
@@ -41,16 +40,23 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ichi2.anki.api.AddContentApi;
+
 import org.videolan.vlc.R;
 import org.videolan.vlc.gui.video.VideoPlayerActivity;
+import org.videolan.vlc.media.MediaDatabase;
+import org.videolan.vlc.util.Dictionary.Anki;
+import org.videolan.vlc.util.Dictionary.AnkiStoragePermissionError;
 import org.videolan.vlc.util.Dictionary.Dictionary;
 import org.videolan.vlc.util.Dictionary.model.Glosbe;
 import org.videolan.vlc.util.Dictionary.model.Phrase;
 import org.videolan.vlc.util.Dictionary.model.Tuc;
 import org.videolan.vlc.util.Dictionary.remote.GlosbeService;
 import org.videolan.vlc.util.NoConnectivityException;
+import org.videolan.vlc.util.Permissions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -63,7 +69,7 @@ import retrofit2.Response;
  * Created by habib on 4/20/17.
  */
 
-public class DictionaryDialog extends DialogFragment implements AdapterView.OnItemSelectedListener{
+public class DictionaryDialog extends DialogFragment implements AdapterView.OnItemSelectedListener, View.OnClickListener {
 
 
     private EditText mWordToTranslateEditText;
@@ -76,6 +82,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     private ProgressBar mOnlineDictionaryLoading;
     private LinearLayout mOfflineDictionaryLayout;
     private ImageView mSpeakButton;
+    private ImageView mBookmark;
 
     private String[] mFromLanguageValues = null;
     private String[] mToLanguageValues = null;
@@ -91,6 +98,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     private boolean toLanguageInitialized = false;
     private boolean fromLanguageInitialized = false;
 
+    private boolean mOnlineTranslated = false;
+    private boolean mOfflineTranslated = false;
 
     public DictionaryDialog(){ }
 
@@ -120,6 +129,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     }
 
     private void translate(String word){
+        mBookmark.setVisibility(View.INVISIBLE);
         mWordToTranslateEditText.setText(word);
         mWordToTranslateEditText.setSelection(word.length());
 
@@ -138,7 +148,10 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         mWordToTranslateEditText = (EditText) view.findViewById(R.id.edit_text);
         mCaptionTextView = (TextView) view.findViewById(R.id.caption);
         mSpeakButton = (ImageView) view.findViewById(R.id.speak);
+
         mainScrollView = (ScrollView) view.findViewById(R.id.main_scroll_view);
+        mBookmark = (ImageView) view.findViewById(R.id.bookmark);
+
 
         mOfflineTranslationTextView = (TextView) view.findViewById(R.id.offline_translation);
         mOfflineDictionaryLoading = (ProgressBar) view.findViewById(R.id.offline_dictionary_loading);
@@ -148,7 +161,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         mOfflineDictionaryLayout = (LinearLayout) view.findViewById(R.id.offline_dictionary_layout);
 
-
+        mBookmark.setOnClickListener(this);
         mWordToTranslateEditText.setText(word);
         mWordToTranslateEditText.setSelection(word.length());
 
@@ -158,17 +171,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
 
         mOfflineTranslationTextView.setMovementMethod(new LinkTouchMovementMethod());
 
-        mSpeakButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               if(mDictionary != null){
-                   if(mDictionary.ttsForLanguageAvailable)
-                       mDictionary.speakOut(mWordToTranslateEditText.getText().toString());
-                   else
-                       Toast.makeText(getContext(),getText(R.string.tts_not_available),Toast.LENGTH_SHORT).show();
-               }
-            }
-        });
+        mSpeakButton.setOnClickListener(this);
 
         mWordToTranslateEditText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -236,6 +239,7 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
     private void getMeaning(String from, final String dest, String phrase){
     }
     private void onlineTranslate(final String word){
+        mOnlineTranslated = false;
         mOnlineTranslationTextView.setVisibility(View.GONE);
         mOnlineDictionaryLoading.setVisibility(View.VISIBLE);
 
@@ -278,6 +282,10 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
                                 translation += phrase.getText();
                             }
                         }
+                        if(!translation.isEmpty()){
+                            mOnlineTranslated = true;
+                            mBookmark.setVisibility(View.VISIBLE);
+                        }
                         if (translation.isEmpty())
                             translation = word;
                         mOnlineTranslationTextView.setText(translation);
@@ -314,13 +322,119 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         });
     }
     private Translate mTranslateTask = null;
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.speak:
+                if(mDictionary != null){
+                    if(mDictionary.ttsForLanguageAvailable)
+                        mDictionary.speakOut(mWordToTranslateEditText.getText().toString());
+                    else
+                        Toast.makeText(getContext(),getText(R.string.tts_not_available),Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.bookmark:
+                if(!(mOfflineTranslated || mOnlineTranslated))
+                    return;
+                AnkiTask ankiTask = new AnkiTask();
+                if (AddContentApi.getAnkiDroidPackageName(getContext()) == null) {
+                    Toast.makeText(getContext(), getContext().getString(R.string.Anki_not_installed), Toast.LENGTH_LONG).show();
+                }
+                else {
+                    if(Permissions.shouldRequestAnkiPermission(getActivity())) {
+                        Permissions.requestAnkiPermission(getActivity(), 1);
+                    }
+                    else{
+                        String tranlsation = "";
+                        if(mOfflineTranslated){
+                            tranlsation = mOfflineTranslationTextView.getText().toString();
+                        }
+                        if(mOnlineTranslated) {
+                            tranlsation += "<br>";
+                            tranlsation += mOnlineTranslationTextView.getText().toString();
+                        }
+
+                        ankiTask.execute(new String[]{mWordToTranslateEditText.getText().toString(), mCaptionTextView.getText().toString(), tranlsation});
+                    }
+                }
+                break;
+
+        }
+    }
+
+    private class AnkiTask extends AsyncTask<String, Void, Integer>{
+        private final static int UNEXPECTED = 0;
+        private final static int EXIST = 1;
+        private final static int ADDED = 2;
+        private final static int ANKI_STORAGE_PERMISSION = 3;
+
+
+        @Override
+        protected Integer doInBackground(String ... params){
+            String word = params[0];
+            String caption = params[1];
+            String translation = params[2];
+            ArrayList<Long> noteIds= MediaDatabase.getInstance().getAnkiNoteId(word);
+            Anki anki = new Anki(getContext());
+            if(anki == null) {
+                return UNEXPECTED;
+            }
+
+            if(noteIds != null && !noteIds.isEmpty()){
+                for(long noteId : noteIds){
+                    if(anki.ifExist(noteId)) {
+                        return EXIST;
+                    }
+                }
+            }
+            Long noteId = null;
+            try {
+                noteId = anki.addCardsToAnkiDroid(word + "<br>" + caption, translation, getContext());
+            } catch (AnkiStoragePermissionError ankiStoragePermissionError) {
+                return ANKI_STORAGE_PERMISSION;
+            }
+            if(noteId != null) {
+                MediaDatabase.getInstance().saveAnkiWord(word, noteId);
+                return ADDED;
+            }
+
+            return UNEXPECTED;
+        }
+
+        @Override
+        protected  void onPostExecute (Integer code){
+            switch (code){
+                case UNEXPECTED:
+                    Toast.makeText(getContext(), getContext().getString(R.string.Anki_unexpected_error), Toast.LENGTH_SHORT).show();
+                    break;
+                case ADDED:
+                    Toast.makeText(getContext(), getContext().getString(R.string.Anki_added), Toast.LENGTH_SHORT).show();
+                    break;
+                case EXIST:
+                    Toast.makeText(getContext(), getContext().getString(R.string.Anki_word_exist_already), Toast.LENGTH_SHORT).show();
+                    break;
+                case ANKI_STORAGE_PERMISSION:
+                    Toast.makeText(getContext(),getContext().getString(R.string.Anki_storage_permission), Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+
+        @Override
+        protected  void onPreExecute (){
+        }
+    }
+
     private class Translate extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
             String translation = "";
-            if(mDictionary != null)
-                translation = mDictionary.getTranslation(params[0]);
+            if(mDictionary != null) {
+                translation = mDictionary.getTranslation(params[0]).getTranslation();
+                mOfflineTranslated = mDictionary.getTranslation(params[0]).getTranslated();
+            }
             return translation;
         }
 
@@ -328,6 +442,8 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
         protected void onPostExecute (String translation) {
             SpannableStringBuilder translationWithLinks = getTranslationWithLinks(translation);
             mOfflineTranslationTextView.setText(translationWithLinks);
+            if(mOfflineTranslated)
+                mBookmark.setVisibility(View.VISIBLE);
             mOfflineDictionaryLoading.setVisibility(View.GONE);
             mOfflineTranslationTextView.setVisibility(View.VISIBLE);
 
@@ -577,7 +693,6 @@ public class DictionaryDialog extends DialogFragment implements AdapterView.OnIt
             }
         });
     }
-
 
 
 }
