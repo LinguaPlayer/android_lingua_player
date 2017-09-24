@@ -1011,6 +1011,8 @@ public class VideoPlayerActivity extends AppCompatActivity implements IVLCVout.C
             mCurrentAudioTrack = mService.getAudioTrack();
         }
 
+        mService.saveMediaMeta();
+
         if (mMute)
             mute(false);
 
