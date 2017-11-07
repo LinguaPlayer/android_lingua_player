@@ -49,11 +49,11 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         -t|--type)
-            TYPE="${2^}"
+            TYPE="${2}"
             shift
             ;;
         -m|--market)
-            MARKET="${2^}"
+            MARKET="${2}"
             shift
             ;;
         -c)
