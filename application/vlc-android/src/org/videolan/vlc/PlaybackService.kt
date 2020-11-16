@@ -430,6 +430,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         @MainThread
         get() = playlistManager.player.getVideoTrack()
 
+//    TODO: "HABIB: Update here for subtitles"
     val spuTracks: Array<out MediaPlayer.TrackDescription>?
         @MainThread
         get() = playlistManager.player.getSpuTracks()

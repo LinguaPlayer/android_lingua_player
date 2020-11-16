@@ -724,7 +724,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         showOverlay()
         player.lockBackButton = false
     }
-
+//    TODO: "HABIB: picking subtitle happens here"
     private fun pickSubtitles() {
         val uri = player.videoUri ?: return
         val media = MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri())

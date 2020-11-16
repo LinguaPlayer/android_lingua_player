@@ -153,11 +153,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setSpuDelay(delay: Long) = mediaplayer.setSpuDelay(delay)
 
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
-
+//    TODO:HABIB: Subtitle is being added here
+//    TODO:HABIB: UPDATE the addSlave of mediaPlayer so if it is media player do some extra job for my app
     fun addSubtitleTrack(path: String, select: Boolean) = mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
 
     fun addSubtitleTrack(uri: Uri, select: Boolean) = mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
-
+//    TODO:HABIB: subtitleTracks description came from here
     fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? = mediaplayer.spuTracks
 
     fun getSpuTrack() = mediaplayer.spuTrack
@@ -211,6 +212,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         slaves?.let { slaveRepository.saveSlaves(mw) }
     }
 
+//    TODO: HABIB: MAYBE I SHOULD EXTEND MediaPlayer AND ADD MY FUNCTIONS THERE OR just extend it with functions
     private fun newMediaPlayer() : MediaPlayer {
         return MediaPlayer(VLCInstance.getInstance(context)).apply {
             setAudioDigitalOutputEnabled(VLCOptions.isAudioDigitalOutputEnabled(settings))

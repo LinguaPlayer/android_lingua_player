@@ -96,6 +96,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
                 binding.audioTracks.trackList.adapter = trackAdapter
             }
             playbackService.spuTracks?.let { trackList ->
+                //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
                 val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.spuTrack })
                 trackAdapter.setOnTrackSelectedListener { track ->
                     trackSelectionListener.invoke(track.id, TrackType.SPU)

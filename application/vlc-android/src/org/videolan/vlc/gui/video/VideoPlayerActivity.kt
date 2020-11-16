@@ -306,7 +306,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             } else if (time == 0L) service?.currentMediaWrapper?.time?.let { time = it }
             return if (forcedTime == -1L) time else forcedTime
         }
-
+//TODO:HABIB: Downloaded subtitles are added here
     private val downloadedSubtitleObserver = Observer<List<org.videolan.vlc.mediadb.models.ExternalSub>> { externalSubs ->
         for (externalSub in externalSubs) {
             if (!addedExternalSubs.contains(externalSub)) {
@@ -815,9 +815,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null) return
-
+// TODO:HABIB: the result of selecting subtitle
         if (data.hasExtra(EXTRA_MRL)) {
             service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), false)
+
+//            TODO:HABIB We do not need this any more and the slave table just keeps the last one because the mediaURI is primary key
             service?.currentMediaWrapper?.let {
                 SlaveRepository.getInstance(this).saveSlave(it.location, IMedia.Slave.Type.Subtitle, 2, data.getStringExtra(EXTRA_MRL)!!)
             }
