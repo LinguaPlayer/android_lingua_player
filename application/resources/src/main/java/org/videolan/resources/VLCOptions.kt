@@ -39,6 +39,7 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import java.io.File
 import java.util.*
+import kotlin.collections.ArrayList
 
 object VLCOptions {
     private val TAG = "VLCConfig"
@@ -140,6 +141,8 @@ object VLCOptions {
                 options.add("--hrtf-file")
                 options.add(hstfPath)
             }
+
+            options.addAll(addLinguaOptions())
             return options
         }
 
@@ -322,5 +325,17 @@ object VLCOptions {
 
     fun getEqualizerEnabledState(context: Context): Boolean {
         return Settings.getInstance(context).getBoolean("equalizer_enabled", false)
+    }
+
+    fun addLinguaOptions(): ArrayList<String> {
+        val options = ArrayList<String>(50)
+//        https://wiki.videolan.org/VLC-0-9-x_command-line_help/
+//        0 = no subtitles autodetected
+//        1 = any subtitle file
+//        2 = any subtitle file containing the movie name
+//        3 = subtitle file matching the movie name with additional chars
+//        4 = subtitle file matching the movie name exactly
+        options.add("--sub-autodetect-fuzzy=0")
+        return options
     }
 }
