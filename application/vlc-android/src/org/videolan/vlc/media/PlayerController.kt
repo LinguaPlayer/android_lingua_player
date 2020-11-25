@@ -3,6 +3,7 @@ package org.videolan.vlc.media
 import android.content.Context
 import android.net.Uri
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.core.net.toUri
@@ -27,6 +28,8 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.repository.SlaveRepository
 import kotlin.math.abs
 
+private const val TAG = "PlayerController"
+
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
@@ -39,8 +42,13 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     val progress by lazy(LazyThreadSafetyMode.NONE) { MutableLiveData<Progress>().apply { value = Progress() } }
     private val slaveRepository by lazy { SlaveRepository.getInstance(context) }
 
+    private lateinit var subtitleController: SubtitleController
+        private set
+
     var mediaplayer = newMediaPlayer()
         private set
+
+
     var switchToVideo = false
     var seekable = false
     var pausable = false
@@ -153,19 +161,69 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setSpuDelay(delay: Long) = mediaplayer.setSpuDelay(delay)
 
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
-//    TODO:HABIB: Subtitle is being added here
-//    TODO:HABIB: UPDATE the addSlave of mediaPlayer so if it is media player do some extra job for my app
-    fun addSubtitleTrack(path: String, select: Boolean) = mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
 
-    fun addSubtitleTrack(uri: Uri, select: Boolean) = mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
-//    TODO:HABIB: subtitleTracks description came from here
-    fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? = mediaplayer.spuTracks
+    fun addSubtitleTrack(path: String, select: Boolean): Boolean {
+          return subtitleController.addSubtitleTrack(path, select)
+//        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
+    }
 
-    fun getSpuTrack() = mediaplayer.spuTrack
+    fun addSubtitleTrack(uri: Uri, select: Boolean): Boolean {
+        return subtitleController.addSubtitleTrack(uri, select)
+//        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
+    }
 
-    fun setSpuTrack(index: Int) = mediaplayer.setSpuTrack(index)
+// CafeBazar: already has ffmpeg just check the subtitle tracks
+// google play do the below
+// If user has not already downloaded ffmpeg:
+// TODO:HABIB I should add another getSpuTracks=> VLCGetSpuTracks and if it returns non zero
+// I should check if it's the subtitle beside movie
+// if not it is the embeded subtitle
+// ask the user to download the ffmpeg module (google play features)
+// then unload it
+// otherwise just show it using vlc subtitle engine
+// I should somehow handle the indexes
+// VLC description is like this:
+// MOVIE NAME: Friends.S03E01.720p.mkv
+//Subtitles:
+// Friends.S03E01.720p.en.srt ==> detects named English
+// Friends.S03E01.720p.fa.srt ==> detects named Persian
+// Friends.S03E01.720p.zcvsw.srt ==> detects named zcvsw
+// Friends.S03E01.720P.zcvsw.srt ==> detects capital case does not matter
+// Friends.S03E01.720.zcvsw.srt ==> NOT detect name of file should start exactly like the movie name
+// UPDATE: JUST ADD --sub-autodetect-fuzzy=0 (https://wiki.videolan.org/VLC-0-9-x_command-line_help/)
+// It will not load the available srt files beside the movie file at all
+// it will just load the embeded ones
+//!!!!!!!!!!!!!!!!!!!!!!! As I want to show multiple subtitles
+// and native subtitle renderer doesn't have the feature to show
+// next and prev subtitles, I should just show that there is native subtitle
+// If you want to render it please install ffmpeg, I can even show in
+// subtitle list and if user chose it show ffmpeg install
 
-    fun getSpuTracksCount() = mediaplayer.spuTracksCount
+
+    fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
+        return subtitleController.getSpuTracks().apply {
+            this?.forEach {
+                Log.d(TAG, "getSpuTracks: ${it.id}")
+                Log.d(TAG, "getSpuTracks: ${it.name}")
+            }
+        }
+//        return mediaplayer.spuTracks
+    }
+
+    fun getSpuTrack(): Int {
+        return subtitleController.getSpuTrack()
+//        return mediaplayer.spuTrack
+    }
+
+    fun setSpuTrack(index: Int): Boolean {
+        return subtitleController.setSpuTrack(index)
+//        return mediaplayer.setSpuTrack(index)
+    }
+
+    fun getSpuTracksCount(): Int {
+        return subtitleController.getSpuTracksCount()
+//        return mediaplayer.spuTracksCount
+    }
 
     fun setAudioDelay(delay: Long) = mediaplayer.setAudioDelay(delay)
 
@@ -219,7 +277,9 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
             VLCOptions.getAout(settings)?.let { setAudioOutput(it) }
             setRenderer(PlaybackService.renderer.value)
             this.vlcVout.addCallback(this@PlayerController)
-        }
+        }.also {
+            // I instantiate here, so I everytime new MediaPlayer is created I have the new one
+            subtitleController = SubtitleController(context, it) }
     }
 
     override fun onSurfacesCreated(vlcVout: IVLCVout?) {}
