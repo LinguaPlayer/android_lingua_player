@@ -24,11 +24,13 @@
 
 package org.videolan.vlc.gui.dialogs.adapters
 
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.vlc.databinding.VideoTrackItemBinding
+import org.videolan.vlc.media.isParseable
 
 class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var selectedTrack: MediaPlayer.TrackDescription?) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
@@ -55,8 +57,10 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var 
         init {
 
             itemView.setOnClickListener {
-                selectedTrack = tracks[layoutPosition]
-                notifyDataSetChanged()
+                if (tracks[layoutPosition].isParseable()) {
+                    selectedTrack = tracks[layoutPosition]
+                    notifyDataSetChanged()
+                }
                 trackSelectedListener.invoke(tracks[layoutPosition])
             }
         }
@@ -65,6 +69,8 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var 
             binding.track = trackDescription
             binding.selected = selected
             binding.executePendingBindings()
+            if (!trackDescription.isParseable())
+                binding.trackTitle.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
         }
     }
 }

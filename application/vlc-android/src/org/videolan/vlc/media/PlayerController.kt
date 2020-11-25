@@ -154,11 +154,17 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     fun getAudioDelay() = if (mediaplayer.hasMedia() && !mediaplayer.isReleased) mediaplayer.audioDelay else 0L
 
-    fun getSpuDelay() = if (mediaplayer.hasMedia() && !mediaplayer.isReleased) mediaplayer.spuDelay else 0L
+    fun getSpuDelay(): Long {
+        return subtitleController.getSpuDelay()
+//        return mediaplayer.spuDelay
+    }
 
     fun getRate() = if (mediaplayer.hasMedia() && !mediaplayer.isReleased && playbackState != PlaybackStateCompat.STATE_STOPPED) mediaplayer.rate else 1.0f
 
-    fun setSpuDelay(delay: Long) = mediaplayer.setSpuDelay(delay)
+    fun setSpuDelay(delay: Long): Boolean {
+        return subtitleController.setSpuDelay(delay)
+//        return mediaplayer.setSpuDelay(delay)
+    }
 
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
 
@@ -201,12 +207,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
 
     fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        return subtitleController.getSpuTracks().apply {
-            this?.forEach {
-                Log.d(TAG, "getSpuTracks: ${it.id}")
-                Log.d(TAG, "getSpuTracks: ${it.name}")
-            }
-        }
+        return subtitleController.getSpuTracks()
 //        return mediaplayer.spuTracks
     }
 

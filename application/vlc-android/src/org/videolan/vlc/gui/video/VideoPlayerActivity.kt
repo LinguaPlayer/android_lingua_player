@@ -1212,6 +1212,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                         } else if (event.esChangedType == IMedia.Track.Type.Text) {
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val media = medialibrary.findMedia(mw)
+                                //TODO: HABIB: update this to support multiple subtitles
                                 val spuTrack = media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt()
                                 if (addNextTrack) {
                                     val tracks = service.spuTracks
@@ -1526,6 +1527,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     fun setSpuTrack(trackID: Int) {
         runOnMainThread(Runnable { service?.setSpuTrack(trackID) })
         val mw = medialibrary.findMedia(service?.currentMediaWrapper) ?: return
+        //TODO: HABIB: update this to support multiple subtitles
         if (mw.id != 0L) mw.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, trackID.toLong())
     }
 

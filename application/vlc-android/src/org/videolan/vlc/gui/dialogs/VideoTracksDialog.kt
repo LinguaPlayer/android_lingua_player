@@ -25,7 +25,11 @@
 package org.videolan.vlc.gui.dialogs
 
 import android.os.Bundle
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
@@ -43,6 +47,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.PlayerOverlayTracksBinding
 import org.videolan.vlc.gui.dialogs.adapters.TrackAdapter
+import org.videolan.vlc.media.isParseable
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -57,8 +62,8 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     override fun initialFocusedView(): View = binding.subtitleTracks.trackMore
 
-    lateinit var menuItemListener:(Int) -> Unit
-    lateinit var trackSelectionListener:(Int, TrackType) -> Unit
+    lateinit var menuItemListener: (Int) -> Unit
+    lateinit var trackSelectionListener: (Int, TrackType) -> Unit
 
     init {
         VideoTracksDialog.registerCreator { CoroutineContextProvider() }
@@ -99,7 +104,10 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
                 //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
                 val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.spuTrack })
                 trackAdapter.setOnTrackSelectedListener { track ->
-                    trackSelectionListener.invoke(track.id, TrackType.SPU)
+
+                    //TODO:HABIB: Update this with suitable UI/UX
+                    if (!track.isParseable()) Toast.makeText(context, "Selected subtitle is an embeded subtitle, Lingua player needs another module to load them properly.", Toast.LENGTH_LONG).show()
+                    else trackSelectionListener.invoke(track.id, TrackType.SPU)
                 }
                 binding.subtitleTracks.trackList.adapter = trackAdapter
                 if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()

@@ -462,6 +462,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     fun setSpuTrack(index: Int) {
         if (!player.setSpuTrack(index)) return
         val media = getCurrentMedia() ?: return
+        //TODO: HABIB: update this to support multiple subtitles
         if (media.id != 0L) launch(Dispatchers.IO) { media.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, index.toLong()) }
     }
 
@@ -476,6 +477,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     fun setSpuDelay(delay: Long) {
         if (!player.setSpuDelay(delay)) return
         val media = getCurrentMedia() ?: return
+        // Habib: VLC uses medialibrary to save dealys, And mediaplayer.setSpuDelay just
+        // set it for the current moment and doesn't save it
         if (media.id != 0L) launch(Dispatchers.IO) { media.setLongMeta(MediaWrapper.META_SUBTITLE_DELAY, player.getSpuDelay()) }
     }
 
@@ -484,7 +487,11 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         if (player.canSwitchToVideo()) {
             if (settings.getBoolean("save_individual_audio_delay", true))
                 player.setAudioDelay(media.getMetaLong(MediaWrapper.META_AUDIODELAY))
+            //TODO: HABIB: update this to support multiple subtitles
             player.setSpuTrack(media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt())
+            // Habib: VLC uses medialibrary to save dealys, And mediaplayer.setSpuDelay just
+            // set it for the current moment and doesn't save it
+            // here before playing the video load the save value and calls mediaPlayer.setSpuDelay
             player.setSpuDelay(media.getMetaLong(MediaWrapper.META_SUBTITLE_DELAY))
             val rateString = media.getMetaString(MediaWrapper.META_SPEED)
             if (!rateString.isNullOrEmpty()) {
