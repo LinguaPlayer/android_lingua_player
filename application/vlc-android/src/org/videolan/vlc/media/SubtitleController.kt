@@ -45,14 +45,14 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) {
         } ?: listOf()
 
         val addedTrackDescriptions = addedSpuTracks.map { subtitle ->
-            Log.d(TAG, "getSpuTracks: ${subtitle.id}  ${subtitle.name}")
+            Log.d(TAG, "getSpuTracks: added ${subtitle.id}  ${subtitle.name}")
             ReflectionHelper.instantiateTrackDescription(subtitle.id, subtitle.name)
         }
 
         val embeddedTrackDescription = if (isFFmpegAvailable()) listOf<MediaPlayer.TrackDescription>()
-        else embeddedSpuTracks.filter { it.id != -1 }.mapIndexed { index, espu ->
-            Log.d(TAG, "getSpuTracks: ${espu.name}")
-            ReflectionHelper.instantiateTrackDescription(-1 - index, espu.name)
+        else embeddedSpuTracks.filter { it.id != -1 }.map { espu ->
+            Log.d(TAG, "getSpuTracks: embedded ${espu.name} ${espu.id}")
+            ReflectionHelper.instantiateTrackDescription(-1 - espu.id, espu.name)
         }
 
         val trackDisable = ReflectionHelper.instantiateTrackDescription(-1, "Disable")
