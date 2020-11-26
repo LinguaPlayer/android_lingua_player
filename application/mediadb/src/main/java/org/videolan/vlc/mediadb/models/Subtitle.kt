@@ -12,7 +12,7 @@ data class Subtitle(
         val mediaPath: Uri,
         val subtitlePath: Uri,
         val language: String,
-        val name: String,
         val selected: Boolean,
-        val delay: Long
+        val delay: Long,
 )
+

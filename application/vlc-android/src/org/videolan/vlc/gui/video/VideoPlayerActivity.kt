@@ -310,7 +310,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private val downloadedSubtitleObserver = Observer<List<org.videolan.vlc.mediadb.models.ExternalSub>> { externalSubs ->
         for (externalSub in externalSubs) {
             if (!addedExternalSubs.contains(externalSub)) {
-                service?.addSubtitleTrack(externalSub.subtitlePath, currentSpuTrack == -2)
+                lifecycleScope.launch {
+                    service?.addSubtitleTrack(externalSub.subtitlePath, currentSpuTrack == -2)
+                }
                 addedExternalSubs.add(externalSub)
             }
         }
@@ -817,7 +819,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         if (data == null) return
 // TODO:HABIB: the result of selecting subtitle
         if (data.hasExtra(EXTRA_MRL)) {
-            service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), false)
+           lifecycleScope.launch { service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), false) }
 
 //            TODO:HABIB We do not need this any more and the slave table just keeps the last one because the mediaURI is primary key
             service?.currentMediaWrapper?.let {
@@ -1693,7 +1695,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 positionInPlaylist = extras.getInt(PLAY_EXTRA_OPENED_POSITION, -1)
 
                 val path = extras.getString(PLAY_EXTRA_SUBTITLES_LOCATION)
-                if (!path.isNullOrEmpty()) service.addSubtitleTrack(path, true)
+                if (!path.isNullOrEmpty()) lifecycleScope.launch { service.addSubtitleTrack(path, true) }
                 if (intent.hasExtra(PLAY_EXTRA_ITEM_TITLE))
                     itemTitle = extras.getString(PLAY_EXTRA_ITEM_TITLE)
             }

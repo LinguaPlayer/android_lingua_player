@@ -1339,10 +1339,10 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
     fun setVideoTrack(index: Int) = playlistManager.player.setVideoTrack(index)
 
     @MainThread
-    fun addSubtitleTrack(path: String, select: Boolean) = playlistManager.player.addSubtitleTrack(path, select)
+    suspend fun addSubtitleTrack(path: String, select: Boolean) = playlistManager.player.addSubtitleTrack(path, select)
 
     @MainThread
-    fun addSubtitleTrack(uri: Uri, select: Boolean) = playlistManager.player.addSubtitleTrack(uri, select)
+    suspend fun addSubtitleTrack(uri: Uri, select: Boolean) = playlistManager.player.addSubtitleTrack(uri, select)
 
     @MainThread
     fun setSpuTrack(index: Int) = playlistManager.setSpuTrack(index)

@@ -251,7 +251,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         if (systemExit) launch(start = CoroutineStart.UNDISPATCHED) {
             job?.join()
             cancel()
-            player.cancel()
+            player.cancelCoroutine()
         }
     }
 

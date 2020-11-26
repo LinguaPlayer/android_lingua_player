@@ -36,6 +36,7 @@ private const val TAG = "PlayerController"
 class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.EventListener, CoroutineScope {
     override val coroutineContext = Dispatchers.Main.immediate + SupervisorJob()
 
+
     //    private val exceptionHandler by lazy(LazyThreadSafetyMode.NONE) { CoroutineExceptionHandler { _, _ -> onPlayerError() } }
     private val playerContext by lazy(LazyThreadSafetyMode.NONE) { newSingleThreadContext("vlc-player") }
     private val settings by lazy(LazyThreadSafetyMode.NONE) { Settings.getInstance(context) }
@@ -56,6 +57,11 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         private set
     @Volatile var hasRenderer = false
         private set
+
+    fun cancelCoroutine() {
+        cancel()
+        subtitleController.cancel()
+    }
 
     fun getVout(): IVLCVout? = mediaplayer.vlcVout
 
@@ -168,12 +174,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
 
-    fun addSubtitleTrack(path: String, select: Boolean): Boolean {
+    suspend fun addSubtitleTrack(path: String, select: Boolean): Boolean {
           return subtitleController.addSubtitleTrack(path, select)
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
     }
 
-    fun addSubtitleTrack(uri: Uri, select: Boolean): Boolean {
+    suspend fun addSubtitleTrack(uri: Uri, select: Boolean): Boolean {
         return subtitleController.addSubtitleTrack(uri, select)
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
     }
@@ -207,7 +213,10 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
 
     fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        return subtitleController.getSpuTracks()
+        //TODO: HABIB FIX THIS runBlocking
+        return runBlocking {
+            subtitleController.getSpuTracks()
+        }
 //        return mediaplayer.spuTracks
     }
 
