@@ -212,11 +212,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 // subtitle list and if user chose it show ffmpeg install
 
 
-    fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        //TODO: HABIB FIX THIS runBlocking
-        return runBlocking {
-            subtitleController.getSpuTracks()
-        }
+    suspend fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
+        return subtitleController.getSpuTracks()
 //        return mediaplayer.spuTracks
     }
 
@@ -272,10 +269,15 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setSlaves(media: IMedia, mw: MediaWrapper) = launch {
         if (mediaplayer.isReleased) return@launch
         val slaves = mw.slaves
+        slaves?.forEach {
+            Log.d(TAG, "setSlaves mw: ${it.uri}")
+        }
         slaves?.let { it.forEach { slave -> media.addSlave(slave) } }
         media.release()
         slaveRepository.getSlaves(mw.location).forEach { slave ->
+            Log.d(TAG, "setSlaves repo: ${slave.uri}")
             if (!slaves.contains(slave)) mediaplayer.addSlave(slave.type, slave.uri.toUri(), false)
+
         }
         slaves?.let { slaveRepository.saveSlaves(mw) }
     }

@@ -1217,7 +1217,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                                 //TODO: HABIB: update this to support multiple subtitles
                                 val spuTrack = media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt()
                                 if (addNextTrack) {
-                                    val tracks = service.spuTracks
+                                    val tracks = service.spuTracks()
                                     if (!(tracks as Array<MediaPlayer.TrackDescription>).isNullOrEmpty()) service.setSpuTrack(tracks[tracks.size - 1].id)
                                     addNextTrack = false
                                 } else if (spuTrack != 0 || currentSpuTrack != -2) {

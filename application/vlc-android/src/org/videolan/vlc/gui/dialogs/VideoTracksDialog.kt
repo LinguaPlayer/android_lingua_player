@@ -31,6 +31,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +39,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.tools.CoroutineContextProvider
 import org.videolan.tools.DependencyProvider
@@ -76,43 +78,45 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
     }
 
     private fun onServiceChanged(service: PlaybackService?) {
-        service?.let { playbackService ->
-            if (playbackService.videoTracksCount <= 2) {
-                binding.videoTracks.trackContainer.setGone()
-                binding.tracksSeparator3.setGone()
-            }
-            if (playbackService.audioTracksCount <= 0) {
-                binding.audioTracks.trackContainer.setGone()
-                binding.tracksSeparator2.setGone()
-            }
+        lifecycleScope.launch {
+            service?.let { playbackService ->
+                if (playbackService.videoTracksCount <= 2) {
+                    binding.videoTracks.trackContainer.setGone()
+                    binding.tracksSeparator3.setGone()
+                }
+                if (playbackService.audioTracksCount <= 0) {
+                    binding.audioTracks.trackContainer.setGone()
+                    binding.tracksSeparator2.setGone()
+                }
 
-            playbackService.videoTracks?.let { trackList ->
-                val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack })
-                trackAdapter.setOnTrackSelectedListener { track ->
-                    trackSelectionListener.invoke(track.id, TrackType.VIDEO)
+                playbackService.videoTracks?.let { trackList ->
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack })
+                    trackAdapter.setOnTrackSelectedListener { track ->
+                        trackSelectionListener.invoke(track.id, TrackType.VIDEO)
+                    }
+                    binding.videoTracks.trackList.adapter = trackAdapter
                 }
-                binding.videoTracks.trackList.adapter = trackAdapter
-            }
-            playbackService.audioTracks?.let { trackList ->
-                val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack })
-                trackAdapter.setOnTrackSelectedListener { track ->
-                    trackSelectionListener.invoke(track.id, TrackType.AUDIO)
+                playbackService.audioTracks?.let { trackList ->
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack })
+                    trackAdapter.setOnTrackSelectedListener { track ->
+                        trackSelectionListener.invoke(track.id, TrackType.AUDIO)
+                    }
+                    binding.audioTracks.trackList.adapter = trackAdapter
                 }
-                binding.audioTracks.trackList.adapter = trackAdapter
-            }
-            playbackService.spuTracks?.let { trackList ->
-                //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
-                val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.spuTrack })
-                trackAdapter.setOnTrackSelectedListener { track ->
+                playbackService.spuTracks()?.let { trackList ->
+                    //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.spuTrack })
+                    trackAdapter.setOnTrackSelectedListener { track ->
 
-                    //TODO:HABIB: Update this with suitable UI/UX
-                    if (!track.isParseable()) Toast.makeText(context, "Selected subtitle is an embeded subtitle, Lingua player needs another module to load them properly.", Toast.LENGTH_LONG).show()
-                    else trackSelectionListener.invoke(track.id, TrackType.SPU)
+                        //TODO:HABIB: Update this with suitable UI/UX
+                        if (!track.isParseable()) Toast.makeText(context, "Selected subtitle is an embeded subtitle, Lingua player needs another module to load them properly.", Toast.LENGTH_LONG).show()
+                        else trackSelectionListener.invoke(track.id, TrackType.SPU)
+                    }
+                    binding.subtitleTracks.trackList.adapter = trackAdapter
+                    if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
                 }
-                binding.subtitleTracks.trackList.adapter = trackAdapter
-                if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
+                if (playbackService.spuTracks() == null) binding.subtitleTracks.emptyView.setVisible()
             }
-            if (playbackService.spuTracks == null) binding.subtitleTracks.emptyView.setVisible()
         }
     }
 
