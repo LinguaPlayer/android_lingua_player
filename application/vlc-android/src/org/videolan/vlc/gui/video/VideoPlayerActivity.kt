@@ -135,12 +135,13 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     lateinit var orientationMode: PlayerOrientationMode
 
     private var currentAudioTrack = -2
-    private var currentSpuTrack = -2
+//    private var currentSpuTrack = -2
 
     var isLocked = false
     /* -1 is a valid track (Disable) */
     private var lastAudioTrack = -2
-    private var lastSpuTrack = -2
+//    HABIB: I DON'T NEED THIS
+//    private var lastSpuTrack = -2
     var lockBackButton = false
     private var wasPaused = false
     private var savedTime: Long = -1
@@ -311,7 +312,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         for (externalSub in externalSubs) {
             if (!addedExternalSubs.contains(externalSub)) {
                 lifecycleScope.launch {
-                    service?.addSubtitleTrack(externalSub.subtitlePath, currentSpuTrack == -2)
+                    val selected = service?.selectedSpuTracks()
+                    service?.addSubtitleTrack(externalSub.subtitlePath, selected.isNullOrEmpty())
                 }
                 addedExternalSubs.add(externalSub)
             }
@@ -770,7 +772,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             if (wasPaused) settings.putSingle(VIDEO_PAUSED, true)
             if (!isFinishing) {
                 currentAudioTrack = audioTrack
-                currentSpuTrack = spuTrack
+//                currentSpuTrack = selectedSpuTracks
                 if (tv) finish() // Leave player on TV, restauration can be difficult
             }
 
@@ -1215,14 +1217,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val media = medialibrary.findMedia(mw)
                                 //TODO: HABIB: update this to support multiple subtitles
-                                val spuTrack = media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt()
-                                if (addNextTrack) {
-                                    val tracks = service.spuTracks()
-                                    if (!(tracks as Array<MediaPlayer.TrackDescription>).isNullOrEmpty()) service.setSpuTrack(tracks[tracks.size - 1].id)
-                                    addNextTrack = false
-                                } else if (spuTrack != 0 || currentSpuTrack != -2) {
-                                    service.setSpuTrack(if (media.id == 0L) currentSpuTrack else spuTrack)
-                                }
+//                                val spuTrack = media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt()
+//                                if (addNextTrack) {
+//                                    val tracks = service.spuTracks()
+//                                    if (!(tracks as Array<MediaPlayer.TrackDescription>).isNullOrEmpty()) service.setSpuTrack(tracks[tracks.size - 1].id)
+//                                    addNextTrack = false
+//                                } else if (spuTrack != 0 || currentSpuTrack != -2) {
+//                                    service.setSpuTrack(if (media.id == 0L) currentSpuTrack else spuTrack)
+//                                }
                             }
                         }
                     }
@@ -1527,10 +1529,10 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     @WorkerThread
     fun setSpuTrack(trackID: Int) {
-        runOnMainThread(Runnable { service?.setSpuTrack(trackID) })
-        val mw = medialibrary.findMedia(service?.currentMediaWrapper) ?: return
-        //TODO: HABIB: update this to support multiple subtitles
-        if (mw.id != 0L) mw.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, trackID.toLong())
+// HABIB: I DONT NEED THIS
+//        runOnMainThread(Runnable { service?.setSpuTrack(trackID) })
+//        val mw = medialibrary.findMedia(service?.currentMediaWrapper) ?: return
+//        if (mw.id != 0L) mw.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, trackID.toLong())
     }
 
     private fun showNavMenu() {
@@ -1597,10 +1599,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             service?.setAudioTrack(lastAudioTrack)
             lastAudioTrack = -2
         }
-        if (lastSpuTrack >= -1) {
-            service?.setSpuTrack(lastSpuTrack)
-            lastSpuTrack = -2
-        }
+//        HABIB: I DON'T NEED THIS
+//        if (lastSpuTrack >= -1) {
+//            service?.setSpuTrack(lastSpuTrack)
+//            lastSpuTrack = -2
+//        }
     }
 
     /**
@@ -1737,7 +1740,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                         }
 
                         lastAudioTrack = media.audioTrack
-                        lastSpuTrack = media.spuTrack
+//                        HABIB: I DON'T NEED THIS
+//                        lastSpuTrack = media.spuTrack
                     } else if (!fromStart) {
                         // not in media library
                         if (askResume && startTime > 0L) {

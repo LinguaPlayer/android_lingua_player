@@ -32,8 +32,9 @@ import org.videolan.libvlc.MediaPlayer
 import org.videolan.vlc.databinding.VideoTrackItemBinding
 import org.videolan.vlc.media.isParseable
 
-class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var selectedTrack: MediaPlayer.TrackDescription?) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
+class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, val selectedTracks: List<MediaPlayer.TrackDescription>, val multiSelect: Boolean) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
+    val mutableSelectedTracks = selectedTracks.toMutableSet()
     lateinit var trackSelectedListener: (MediaPlayer.TrackDescription) -> Unit
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -49,7 +50,7 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var 
     override fun getItemCount() = tracks.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(tracks[position], tracks[position] == selectedTrack)
+        holder.bind(tracks[position], mutableSelectedTracks.contains(tracks[position]))
     }
 
     inner class ViewHolder(val binding: VideoTrackItemBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -58,7 +59,14 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, var 
 
             itemView.setOnClickListener {
                 if (tracks[layoutPosition].isParseable()) {
-                    selectedTrack = tracks[layoutPosition]
+                    if (multiSelect) {
+                        val selected = mutableSelectedTracks.find { it == tracks[layoutPosition] }
+                        if (selected != null) mutableSelectedTracks.remove(selected)
+                        else mutableSelectedTracks.add(tracks[layoutPosition])
+                    } else mutableSelectedTracks.apply {
+                        clear()
+                        add(tracks[layoutPosition])
+                    }
                     notifyDataSetChanged()
                 }
                 trackSelectedListener.invoke(tracks[layoutPosition])

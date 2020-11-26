@@ -217,7 +217,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.spuTracks
     }
 
-    fun getSpuTrack(): Int {
+    suspend fun getSelectedSpuTracks(): List<Int> {
         return subtitleController.getSpuTrack()
 //        return mediaplayer.spuTrack
     }
@@ -227,7 +227,11 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.setSpuTrack(index)
     }
 
-    fun getSpuTracksCount(): Int {
+    suspend fun toggleSpuTrack(index: Int): Boolean {
+        return subtitleController.toggleSpuTrack(index)
+    }
+
+    suspend fun getSpuTracksCount(): Int {
         return subtitleController.getSpuTracksCount()
 //        return mediaplayer.spuTracksCount
     }

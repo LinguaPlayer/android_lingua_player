@@ -6,9 +6,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.runBlocking
 import org.videolan.libvlc.MediaPlayer
-import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ReflectionHelper
@@ -52,26 +50,27 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         val addedTrackDescriptions = addedSpuTracks.map { subtitle ->
 
             val name = FileUtils.getFileNameFromPath(subtitle.subtitlePath.path)
-            Log.d(TAG, "getSpuTracks: added ${subtitle.subtitlePath} ${subtitle.id}  ${name}")
-
             ReflectionHelper.instantiateTrackDescription(subtitle.id, name)
         }
 
         val embeddedTrackDescription = if (isFFmpegAvailable()) listOf<MediaPlayer.TrackDescription>()
         else embeddedSpuTracks.filter { it.id != -1 }.map { espu ->
-            Log.d(TAG, "getSpuTracks: embedded ${espu.name} ${espu.id}")
             ReflectionHelper.instantiateTrackDescription(-1 - espu.id, espu.name)
         }
 
-        val trackDisable = ReflectionHelper.instantiateTrackDescription(-1, "Disable")
+//        val trackDisable = ReflectionHelper.instantiateTrackDescription(-1, "Disable")
 
-        val tracks: MutableList<MediaPlayer.TrackDescription> = (embeddedTrackDescription + addedTrackDescriptions) as MutableList<MediaPlayer.TrackDescription>
-        if (tracks.isNotEmpty()) tracks.add(0, trackDisable)
-        return tracks.toTypedArray()
+//        val tracks: MutableList<MediaPlayer.TrackDescription> = (embeddedTrackDescription + addedTrackDescriptions) as MutableList<MediaPlayer.TrackDescription>
+//        if (tracks.isNotEmpty()) tracks.add(0, trackDisable)
+        return (embeddedTrackDescription + addedTrackDescriptions).toTypedArray()
     }
 
     // TODO: HABIB: UPDATE THIS LATER TO SUPPORT MULTIPLE SUBTITLE
-    fun getSpuTrack(): Int = mediaplayer.spuTrack
+    suspend fun getSpuTrack(): List<Int> {
+        return mediaplayer.media?.uri?.run {
+            SubtitlesRepository.getInstance(context).getSelectedSpuTracks(this).map { it.id }
+        } ?: listOf()
+    }
 
     fun setSpuTrack(index: Int): Boolean {
         return if (index < -1) {
@@ -82,7 +81,20 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         }
     }
 
-    fun getSpuTracksCount(): Int = mediaplayer.spuTracksCount
+    suspend fun toggleSpuTrack(index: Int): Boolean {
+        return if (index < -1) {
+            false
+        } else {
+            SubtitlesRepository.getInstance(context).toggleSelected(index)
+            true
+        }
+    }
+
+    suspend fun getSpuTracksCount(): Int {
+        return mediaplayer.media?.uri?.run {
+            SubtitlesRepository.getInstance(context).getSpuTracks(this)?.size
+        } ?: 0
+    }
 }
 
 fun MediaPlayer.TrackDescription.isParseable() = id >= -1

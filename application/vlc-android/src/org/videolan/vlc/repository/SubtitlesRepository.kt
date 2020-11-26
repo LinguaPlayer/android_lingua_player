@@ -3,13 +3,12 @@ package org.videolan.vlc.repository
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.videolan.tools.SingletonHolder
 import org.videolan.vlc.database.MediaDatabase
 import org.videolan.vlc.mediadb.SubtitleDao
 import org.videolan.vlc.mediadb.models.Subtitle
+
+private const val TAG = "SubtitlesRepository"
 
 class SubtitlesRepository(private val subtitleDao: SubtitleDao) {
 
@@ -24,12 +23,17 @@ class SubtitlesRepository(private val subtitleDao: SubtitleDao) {
         return subtitleDao.getSubtitles(mediaPath)
     }
 
+    suspend fun getSelectedSpuTracks(mediaPath: Uri): List<Subtitle> {
+        return subtitleDao.getSelectedSubtitles(mediaPath)
+    }
+
     fun getSelectedSpuTracksLiveData(mediaPath: Uri): LiveData<List<Subtitle>> {
         return subtitleDao.getSelectedSubtitlesLiveData(mediaPath)
     }
 
-    fun updateSelected(id: Int, selected: Boolean){
-        return subtitleDao.updateSelected(id, selected)
+    suspend fun toggleSelected(id: Int) {
+        val isSelected = subtitleDao.getSubtitle(id).selected
+        return subtitleDao.updateSelected(id, !isSelected)
     }
 
     suspend fun setDelay(id: Int, delay: Long) {

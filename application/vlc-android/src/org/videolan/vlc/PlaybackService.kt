@@ -435,13 +435,13 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         playlistManager.player.getSpuTracks()
 
 
-    val spuTrack: Int
-        @MainThread
-        get() = playlistManager.player.getSpuTrack()
+    suspend fun selectedSpuTracks(): List<Int> {
+        return playlistManager.player.getSelectedSpuTracks()
+    }
 
-    val spuTracksCount: Int
-        @MainThread
-        get() = playlistManager.player.getSpuTracksCount()
+    suspend fun spuTracksCount(): Int {
+        return playlistManager.player.getSpuTracksCount()
+    }
 
     val audioDelay: Long
         @MainThread
@@ -1346,6 +1346,8 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
 
     @MainThread
     fun setSpuTrack(index: Int) = playlistManager.setSpuTrack(index)
+
+    fun toggleSpuTrack(index: Int) = lifecycleScope.launch { playlistManager.toggleSpuTrack(index) }
 
     @MainThread
     fun setAudioDelay(delay: Long) = playlistManager.setAudioDelay(delay)

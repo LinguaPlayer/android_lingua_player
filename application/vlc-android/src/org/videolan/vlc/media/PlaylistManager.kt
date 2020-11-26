@@ -460,10 +460,14 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     }
 
     fun setSpuTrack(index: Int) {
-        if (!player.setSpuTrack(index)) return
-        val media = getCurrentMedia() ?: return
-        //TODO: HABIB: update this to support multiple subtitles
-        if (media.id != 0L) launch(Dispatchers.IO) { media.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, index.toLong()) }
+//HABIB: I DON't NEED THIS
+//        if (!player.setSpuTrack(index)) return
+//        val media = getCurrentMedia() ?: return
+//        if (media.id != 0L) launch(Dispatchers.IO) { media.setLongMeta(MediaWrapper.META_SUBTITLE_TRACK, index.toLong()) }
+    }
+
+    suspend fun toggleSpuTrack(index: Int) {
+        player.toggleSpuTrack(index)
     }
 
     fun setAudioDelay(delay: Long) {

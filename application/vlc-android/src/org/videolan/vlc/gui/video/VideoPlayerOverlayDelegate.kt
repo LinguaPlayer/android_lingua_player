@@ -143,7 +143,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                         })
                     }
                 }
-                VideoTracksDialog.TrackType.SPU -> player.service?.setSpuTrack(trackID)
+                // TODO: HABIB CHECK THIS setSputrack
+                VideoTracksDialog.TrackType.SPU -> player.service?.toggleSpuTrack(trackID)
                 VideoTracksDialog.TrackType.VIDEO -> {
                     player.service?.let { service ->
                         player.seek(service.time)

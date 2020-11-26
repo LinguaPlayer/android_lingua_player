@@ -17,14 +17,20 @@ interface SubtitleDao {
     @Query("SELECT * from Subtitle where mediaPath = :mediaPath")
     suspend fun getSubtitles(mediaPath: Uri): List<Subtitle>
 
+    @Query("SELECT * from Subtitle where id = :id")
+    suspend fun getSubtitle(id: Int): Subtitle
+
     @Query("SELECT * from Subtitle where mediaPath = :mediaPath")
     fun getSubtitlesLiveData(mediaPath: Uri): LiveData<List<Subtitle>>
 
     @Query("SELECT * from Subtitle where mediaPath = :mediaPath and selected = 1")
     fun getSelectedSubtitlesLiveData(mediaPath: Uri): LiveData<List<Subtitle>>
 
+    @Query("SELECT * from Subtitle where mediaPath = :mediaPath and selected = 1")
+    suspend fun getSelectedSubtitles(mediaPath: Uri): List<Subtitle>
+
     @Query("UPDATE Subtitle SET selected = :selected WHERE id = :id")
-    fun updateSelected(id: Int, selected: Boolean)
+    suspend fun updateSelected(id: Int, selected: Boolean)
 
     @Query("UPDATE Subtitle SET delay = :delay WHERE id = :id")
     suspend fun updateDelay(id: Int, delay: Long)

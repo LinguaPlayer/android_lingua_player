@@ -90,14 +90,14 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
                 }
 
                 playbackService.videoTracks?.let { trackList ->
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack })
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack } ?.let { listOf(it) }?: listOf(), false)
                     trackAdapter.setOnTrackSelectedListener { track ->
                         trackSelectionListener.invoke(track.id, TrackType.VIDEO)
                     }
                     binding.videoTracks.trackList.adapter = trackAdapter
                 }
                 playbackService.audioTracks?.let { trackList ->
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack })
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack } ?.let { listOf(it) } ?: listOf(), false)
                     trackAdapter.setOnTrackSelectedListener { track ->
                         trackSelectionListener.invoke(track.id, TrackType.AUDIO)
                     }
@@ -105,7 +105,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
                 }
                 playbackService.spuTracks()?.let { trackList ->
                     //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.spuTrack })
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks().contains(it.id) }, true)
                     trackAdapter.setOnTrackSelectedListener { track ->
 
                         //TODO:HABIB: Update this with suitable UI/UX
