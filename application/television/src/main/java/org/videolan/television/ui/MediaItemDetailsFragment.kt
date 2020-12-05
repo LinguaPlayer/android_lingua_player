@@ -48,7 +48,12 @@ import org.videolan.moviepedia.repository.MediaPersonRepository
 import org.videolan.moviepedia.viewmodel.MediaMetadataFull
 import org.videolan.moviepedia.viewmodel.MediaMetadataModel
 import org.videolan.resources.ACTION_REMOTE_STOP
+import org.videolan.resources.FAVORITE_TITLE
+import org.videolan.resources.HEADER_DIRECTORIES
+import org.videolan.resources.HEADER_NETWORK
+import org.videolan.television.ui.browser.VerticalGridActivity
 import org.videolan.tools.HttpImageLoader
+import org.videolan.tools.retrieveParent
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.AudioUtil
@@ -72,12 +77,16 @@ private const val ID_PLAY_FROM_START = 8
 private const val ID_PLAYLIST = 9
 private const val ID_GET_INFO = 10
 private const val ID_FAVORITE = 11
+private const val ID_REMOVE_FROM_HISTORY = 12
+private const val ID_NAVIGATE_PARENT = 13
+const val EXTRA_FROM_HISTORY = "from_history"
 
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by MainScope(), OnItemViewClickedListener {
 
+    private var fromHistory: Boolean = false
     private lateinit var detailsDescriptionPresenter: DetailsDescriptionPresenter
     private lateinit var backgroundManager: BackgroundManager
     private lateinit var rowsAdapter: ArrayObjectAdapter
@@ -109,12 +118,13 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
         backgroundManager.isAutoReleaseOnStop = false
         browserFavRepository = BrowserFavRepository.getInstance(requireContext())
         viewModel.mediaStarted = false
-        detailsDescriptionPresenter = org.videolan.television.ui.DetailsDescriptionPresenter()
-        arrayObjectAdapterPosters = ArrayObjectAdapter(org.videolan.television.ui.MediaImageCardPresenter(requireActivity(), MediaImageType.POSTER))
+        detailsDescriptionPresenter = DetailsDescriptionPresenter()
+        arrayObjectAdapterPosters = ArrayObjectAdapter(MediaImageCardPresenter(requireActivity(), MediaImageType.POSTER))
 
         val extras = requireActivity().intent.extras ?: savedInstanceState ?: return
         viewModel.mediaItemDetails = extras.getParcelable("item") ?: return
         val hasMedia = extras.containsKey("media")
+        fromHistory = extras.getBoolean(EXTRA_FROM_HISTORY, false)
         val media = (extras.getParcelable<Parcelable>("media")
                 ?: MLServiceLocator.getAbstractMediaWrapper(AndroidUtil.LocationToUri(viewModel.mediaItemDetails.location))) as MediaWrapper
 
@@ -251,7 +261,7 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
                 }
 
                 if (metadata.images.any { it.imageType == MediaImageType.BACKDROP }) {
-                    val arrayObjectAdapterBackdrops = ArrayObjectAdapter(org.videolan.television.ui.MediaImageCardPresenter(requireActivity(), MediaImageType.BACKDROP))
+                    val arrayObjectAdapterBackdrops = ArrayObjectAdapter(MediaImageCardPresenter(requireActivity(), MediaImageType.BACKDROP))
                     arrayObjectAdapterBackdrops.setItems(metadata.images.filter { it.imageType == MediaImageType.BACKDROP }, imageDiffCallback)
                     val headerBackdrops = HeaderItem(mediaMetadata.metadata?.metadata?.moviepediaId?.toLong(36)
                             ?: 0, getString(R.string.backdrops))
@@ -263,7 +273,7 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
 
                 override fun areContentsTheSame(oldItem: Row, newItem: Row): Boolean {
                     if (oldItem is DetailsOverviewRow && newItem is DetailsOverviewRow) {
-                        return oldItem.item as org.videolan.television.ui.MediaItemDetails == newItem.item as org.videolan.television.ui.MediaItemDetails
+                        return oldItem.item as MediaItemDetails == newItem.item as MediaItemDetails
                     }
                     return true
                 }
@@ -296,6 +306,24 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
                     viewModel.mediaStarted = false
                     TvUtil.playMedia(activity, viewModel.media)
                     activity.finish()
+                }
+                ID_REMOVE_FROM_HISTORY -> {
+                    lifecycleScope.launch {
+                        withContext(Dispatchers.IO) {
+                            fromHistory = !viewModel.media.removeFromHistory()
+                        }
+                        if (!fromHistory) actionsAdapter.clear(ID_REMOVE_FROM_HISTORY)
+                    }
+                }
+                ID_NAVIGATE_PARENT -> {
+                    viewModel.media.uri.retrieveParent()?.let { item ->
+                        val intent = Intent(activity, VerticalGridActivity::class.java)
+                        intent.putExtra(MainTvActivity.BROWSER_TYPE, if ("file" == item.scheme) HEADER_DIRECTORIES else HEADER_NETWORK)
+                        intent.putExtra(FAVORITE_TITLE, item.lastPathSegment)
+                        intent.data = item
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        activity.startActivity(intent)
+                    }
                 }
                 ID_PLAYLIST -> requireActivity().addToPlaylist(arrayListOf(viewModel.media))
                 ID_FAVORITE_ADD -> {
@@ -362,7 +390,10 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
                 } else {
                     detailsOverview.setImageBitmap(context, cover)
                 }
-
+                if (fromHistory) {
+                    actionsAdapter.set(ID_REMOVE_FROM_HISTORY, Action(ID_REMOVE_FROM_HISTORY.toLong(), res.getString(R.string.remove_from_history)))
+                }
+                if (viewModel.media.uri.retrieveParent() != null) actionsAdapter.set(ID_NAVIGATE_PARENT, Action(ID_NAVIGATE_PARENT.toLong(), res.getString(R.string.go_to_folder)))
                 actionsAdapter.set(ID_PLAY, Action(ID_PLAY.toLong(), res.getString(R.string.play)))
                 actionsAdapter.set(ID_LISTEN, Action(ID_LISTEN.toLong(), res.getString(R.string.listen)))
                 actionsAdapter.set(ID_PLAYLIST, Action(ID_PLAYLIST.toLong(), res.getString(R.string.add_to_playlist)))
@@ -373,6 +404,10 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
                 } else {
                     detailsOverview.setImageBitmap(context, cover)
                 }
+                if (fromHistory) {
+                    actionsAdapter.set(ID_REMOVE_FROM_HISTORY, Action(ID_REMOVE_FROM_HISTORY.toLong(), res.getString(R.string.remove_from_history)))
+                }
+                if (viewModel.media.uri.retrieveParent() != null) actionsAdapter.set(ID_NAVIGATE_PARENT, Action(ID_NAVIGATE_PARENT.toLong(), res.getString(R.string.go_to_folder)))
                 actionsAdapter.set(ID_PLAY, Action(ID_PLAY.toLong(), res.getString(R.string.play)))
                 actionsAdapter.set(ID_PLAY_FROM_START, Action(ID_PLAY_FROM_START.toLong(), res.getString(R.string.play_from_start)))
                 if (FileUtils.canWrite(viewModel.media.uri))
@@ -389,7 +424,7 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
 }
 
 class MediaItemDetailsModel : ViewModel() {
-    lateinit var mediaItemDetails: org.videolan.television.ui.MediaItemDetails
+    lateinit var mediaItemDetails: MediaItemDetails
     lateinit var media: MediaWrapper
     var mediaStarted = false
 }

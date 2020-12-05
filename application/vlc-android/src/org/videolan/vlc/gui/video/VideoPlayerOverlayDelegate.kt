@@ -62,16 +62,15 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.*
-import org.videolan.vlc.PlaybackService
-import org.videolan.vlc.R
-import org.videolan.vlc.RendererDelegate
+import org.videolan.vlc.*
 import org.videolan.vlc.databinding.PlayerHudBinding
 import org.videolan.vlc.databinding.PlayerHudRightBinding
 import org.videolan.vlc.gui.audio.PlaylistAdapter
 import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
-import org.videolan.vlc.gui.helpers.OnRepeatListener
+import org.videolan.vlc.gui.helpers.OnRepeatListenerKey
+import org.videolan.vlc.gui.helpers.OnRepeatListenerTouch
 import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
@@ -379,7 +378,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 it.setVisible()
                 hudRightBinding = DataBindingUtil.bind(player.findViewById(R.id.hud_right_overlay)) ?: return
                 if (!player.isBenchmark && player.enableCloneMode && !player.settings.contains("enable_clone_mode")) {
-                    UiTools.snackerConfirm(hudRightBinding.videoSecondaryDisplay, player.getString(R.string.video_save_clone_mode), Runnable { player.settings.putSingle("enable_clone_mode", true) })
+                    UiTools.snackerConfirm(player, player.getString(R.string.video_save_clone_mode)) { player.settings.putSingle("enable_clone_mode", true) }
                 }
             }
 
@@ -507,8 +506,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         if (!::hudBinding.isInitialized) return
         hudBinding.playerOverlayRewind.setOnClickListener(player)
         hudBinding.playerOverlayForward.setOnClickListener(player)
-        hudBinding.playerOverlayRewind.setOnTouchListener(OnRepeatListener(player))
-        hudBinding.playerOverlayForward.setOnTouchListener(OnRepeatListener(player))
+        hudBinding.playerOverlayRewind.setOnTouchListener(OnRepeatListenerTouch(player))
+        hudBinding.playerOverlayForward.setOnTouchListener(OnRepeatListenerTouch(player))
+        hudBinding.playerOverlayRewind.setOnKeyListener(OnRepeatListenerKey(player))
+        hudBinding.playerOverlayForward.setOnKeyListener(OnRepeatListenerKey(player))
     }
 
     fun updateOrientationIcon() {

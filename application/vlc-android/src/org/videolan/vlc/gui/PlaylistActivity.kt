@@ -116,7 +116,7 @@ open class PlaylistActivity : AudioPlayerContainerActivity(), IEventsHandler<Med
             @Suppress("UNCHECKED_CAST")
             (tracks as? PagedList<MediaLibraryItem>)?.let { audioBrowserAdapter.submitList(it) }
             menu.let { UiTools.updateSortTitles(it, viewModel.tracksProvider) }
-            itemTouchHelperCallback.swipeEnabled = true
+            if (::itemTouchHelperCallback.isInitialized) itemTouchHelperCallback.swipeEnabled = true
         })
 
         viewModel.tracksProvider.liveHeaders.observe(this, {
@@ -252,8 +252,8 @@ open class PlaylistActivity : AudioPlayerContainerActivity(), IEventsHandler<Med
     override fun onCtxClick(v: View, position: Int, item: MediaLibraryItem) {
         if (actionMode == null) {
             var flags = CTX_PLAYLIST_ITEM_FLAGS
-            (item as? MediaWrapper)?.let {media ->
-                if (media.type == MediaWrapper.TYPE_STREAM || (media.type == MediaWrapper.TYPE_ALL && media.uri.scheme?.startsWith("http") == true)) flags = flags  or CTX_RENAME
+            (item as? MediaWrapper)?.let { media ->
+                if (media.type == MediaWrapper.TYPE_STREAM || (media.type == MediaWrapper.TYPE_ALL && isSchemeHttpOrHttps(media.uri.scheme))) flags = flags or CTX_RENAME
             }
             showContext(this, this, position, item.title, flags)
         }
@@ -397,15 +397,15 @@ open class PlaylistActivity : AudioPlayerContainerActivity(), IEventsHandler<Med
     private fun removeItem(position: Int, media: MediaWrapper) {
         val resId = if (isPlaylist) R.string.confirm_remove_from_playlist else R.string.confirm_delete
         if (isPlaylist) {
-            snackerConfirm(binding.root, getString(resId, media.title), Runnable { (viewModel.playlist as Playlist).remove(position) })
+            snackerConfirm(this, getString(resId, media.title), Runnable { (viewModel.playlist as Playlist).remove(position) })
         } else {
             val deleteAction = Runnable { deleteMedia(media) }
-            snackerConfirm(binding.root, getString(resId, media.title), Runnable { if (Permissions.checkWritePermission(this@PlaylistActivity, media, deleteAction)) deleteAction.run() })
+            snackerConfirm(this, getString(resId, media.title), Runnable { if (Permissions.checkWritePermission(this@PlaylistActivity, media, deleteAction)) deleteAction.run() })
         }
     }
 
     private fun removeItems(items: List<MediaWrapper>) {
-        lifecycleScope.snackerConfirm(binding.root,getString(R.string.confirm_delete_several_media, items.size)) {
+        lifecycleScope.snackerConfirm(this, getString(R.string.confirm_delete_several_media, items.size)) {
             for (item in items) {
                 if (!isStarted()) break
                 if (getWritePermission(item.uri)) deleteMedia(item)
@@ -422,7 +422,7 @@ open class PlaylistActivity : AudioPlayerContainerActivity(), IEventsHandler<Med
             if (parentPath != null && FileUtils.deleteFile(path) && media.id > 0L && !foldersToReload.contains(parentPath)) {
                 foldersToReload.add(parentPath)
             } else
-                UiTools.snacker(binding.root, getString(R.string.msg_delete_failed, media.title))
+                UiTools.snacker(this@PlaylistActivity, getString(R.string.msg_delete_failed, media.title))
         }
         for (folder in foldersToReload) mediaLibrary.reload(folder)
     }
@@ -451,7 +451,7 @@ open class PlaylistActivity : AudioPlayerContainerActivity(), IEventsHandler<Med
                     playlist.remove(playlistIndex - index)
                 }
             }
-            UiTools.snackerWithCancel(findViewById(android.R.id.content), getString(R.string.removed_from_playlist_anonymous), null, {
+            UiTools.snackerWithCancel(this@PlaylistActivity, getString(R.string.removed_from_playlist_anonymous), null, {
                 for ((key, value) in itemsRemoved) {
                     playlist.add(value, key)
                 }

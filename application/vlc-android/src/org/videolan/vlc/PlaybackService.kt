@@ -92,6 +92,7 @@ private const val TAG = "VLC/PlaybackService"
 class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
     private val dispatcher = ServiceLifecycleDispatcher(this)
 
+    internal var enabledActions = PLAYBACK_BASE_ACTIONS
     lateinit var playlistManager: PlaylistManager
         private set
     val mediaplayer: MediaPlayer
@@ -114,6 +115,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
     private var notificationShowing = false
     private var prevUpdateInCarMode = true
     private var lastTime = 0L
+    private var lastLength = 0L
     private var widget = 0
     /**
      * Last widget position update timestamp
@@ -188,6 +190,12 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
                 if (wakeLock.isHeld) wakeLock.release()
             }
             MediaPlayer.Event.EncounteredError -> executeUpdate()
+            MediaPlayer.Event.LengthChanged -> {
+                if (lastLength == 0L) {
+                    executeUpdate()
+                    publishState()
+                }
+            }
             MediaPlayer.Event.PositionChanged -> {
                 if (time < 1000L && time < lastTime) publishState()
                 lastTime = time
@@ -268,9 +276,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         @MainThread
         get() {
             val media = playlistManager.getCurrentMedia()
-            return if (media != null) media.nowPlaying
-                    ?: MediaUtils.getMediaArtist(this@PlaybackService, media)
-            else null
+            return if (media != null) MediaUtils.getMediaArtist(this@PlaybackService, media) else null
         }
 
     val artistPrev: String?
@@ -842,6 +848,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         if (!this::mediaSession.isInitialized) initMediaSession()
         val ctx = this
         val length = length
+        lastLength = length
         val bob = withContext(Dispatchers.Default) {
             val title = media.nowPlaying ?: media.title
             val coverOnLockscreen = settings.getBoolean("lockscreen_cover", true)
@@ -870,9 +877,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
             }
             bob.putLong("shuffle", 1L)
             bob.putLong("repeat", repeatType.toLong())
-            return@withContext bob
+            return@withContext bob.build()
         }
-        if (this@PlaybackService::mediaSession.isInitialized) mediaSession.setMetadata(bob.build())
+        if (this@PlaybackService::mediaSession.isInitialized) mediaSession.setMetadata(bob)
     }
 
     private fun publishState(position: Long? = null) {
@@ -928,6 +935,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         val update = mediaSession.isActive != mediaIsActive
         updateMediaQueueSlidingWindow()
         mediaSession.setPlaybackState(pscb.build())
+        enabledActions = actions
         mediaSession.isActive = mediaIsActive
         mediaSession.setQueueTitle(getString(R.string.music_now_playing))
         if (update) {
@@ -1140,11 +1148,13 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
                 for ((position, media) in mediaList.subList(fromIndex, toIndex).withIndex()) {
                     val title: String = media.nowPlaying ?: media.title
                     val mediaId = MediaSessionBrowser.generateMediaId(media)
+                    val iconUri = if (isSchemeHttpOrHttps(media.artworkMrl)) Uri.parse(media.artworkMrl)
+                    else artworkMap[mediaId] ?: MediaSessionBrowser.DEFAULT_TRACK_ICON
                     val mediaDesc = MediaDescriptionCompat.Builder()
                             .setTitle(title)
                             .setSubtitle(MediaUtils.getMediaArtist(ctx, media))
                             .setDescription(MediaUtils.getMediaAlbum(ctx, media))
-                            .setIconUri(artworkMap[mediaId] ?: MediaSessionBrowser.DEFAULT_TRACK_ICON)
+                            .setIconUri(iconUri)
                             .setMediaUri(media.uri)
                             .setMediaId(mediaId)
                             .build()

@@ -29,6 +29,7 @@ import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.res.ColorStateList
 import android.os.Build
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
@@ -41,13 +42,13 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import org.videolan.tools.putSingle
-import org.videolan.tools.setGone
-import org.videolan.tools.setInvisible
-import org.videolan.tools.setVisible
+import org.videolan.tools.*
+import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.helpers.OnRepeatListener
+import org.videolan.vlc.gui.helpers.OnRepeatListenerTouch
+import org.videolan.vlc.gui.helpers.OnRepeatListenerKey
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.KEY_BLUETOOTH_DELAY
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.DelayValues
@@ -76,6 +77,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : View.OnClick
     private lateinit var delayInfo: TextView
     private lateinit var delayTitle: TextView
     private lateinit var delayContainer: View
+    private lateinit var delayApplyAll: MaterialButton
 
     /**
      * Instantiate all the views, set their click listeners and shows the view.
@@ -97,6 +99,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : View.OnClick
             delayInfo = player.findViewById(R.id.delay_textinfo)
             delayTitle = player.findViewById(R.id.delay_title)
             delayContainer = player.findViewById(R.id.delay_container)
+            delayApplyAll = player.findViewById(R.id.delay_apply_all)
         }
         delayFirstButton.text = if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) player.getString(R.string.audio_delay_start) else player.getString(R.string.subtitle_delay_first)
         delaySecondButton.text = if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) player.getString(R.string.audio_delay_end) else player.getString(R.string.subtitle_delay_end)
@@ -105,14 +108,18 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : View.OnClick
         delayFirstButton.setOnClickListener(this)
         delaySecondButton.setOnClickListener(this)
         delayResetButton.setOnClickListener(this)
-        playbackSettingMinus.setOnTouchListener(OnRepeatListener(this))
-        playbackSettingPlus.setOnTouchListener(OnRepeatListener(this))
+        delayApplyAll.setOnClickListener(this)
+        playbackSettingMinus.setOnTouchListener(OnRepeatListenerTouch(this))
+        playbackSettingPlus.setOnTouchListener(OnRepeatListenerTouch(this))
+        playbackSettingMinus.setOnKeyListener(OnRepeatListenerKey(this))
+        playbackSettingPlus.setOnKeyListener(OnRepeatListenerKey(this))
         playbackSettingMinus.setVisible()
         playbackSettingPlus.setVisible()
         delayFirstButton.setVisible()
         delaySecondButton.setVisible()
         playbackSettingPlus.requestFocus()
         initPlaybackSettingInfo()
+        if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) delayApplyAll.setVisible() else delayApplyAll.setGone()
     }
 
     /**
@@ -166,6 +173,12 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : View.OnClick
                 if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) player.service?.setAudioDelay(0) else player.service?.setSpuDelay(0)
                 delayInfo.text = "0 ms"
                 player.service?.playlistManager?.resetDelayValues()
+            }
+            R.id.delay_apply_all -> {
+                player.service?.let {
+                    Settings.getInstance(player).putSingle(AUDIO_DELAY_GLOBAL, it.audioDelay)
+                    UiTools.snacker(player, player.getString(R.string.audio_delay_global, "${it.audioDelay / 1000L}"))
+                }
             }
 
         }

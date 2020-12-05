@@ -1,7 +1,6 @@
 package org.videolan.vlc.media
 
 import android.content.Intent
-import android.net.Uri
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
@@ -454,6 +453,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                 }
                 media.time = if (progress == 0f) 0L else time
                 media.setLongMeta(MediaWrapper.META_PROGRESS, media.time)
+                //todo verify that this info is persisted in DB
+                if (media.length <= 0 && length > 0) media.length = length
             }
             media.setStringMeta(MediaWrapper.META_SPEED, rate.toString())
         }
@@ -492,6 +493,14 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             if (settings.getBoolean("save_individual_audio_delay", true))
                 player.setAudioDelay(media.getMetaLong(MediaWrapper.META_AUDIODELAY))
             //TODO: HABIB: update this to support multiple subtitles
+            val savedDelay = media.getMetaLong(MediaWrapper.META_AUDIODELAY)
+            val globalDelay = Settings.getInstance(AppContextProvider.appContext).getLong(AUDIO_DELAY_GLOBAL, 0L)
+            if (savedDelay == 0L && globalDelay != 0L) {
+                player.setAudioDelay(globalDelay)
+            } else if (settings.getBoolean("save_individual_audio_delay", true)) {
+                player.setAudioDelay(savedDelay)
+            }
+
             player.setSpuTrack(media.getMetaLong(MediaWrapper.META_SUBTITLE_TRACK).toInt())
             // Habib: VLC uses medialibrary to save dealys, And mediaplayer.setSpuDelay just
             // set it for the current moment and doesn't save it
@@ -792,7 +801,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         when (event.type) {
             IMedia.Event.MetaChanged -> {
                 /* Update Meta if file is already parsed */
-                if (parsed && player.updateCurrentMeta(event.metaId, getCurrentMedia())) service.executeUpdate()
+                if (parsed && player.updateCurrentMeta(event.metaId, getCurrentMedia())) service.onMediaListChanged()
                 if (BuildConfig.DEBUG) Log.i(TAG, "Media.Event.MetaChanged: " + event.metaId)
             }
             IMedia.Event.ParsedChanged -> {
@@ -821,6 +830,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                     } ?: return
                     if (newMedia) {
                         loadMediaMeta(mw)
+                        mw.length = player.getLength()
                         saveMediaList()
                         savePosition(reset = true)
                         saveCurrentMedia()
@@ -878,11 +888,11 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                         medialibrary.addStream(entryUrl ?: mw.uri.toString(), mw.title).also {
                             entryUrl = null
                         }
-                    } else medialibrary.addMedia(mw.uri.toString())
+                    } else medialibrary.addMedia(mw.uri.toString(), mw.length)
                     if (internalMedia != null) id = internalMedia.id
                 }
             }
-            if (id != 0L) medialibrary.increasePlayCount(id)
+            if (id != 0L) medialibrary.setProgress(id, 1.0f)
         }
     }
 

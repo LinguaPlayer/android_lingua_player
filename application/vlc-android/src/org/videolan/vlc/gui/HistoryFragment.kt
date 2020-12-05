@@ -24,20 +24,26 @@ import android.view.*
 import androidx.appcompat.view.ActionMode
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.observe
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.android.synthetic.main.history_list.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.onEach
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.KeyHelper
 import org.videolan.tools.MultiSelectHelper
 import org.videolan.tools.isStarted
+import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.browser.MediaBrowserFragment
 import org.videolan.vlc.gui.helpers.*
 import org.videolan.vlc.interfaces.IHistory
+import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.interfaces.IRefreshable
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -48,11 +54,12 @@ private const val TAG = "VLC/HistoryFragment"
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHistory, SwipeRefreshLayout.OnRefreshListener {
+class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHistory, SwipeRefreshLayout.OnRefreshListener, IListEventsHandler {
 
     private lateinit var cleanMenuItem: MenuItem
     private lateinit var multiSelectHelper: MultiSelectHelper<MediaWrapper>
-    private val historyAdapter: HistoryAdapter = HistoryAdapter()
+    private val historyAdapter: HistoryAdapter = HistoryAdapter(listEventsHandler = this)
+    private lateinit var itemTouchHelper: ItemTouchHelper
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.history_list, container, false)
@@ -94,6 +101,9 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
         list.nextFocusLeftId = android.R.id.list
         list.nextFocusRightId = android.R.id.list
         list.nextFocusForwardId = android.R.id.list
+
+        itemTouchHelper = ItemTouchHelper(SwipeDragItemTouchHelperCallback(historyAdapter))
+        itemTouchHelper!!.attachToRecyclerView(list)
 
         multiSelectHelper = historyAdapter.multiSelectHelper
         list.requestFocus()
@@ -156,6 +166,7 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+        multiSelectHelper.toggleActionMode(true, historyAdapter.itemCount)
         mode.menuInflater.inflate(R.menu.action_mode_history, menu)
         return true
     }
@@ -168,6 +179,7 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
         }
         menu.findItem(R.id.action_history_info).isVisible = selectionCount == 1
         menu.findItem(R.id.action_history_append).isVisible = PlaylistManager.hasMedia()
+        menu.findItem(R.id.action_go_to_folder).isVisible = selectionCount == 1 && multiSelectHelper.getSelection().first().uri.retrieveParent() != null
         return true
     }
 
@@ -178,7 +190,8 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
             when (item.itemId) {
                 R.id.action_history_play -> MediaUtils.openList(activity, selection, 0)
                 R.id.action_history_append -> MediaUtils.appendMedia(activity, selection)
-                R.id.action_history_info -> showInfoDialog(selection[0])
+                R.id.action_history_info -> showInfoDialog(selection.first())
+                R.id.action_go_to_folder -> showParentFolder(selection.first())
                 else -> {
                     stopActionMode()
                     return false
@@ -190,6 +203,7 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
     }
 
     override fun onDestroyActionMode(mode: ActionMode) {
+        multiSelectHelper.toggleActionMode(false, historyAdapter.itemCount)
         actionMode = null
         multiSelectHelper.clearSelection()
     }
@@ -226,5 +240,15 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
         historyAdapter.notifyItemChanged(position, item)
         if (actionMode == null) startActionMode()
         invalidateActionMode()
+    }
+
+    override fun onRemove(position: Int, item: MediaLibraryItem) {
+        viewModel.removeFromHistory(item as MediaWrapper)
+    }
+
+    override fun onMove(oldPosition: Int, newPosition: Int) {
+    }
+
+    override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) {
     }
 }

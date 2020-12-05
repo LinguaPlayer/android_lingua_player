@@ -117,6 +117,7 @@ import kotlin.math.roundToInt
 @ExperimentalCoroutinesApi
 open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, PlaylistAdapter.IPlayer, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher {
 
+    private var subtitlesExtraPath: String? = null
     private lateinit var startedScope : CoroutineScope
     var service: PlaybackService? = null
     lateinit var medialibrary: Medialibrary
@@ -137,7 +138,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         private set
     private var isPlaying = false
     private var loadingImageView: ImageView? = null
-    private var navMenu: ImageView? = null
     var enableCloneMode: Boolean = false
     lateinit var orientationMode: PlayerOrientationMode
 
@@ -273,7 +273,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
             if (!isFinishing && fromUser && service?.isSeekable == true) {
-                seek(progress.toLong())
+                seek(progress.toLong(), fromUser)
                 overlayDelegate.showInfo(Tools.millisToString(progress.toLong()), 1000)
             }
             if (fromUser) {
@@ -408,7 +408,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         val screenOrientationSetting = Integer.valueOf(settings.getString(SCREEN_ORIENTATION, "99" /*SCREEN ORIENTATION SENSOR*/)!!)
         orientationMode = when (screenOrientationSetting) {
             99 -> PlayerOrientationMode(false)
-            101 -> PlayerOrientationMode(true, if (windowManager.defaultDisplay.rotation == Surface.ROTATION_90) ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE)
+            101 -> PlayerOrientationMode(true, if (windowManager.defaultDisplay.rotation == Surface.ROTATION_270) ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
             102 -> PlayerOrientationMode(true, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
             else -> PlayerOrientationMode(true, getOrientationForLock())
         }
@@ -1063,6 +1063,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 return true
             }
             KeyEvent.KEYCODE_K -> {
+                delayDelegate.showDelayControls()
                 delayDelegate.delayAudioOrSpu(delta = 50000L, delayState = IPlaybackSettingsController.DelayState.AUDIO)
                 handler.removeMessages(HIDE_SETTINGS)
                 handler.sendEmptyMessageDelayed(HIDE_SETTINGS, 4000L)
@@ -1203,7 +1204,15 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             when (event.type) {
                 MediaPlayer.Event.Playing -> onPlaying()
                 MediaPlayer.Event.Paused -> overlayDelegate.updateOverlayPausePlay()
-                MediaPlayer.Event.Opening -> forcedTime = -1
+                MediaPlayer.Event.Opening -> {
+                    forcedTime = -1
+                    if (!subtitlesExtraPath.isNullOrEmpty()) {
+                        lifecycleScope.launch {
+                            service.addSubtitleTrack(subtitlesExtraPath!!, true)
+                            subtitlesExtraPath = null
+                        }
+                    }
+                }
                 MediaPlayer.Event.Vout -> {
                     updateNavStatus()
                     if (event.voutCount > 0)
@@ -1558,15 +1567,15 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         }
     }
 
-    fun seek(position: Long) {
-        service?.let { seek(position, it.length) }
+    fun seek(position: Long, fromUser: Boolean = false) {
+        service?.let { seek(position, it.length, fromUser) }
     }
 
-    internal fun seek(position: Long, length: Long) {
+    internal fun seek(position: Long, length: Long, fromUser: Boolean = false) {
         service?.let { service ->
             forcedTime = position
             lastTime = service.time
-            service.seek(position, length.toDouble())
+            service.seek(position, length.toDouble(), fromUser)
             service.playlistManager.player.updateProgress(position)
         }
     }
@@ -2015,7 +2024,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 overlayDelegate.hideOverlay(false)
             } else if (menuIdx != -1) setESTracks()
 
-            navMenu.setVisibility(if (menuIdx >= 0 && navMenu != null) View.VISIBLE else View.GONE)
+            if (overlayDelegate.isHudRightBindingInitialized()) overlayDelegate.hudRightBinding.playerOverlayNavmenu.setVisibility(if (menuIdx >= 0) View.VISIBLE else View.GONE)
             supportInvalidateOptionsMenu()
         }
     }

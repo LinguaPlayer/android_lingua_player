@@ -204,7 +204,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     val mw = playlistAdapter.getItem(position)
                     val cancelAction = Runnable { playlistModel.insertMedia(position, mw) }
                     val message = String.format(getString(R.string.remove_playlist_item), mw.title)
-                    UiTools.snackerWithCancel((it.context as Activity).findViewById(android.R.id.content), message, null, cancelAction)
+                    UiTools.snackerWithCancel(requireActivity(), message, null, cancelAction)
                     playlistModel.remove(position)
                 }
                 CTX_STOP_AFTER_THIS -> playlistModel.stopAfter(position)
@@ -313,11 +313,13 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 if (playlistModel.currentMediaPosition == -1) return@withContext ""
                 val elapsedTracksTime = playlistModel.previousTotalTime ?: return@withContext ""
                 val totalTime = elapsedTracksTime + progress.time
-                val currentProgressText = if (totalTime == 0L) "0s" else Tools.millisToString(totalTime, true, false, false)
+                val totalTimeText = Tools.millisToString(totalTime, true, false, false)
+                val currentProgressText = if (totalTimeText.isNullOrEmpty()) "0s" else totalTimeText
 
                 val textTrack = getString(R.string.track_index, "${playlistModel.currentMediaPosition + 1} / ${medias.size}")
-                val textProgress = getString(R.string.audio_queue_progress, "$currentProgressText / ${playlistModel.totalTime}")
-                "$textTrack • $textProgress"
+                val textProgress = getString(R.string.audio_queue_progress,
+                        if (playlistModel.totalTime.isNullOrEmpty()) "$currentProgressText" else "$currentProgressText / ${playlistModel.totalTime}")
+                "$textTrack  •  $textProgress"
             }
             binding.audioPlayProgress.text = text
         }
@@ -349,11 +351,11 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     }
 
     fun onNextClick(view: View) {
-        if (!playlistModel.next()) activity?.window?.decorView?.let { UiTools.snacker(it, R.string.lastsong) }
+        if (!playlistModel.next()) UiTools.snacker(requireActivity(), R.string.lastsong)
     }
 
     fun onPreviousClick(view: View) {
-        if (!playlistModel.previous()) activity?.window?.decorView?.let { UiTools.snacker(it,  R.string.firstsong) }
+        if (!playlistModel.previous()) UiTools.snacker(requireActivity(),  R.string.firstsong)
     }
 
     fun onRepeatClick(view: View) {
@@ -580,7 +582,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             val trackInfo = playlistModel.title ?: return
 
             requireActivity().copy("VLC - song name", trackInfo)
-            activity?.window?.decorView?.let { UiTools.snacker(it, R.string.track_info_copied_to_clipboard) }
+            UiTools.snacker(requireActivity(), R.string.track_info_copied_to_clipboard)
         }
 
         override fun onTouchDown() {}
