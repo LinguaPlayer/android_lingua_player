@@ -49,8 +49,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             Log.d(TAG, "prepareSubtitles: $it")
         } )
     }
-    private var backgroundColorEnabled = true
-    @ColorInt private var subtitleBackgroundColor: Int = 0
+    private var backgroundColorEnabled = false
+    @ColorInt private var subtitleBackgroundColor: Int = ContextCompat.getColor(player.applicationContext, R.color.black)
 
     private val showCaptionObserver = Observer<ShowCaption> {
         var caption: Spannable =
@@ -72,8 +72,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         val size = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitle_size", "25")?.toInt() ?: 25
         val bold = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_bold", false)
         backgroundColorEnabled = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_background", false)
-        Log.d(TAG, "updateSubtitleTextViewStyle: $color $size $bold $backgroundColorEnabled")
-        Log.d(TAG, "updateSubtitleTextViewStyle: stroke $strokeColor $strokeWidth")
+//        Log.d(TAG, "updateSubtitleTextViewStyle: $color $size $bold $backgroundColorEnabled")
+//        Log.d(TAG, "updateSubtitleTextViewStyle: stroke $strokeColor $strokeWidth")
         player.findViewById<StrokedTextView>(R.id.subtitleTextView).apply {
             setStrokeColor(Color.parseColor("#" + Integer.toHexString(strokeColor)))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, size.toFloat())

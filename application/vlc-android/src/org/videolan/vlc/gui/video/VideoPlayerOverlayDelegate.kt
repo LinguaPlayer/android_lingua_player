@@ -47,6 +47,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -54,6 +55,8 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
@@ -306,6 +309,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 enterAnimate(arrayOf(hudBinding.progressOverlay, hudBackground), 100.dp.toFloat())
                 enterAnimate(arrayOf(hudRightBinding.hudRightOverlay, hudRightBackground), -100.dp.toFloat())
 
+
                 if (!player.displayManager.isPrimary)
                     overlayBackground.setVisible()
                 updateOverlayPausePlay(true)
@@ -313,6 +317,14 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             player.handler.removeMessages(VideoPlayerActivity.FADE_OUT)
             if (overlayTimeout != VideoPlayerActivity.OVERLAY_INFINITE)
                 player.handler.sendMessageDelayed(player.handler.obtainMessage(VideoPlayerActivity.FADE_OUT), overlayTimeout.toLong())
+
+            if (::hudBinding.isInitialized) {
+                val playerControllerSize = if (hudBinding.constraintLayout2.height == 0) 300 else hudBinding.constraintLayout2.height
+                val height = playerControllerSize - hudBinding.constraintLayout2.paddingTop
+                Log.d("Habib", "showControls: height $height")
+                Log.d("Habib", "showControls: height ${hudBinding.constraintLayout2.height}")
+                player.subtitleDelegate.setOverlayHeight(height)
+            }
         }
     }
 
@@ -650,10 +662,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudRightBinding.playlistToggle.visibility = if (show && player.service?.hasPlaylist() == true) View.VISIBLE else View.GONE
         }
 
-        if (::hudBinding.isInitialized) {
-            val height = hudBinding.constraintLayout2.height - hudBinding.constraintLayout2.paddingTop
-            player.subtitleDelegate.setOverlayHeight(height)
-        }
     }
 
 
