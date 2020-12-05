@@ -31,6 +31,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
@@ -72,6 +73,7 @@ import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.view.PlayerProgress
+import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.FileUtils
@@ -647,7 +649,14 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
             hudRightBinding.playlistToggle.visibility = if (show && player.service?.hasPlaylist() == true) View.VISIBLE else View.GONE
         }
+
+        if (::hudBinding.isInitialized) {
+            val height = hudBinding.constraintLayout2.height - hudBinding.constraintLayout2.paddingTop
+            player.subtitleDelegate.setOverlayHeight(height)
+        }
     }
+
+
 
     /**
      * hider overlay
@@ -676,6 +685,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
              */
             dimStatusBar(true)
         }
+
+        if (::hudBinding.isInitialized)
+            player.subtitleDelegate.setOverlayHeight(0)
     }
 
     fun focusPlayPause() {

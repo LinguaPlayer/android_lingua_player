@@ -3,18 +3,32 @@ package org.videolan.vlc.media
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import com.github.kazemihabib.cueplayer.util.Event
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.videolan.libvlc.MediaPlayer
+import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
+import org.videolan.vlc.subs.CaptionsData
+import org.videolan.vlc.subs.SubtitleParser
+import org.videolan.vlc.subs.SubtitleParsinginfo
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ReflectionHelper
 
 private const val TAG = "SubtitleController"
+private const val INFO_TIMEOUT = 2000L
 
 class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): CoroutineScope {
+
     override val coroutineContext = Dispatchers.Main.immediate + SupervisorJob()
+
+    private val subtitleParser = SubtitleParser()
 
     fun getSpuDelay(): Long = mediaplayer.spuDelay
 
@@ -95,9 +109,79 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
             SubtitlesRepository.getInstance(context).getSpuTracks(this)?.size
         } ?: 0
     }
+
+    private val isSubtitleInDelayedMode = false
+    private val _subtitleCaption = MutableLiveData<ShowCaption>()
+    val subtitleCaption: LiveData<ShowCaption>
+        get() = _subtitleCaption
+
+    private val _subtitleInfo = MutableLiveData<Event<ShowInfo>>()
+    val subtitleInfo: LiveData<Event<ShowInfo>>
+        get() = _subtitleInfo
+
+
+    //This acotr puts a delay between infos
+    private val infoActor = actor<ShowInfo> {
+        for (event in channel) {
+            _subtitleInfo.value = Event(event)
+            delay(2000)
+        }
+    }
+
+    suspend fun parseSubtitle(subtitlePaths: List<String>) {
+        subtitleParser.parseAsTimedTextObject(context, subtitlePaths).collect {
+            infoActor.send(ShowInfo(it.error, autoHide = true))
+        }
+
+        // To update immediately in pause mode
+        getCaption(mediaplayer.time)
+    }
+
+    fun getCaption(time: Long): List<CaptionsData> {
+        val captionData = subtitleParser.getCaption(isSubtitleInDelayedMode, time)
+
+        _subtitleCaption.value =
+                ShowCaption( caption = captionData.flatMap {
+                    it.captionsOfThisTime.map { caption -> caption.content }
+                }.joinToString(separator = "<br>"),
+                        isTouchable = false
+                )
+
+        return captionData
+    }
+
+    fun getNextCaption(alsoSeekThere: Boolean): List<CaptionsData> {
+        val captionsDataList = subtitleParser.getNextCaption(false)
+        _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
+            if (alsoSeekThere)
+                minBy { it.minStartTime }?.minStartTime?.run { /*seek(this, false) */}
+        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content }}.joinToString(separator = "<br>"),
+                isTouchable = false
+        )
+        return captionsDataList
+    }
+
+    fun getPreviousCaption(alsoSeekThere: Boolean): List<CaptionsData> {
+        val captionsDataList = subtitleParser.getPreviousCaption(isSubtitleInDelayedMode)
+        _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
+            if (alsoSeekThere) minBy { it.minStartTime }?.minStartTime?.run {
+//                seek( this, false )
+            }
+        }.flatMap { it.captionsOfThisTime .map {caption ->  caption.content }}.joinToString(separator = "<br>")
+                ,isTouchable = false
+        )
+        return captionsDataList
+    }
+
+    val getNumberOfParsedSubs: Int
+        get() = subtitleParser.getNumberOfParsedSubs()
+
 }
 
 fun MediaPlayer.TrackDescription.isParseable() = id >= -1
 
 //TODO: HABIB: Check really is available
 fun isFFmpegAvailable() = false
+
+data class ShowCaption(val caption: String, val isTouchable: Boolean)
+data class ShowInfo(val message: String, val autoHide: Boolean, val autoHideTimeOut: Long= INFO_TIMEOUT)

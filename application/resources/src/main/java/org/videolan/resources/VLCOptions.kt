@@ -218,7 +218,9 @@ object VLCOptions {
 
         if (noVideo) media.addOption(":no-video")
         if (paused) media.addOption(":start-paused")
-        if (!prefs.getBoolean("subtitles_autoload", true)) media.addOption(":sub-language=none")
+//        if (!prefs.getBoolean("subtitles_autoload", true)) media.addOption(":sub-language=none")
+        // Lingua
+        media.addOption(":sub-language=none")
         if (!benchmark && prefs.getBoolean("media_fast_seek", true)) media.addOption(":input-fast-seek")
 
         if (hasRenderer) {

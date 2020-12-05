@@ -7,7 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.core.net.toUri
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.github.kazemihabib.cueplayer.util.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
@@ -34,6 +36,7 @@ private const val TAG = "PlayerController"
 @ExperimentalCoroutinesApi
 @Suppress("EXPERIMENTAL_FEATURE_WARNING")
 class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.EventListener, CoroutineScope {
+
     override val coroutineContext = Dispatchers.Main.immediate + SupervisorJob()
 
 
@@ -184,6 +187,17 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
     }
 
+    val numberOfParsedSubs: Int
+        get() = subtitleController.getNumberOfParsedSubs
+
+    suspend fun parseSubtitles(subtitlePaths: List<String>) = subtitleController.parseSubtitle(subtitlePaths)
+
+    val subtitleCaption: LiveData<ShowCaption>
+        get() = subtitleController.subtitleCaption
+
+    val subtitleInfo: LiveData<Event<ShowInfo>>
+        get() = subtitleController.subtitleInfo
+
 // CafeBazar: already has ffmpeg just check the subtitle tracks
 // google play do the below
 // If user has not already downloaded ffmpeg:
@@ -273,13 +287,9 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setSlaves(media: IMedia, mw: MediaWrapper) = launch {
         if (mediaplayer.isReleased) return@launch
         val slaves = mw.slaves
-        slaves?.forEach {
-            Log.d(TAG, "setSlaves mw: ${it.uri}")
-        }
         slaves?.let { it.forEach { slave -> media.addSlave(slave) } }
         media.release()
         slaveRepository.getSlaves(mw.location).forEach { slave ->
-            Log.d(TAG, "setSlaves repo: ${slave.uri}")
             if (!slaves.contains(slave)) mediaplayer.addSlave(slave.type, slave.uri.toUri(), false)
 
         }
@@ -396,6 +406,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
                         updateProgress(newTime = time)
                         lastTime = time
                     }
+                    subtitleController.getCaption(time)
                 }
             }
             mediaplayerEventListener?.onEvent(event)

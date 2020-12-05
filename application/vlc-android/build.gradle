@@ -156,6 +156,8 @@ dependencies {
     api project(':application:live-plot-graph')
     api project(':application:donations')
 
+//    // Lingua
+    api 'com.github.albfernandez:juniversalchardet:2.3.0'
 
     // AppCompat
     api "androidx.activity:activity-ktx:$rootProject.ext.androidxActivityVersion"

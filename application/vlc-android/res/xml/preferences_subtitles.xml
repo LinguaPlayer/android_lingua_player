@@ -42,4 +42,5 @@
             android:persistent="true"
             android:title="@string/subtitle_text_encoding"/>
 
+
 </androidx.preference.PreferenceScreen>

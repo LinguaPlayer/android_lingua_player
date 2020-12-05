@@ -35,6 +35,7 @@ import android.net.Uri
 import android.os.*
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Editable
+import android.text.Spannable
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
@@ -62,6 +63,8 @@ import androidx.constraintlayout.widget.Guideline
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.core.text.HtmlCompat
+import androidx.core.text.toSpannable
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LiveData
@@ -69,6 +72,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import com.github.kazemihabib.cueplayer.util.EventObserver
+import kotlinx.android.synthetic.main.info_item.*
 import kotlinx.android.synthetic.main.player_overlay_brightness.*
 import kotlinx.android.synthetic.main.player_overlay_volume.*
 import kotlinx.coroutines.*
@@ -95,7 +100,9 @@ import org.videolan.vlc.gui.dialogs.RenderersDialog
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
+import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
+import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.repository.ExternalSubRepository
 import org.videolan.vlc.repository.SlaveRepository
 import org.videolan.vlc.util.FileUtils
@@ -170,6 +177,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     val statsDelegate: VideoStatsDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoStatsDelegate(this, { overlayDelegate.showOverlayTimeout(OVERLAY_INFINITE) }, { overlayDelegate.showOverlay(true) }) }
     val delayDelegate: VideoDelayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoDelayDelegate(this@VideoPlayerActivity) }
     val overlayDelegate: VideoPlayerOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoPlayerOverlayDelegate(this@VideoPlayerActivity) }
+    val subtitleDelegate: SubtitleOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { SubtitleOverlayDelegate(this@VideoPlayerActivity)}
     var isTv: Boolean = false
 
     /**
@@ -1805,16 +1813,21 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 forcedTime = -1
                 overlayDelegate.showOverlay(true)
             }
+
             enableSubs()
         }
     }
 
     private fun enableSubs() {
         videoUri?.let {
-            val lastPath = it.lastPathSegment ?: return
-            overlayDelegate.enableSubs = (lastPath.isNotEmpty() && !lastPath.endsWith(".ts") && !lastPath.endsWith(".m2ts")
-                    && !lastPath.endsWith(".TS") && !lastPath.endsWith(".M2TS"))
+            subtitleDelegate.updateSubtitleTextViewStyle()
+            subtitleDelegate.prepareSubtitles(it)
         }
+//        videoUri?.let {
+//            val lastPath = it.lastPathSegment ?: return
+//            overlayDelegate.enableSubs = (lastPath.isNotEmpty() && !lastPath.endsWith(".ts") && !lastPath.endsWith(".m2ts")
+//                    && !lastPath.endsWith(".TS") && !lastPath.endsWith(".M2TS"))
+//        }
     }
 
     private fun removeDownloadedSubtitlesObserver() {
@@ -2112,6 +2125,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             return intent
         }
     }
+
+
 }
 
 data class PlayerOrientationMode (

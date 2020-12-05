@@ -68,8 +68,6 @@ object FileUtils {
 
     fun getFileNameFromPath(filePath: String?) =  filePath?.substringAfterLast('/') ?: ""
 
-    fun getFileNameFromPathWithoutExtension(filePath: String?) = getFileNameFromPath(filePath).substringAfterLast('.') ?: ""
-
     fun getParent(path: String?): String? {
         if (path == null || path == "/")
             return path
