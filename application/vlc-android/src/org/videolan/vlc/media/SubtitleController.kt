@@ -5,19 +5,14 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
 import com.github.kazemihabib.cueplayer.util.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
 import org.videolan.libvlc.MediaPlayer
-import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.subs.CaptionsData
 import org.videolan.vlc.subs.SubtitleParser
-import org.videolan.vlc.subs.SubtitleParsinginfo
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ReflectionHelper
 
@@ -137,15 +132,19 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         getCaption(mediaplayer.time)
     }
 
+    private var prevCaption = ""
     fun getCaption(time: Long): List<CaptionsData> {
         val captionData = subtitleParser.getCaption(isSubtitleInDelayedMode, time)
 
-        _subtitleCaption.value =
-                ShowCaption( caption = captionData.flatMap {
-                    it.captionsOfThisTime.map { caption -> caption.content }
-                }.joinToString(separator = "<br>"),
-                        isTouchable = false
-                )
+        val stringCaptionData = captionData.flatMap {
+            it.captionsOfThisTime.map { caption -> caption.content }
+        }.joinToString(separator = "<br>")
+
+        if (prevCaption == stringCaptionData) return captionData
+
+        prevCaption = stringCaptionData
+
+        _subtitleCaption.value = ShowCaption( caption = stringCaptionData, isTouchable = false )
 
         return captionData
     }
