@@ -14,7 +14,7 @@ class SubtitlesRepository(private val subtitleDao: SubtitleDao) {
 
     suspend fun addSubtitleTrack(mediaPath: Uri, subtitlePath: Uri, selected: Boolean): Boolean {
         val language = getLanguageFromPath(subtitlePath)
-        val s = Subtitle(id= 0, mediaPath = mediaPath, subtitlePath = subtitlePath, language = language, selected = /*TODO HABIB UPDATE THIS LATER*/ false, delay = 0L)
+        val s = Subtitle(id= 0, mediaPath = mediaPath, subtitlePath = subtitlePath, language = language, selected = selected, delay = 0L)
         subtitleDao.insert(s)
         return true
     }

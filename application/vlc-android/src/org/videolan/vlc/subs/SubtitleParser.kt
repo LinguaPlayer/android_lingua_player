@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.videolan.vlc.R
-import org.videolan.vlc.subs.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -18,6 +17,11 @@ private const val TAG = "SubtitleParser"
 
 class SubtitleParser {
     private val parsedSubtitles = TreeMap<String, TimedTextObject>()
+    private var subtitleDelay = 0L
+
+    fun setSubtitleDelay(delay: Long) {
+        subtitleDelay = delay
+    }
 
     fun getNumberOfParsedSubs(): Int = parsedSubtitles.size
 
@@ -128,8 +132,8 @@ class SubtitleParser {
 
         return parsedSubtitles.map { mapEntry ->
             mapEntry.value.run {
-                if (delayedMode) getCaption(currentTime, delayedCaptions)
-                else getCaption(currentTime, captions)
+                if (delayedMode) getCaption(currentTime - subtitleDelay, delayedCaptions)
+                else getCaption(currentTime - subtitleDelay, captions)
             }
         }.filterNotNull().apply {
             lastMaxCaptionTime = maxBy { it.maxEndTime }?.maxEndTime ?: currentTime

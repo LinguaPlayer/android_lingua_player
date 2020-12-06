@@ -31,6 +31,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
     // subtitle, so for now I just use the VLC medialibrary
     // But I'll put the delay field for each subttile in the database
     fun setSpuDelay(delay: Long): Boolean {
+        subtitleParser.setSubtitleDelay(delay / 1000)
         return mediaplayer.setSpuDelay(delay)
     }
 
@@ -74,7 +75,6 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         return (embeddedTrackDescription + addedTrackDescriptions).toTypedArray()
     }
 
-    // TODO: HABIB: UPDATE THIS LATER TO SUPPORT MULTIPLE SUBTITLE
     suspend fun getSpuTrack(): List<Int> {
         return mediaplayer.media?.uri?.run {
             SubtitlesRepository.getInstance(context).getSelectedSpuTracks(this).map { it.id }
@@ -127,6 +127,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         subtitleParser.parseAsTimedTextObject(context, subtitlePaths).collect {
             infoActor.send(ShowInfo(it.error, autoHide = true))
         }
+
+        subtitleParser.setSubtitleDelay(getSpuDelay() / 1000)
 
         // To update immediately in pause mode
         getCaption(mediaplayer.time)

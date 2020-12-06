@@ -827,11 +827,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null) return
-// TODO:HABIB: the result of selecting subtitle
         if (data.hasExtra(EXTRA_MRL)) {
-           lifecycleScope.launch { service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), false) }
+           lifecycleScope.launch { service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), true) }
 
-//            TODO:HABIB We do not need this any more and the slave table just keeps the last one because the mediaURI is primary key
             service?.currentMediaWrapper?.let {
                 SlaveRepository.getInstance(this).saveSlave(it.location, IMedia.Slave.Type.Subtitle, 2, data.getStringExtra(EXTRA_MRL)!!)
             }
