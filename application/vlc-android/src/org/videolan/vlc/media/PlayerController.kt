@@ -21,10 +21,7 @@ import org.videolan.libvlc.interfaces.IVLCVout
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.VLCOptions
-import org.videolan.tools.KEY_PLAYBACK_RATE
-import org.videolan.tools.KEY_PLAYBACK_SPEED_PERSIST
-import org.videolan.tools.Settings
-import org.videolan.tools.putSingle
+import org.videolan.tools.*
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.repository.SlaveRepository
@@ -198,36 +195,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     val subtitleInfo: LiveData<Event<ShowInfo>>
         get() = subtitleController.subtitleInfo
 
-// CafeBazar: already has ffmpeg just check the subtitle tracks
-// google play do the below
-// If user has not already downloaded ffmpeg:
-// TODO:HABIB I should add another getSpuTracks=> VLCGetSpuTracks and if it returns non zero
-// I should check if it's the subtitle beside movie
-// if not it is the embeded subtitle
-// ask the user to download the ffmpeg module (google play features)
-// then unload it
-// otherwise just show it using vlc subtitle engine
-// I should somehow handle the indexes
-// VLC description is like this:
-// MOVIE NAME: Friends.S03E01.720p.mkv
-//Subtitles:
-// Friends.S03E01.720p.en.srt ==> detects named English
-// Friends.S03E01.720p.fa.srt ==> detects named Persian
-// Friends.S03E01.720p.zcvsw.srt ==> detects named zcvsw
-// Friends.S03E01.720P.zcvsw.srt ==> detects capital case does not matter
-// Friends.S03E01.720.zcvsw.srt ==> NOT detect name of file should start exactly like the movie name
-// UPDATE: JUST ADD --sub-autodetect-fuzzy=0 (https://wiki.videolan.org/VLC-0-9-x_command-line_help/)
-// It will not load the available srt files beside the movie file at all
-// it will just load the embeded ones
-//!!!!!!!!!!!!!!!!!!!!!!! As I want to show multiple subtitles
-// and native subtitle renderer doesn't have the feature to show
-// next and prev subtitles, I should just show that there is native subtitle
-// If you want to render it please install ffmpeg, I can even show in
-// subtitle list and if user chose it show ffmpeg install
-
-
     suspend fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        return subtitleController.getSpuTracks()
+        return subtitleController.getSpuTracks().toTypedArray()
 //        return mediaplayer.spuTracks
     }
 
@@ -249,6 +218,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         return subtitleController.getSpuTracksCount()
 //        return mediaplayer.spuTracksCount
     }
+
+    suspend fun getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri: Uri): List<SubtitleStream> =
+        subtitleController.getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
+
+    suspend fun extractEmbeddedSubtitle(videoUri: Uri, index: Int): FFmpegResult =
+        subtitleController.extractEmbeddedSubtitle(videoUri, index)
 
     fun setAudioDelay(delay: Long) = mediaplayer.setAudioDelay(delay)
 
@@ -296,7 +271,6 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         slaves?.let { slaveRepository.saveSlaves(mw) }
     }
 
-//    TODO: HABIB: MAYBE I SHOULD EXTEND MediaPlayer AND ADD MY FUNCTIONS THERE OR just extend it with functions
     private fun newMediaPlayer() : MediaPlayer {
         return MediaPlayer(VLCInstance.getInstance(context)).apply {
             setAudioDigitalOutputEnabled(VLCOptions.isAudioDigitalOutputEnabled(settings))

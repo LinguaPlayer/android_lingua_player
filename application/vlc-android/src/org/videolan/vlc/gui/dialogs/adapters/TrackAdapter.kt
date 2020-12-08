@@ -24,13 +24,14 @@
 
 package org.videolan.vlc.gui.dialogs.adapters
 
-import android.graphics.Paint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.vlc.databinding.VideoTrackItemBinding
-import org.videolan.vlc.media.isParseable
+import org.videolan.vlc.media.isPending
+import org.videolan.vlc.media.isReady
 
 class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, val selectedTracks: List<MediaPlayer.TrackDescription>, val multiSelect: Boolean) : RecyclerView.Adapter<TrackAdapter.ViewHolder>() {
 
@@ -58,7 +59,7 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, val 
         init {
 
             itemView.setOnClickListener {
-                if (tracks[layoutPosition].isParseable()) {
+                if (tracks[layoutPosition].isReady()) {
                     if (multiSelect) {
                         val selected = mutableSelectedTracks.find { it == tracks[layoutPosition] }
                         if (selected != null) mutableSelectedTracks.remove(selected)
@@ -76,9 +77,8 @@ class TrackAdapter(private val tracks: Array<MediaPlayer.TrackDescription>, val 
         fun bind(trackDescription: MediaPlayer.TrackDescription, selected: Boolean) {
             binding.track = trackDescription
             binding.selected = selected
+            binding.pendingProgressBar.visibility = if (trackDescription.isPending()) View.VISIBLE else View.INVISIBLE
             binding.executePendingBindings()
-            if (!trackDescription.isParseable())
-                binding.trackTitle.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
         }
     }
 }

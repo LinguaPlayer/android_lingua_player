@@ -35,6 +35,9 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinx_version"
     implementation "androidx.core:core-ktx:$rootProject.ext.androidxCoreVersion"
 
+    // lingua
+    api 'com.arthenica:mobile-ffmpeg-min:4.4.LTS'
+
     testImplementation "junit:junit:$rootProject.ext.junitVersion"
     androidTestImplementation "androidx.test:runner:$rootProject.ext.supportTest"
     androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressoVersion"

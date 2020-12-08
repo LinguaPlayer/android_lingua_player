@@ -784,5 +784,8 @@
 <!--    Lingua-->
     <string name="subtitle_parsing_error">%1$s is not a valid subtitle file</string>
     <string name="subtitle_not_found">%1$s subtitle file not found</string>
+    <string name="subtitle_is_pending">This subtitle is not ready yet, please wait!</string>
+    <string name="subtitle_is_failed">We are unable to parse this subtitle file</string>
+    <string name="video_has_embeddedspu">This video has embedded subtitles, it might take a few seconds to prepare</string>
 
 </resources>

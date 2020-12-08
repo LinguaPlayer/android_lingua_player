@@ -77,10 +77,10 @@ abstract class BaseFragment : Fragment(), ActionMode.Callback {
     }
 
     fun updateAudioPlayerMargin() {
-        val activity = activity as AudioPlayerContainerActivity? ?: return
-        view?.let {
-            it.setPadding(0,0,0,activity.getAudioMargin())
-        }
+//        val activity = activity as AudioPlayerContainerActivity? ?: return
+//        view?.let {
+//            it.setPadding(0,0,0,activity.getAudioMargin())
+//        }
     }
 
     fun startActionMode() {

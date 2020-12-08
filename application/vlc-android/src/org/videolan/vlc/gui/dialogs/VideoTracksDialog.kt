@@ -29,11 +29,11 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
@@ -49,7 +49,9 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.PlayerOverlayTracksBinding
 import org.videolan.vlc.gui.dialogs.adapters.TrackAdapter
-import org.videolan.vlc.media.isParseable
+import org.videolan.vlc.media.isFailed
+import org.videolan.vlc.media.isPending
+import org.videolan.vlc.repository.SubtitlesRepository
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -90,34 +92,61 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
                 }
 
                 playbackService.videoTracks?.let { trackList ->
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack } ?.let { listOf(it) }?: listOf(), false)
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.videoTrack }?.let { listOf(it) }
+                            ?: listOf(), false)
                     trackAdapter.setOnTrackSelectedListener { track ->
                         trackSelectionListener.invoke(track.id, TrackType.VIDEO)
                     }
                     binding.videoTracks.trackList.adapter = trackAdapter
                 }
                 playbackService.audioTracks?.let { trackList ->
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack } ?.let { listOf(it) } ?: listOf(), false)
+                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.firstOrNull { it.id == playbackService.audioTrack }?.let { listOf(it) }
+                            ?: listOf(), false)
                     trackAdapter.setOnTrackSelectedListener { track ->
                         trackSelectionListener.invoke(track.id, TrackType.AUDIO)
                     }
                     binding.audioTracks.trackList.adapter = trackAdapter
                 }
-                playbackService.spuTracks()?.let { trackList ->
-                    //TODO:HABIB: Update TrackAdapter and add the ability to add two subtitle at the same time
-                    val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks().contains(it.id) }, true)
-                    trackAdapter.setOnTrackSelectedListener { track ->
 
-                        //TODO:HABIB: Update this with suitable UI/UX
-                        if (!track.isParseable()) Toast.makeText(context, "Selected subtitle is an embeded subtitle, Lingua player needs another module to load them properly.", Toast.LENGTH_LONG).show()
-                        else trackSelectionListener.invoke(track.id, TrackType.SPU)
-                    }
-                    binding.subtitleTracks.trackList.adapter = trackAdapter
-                    if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
-                }
-                if (playbackService.spuTracks() == null) binding.subtitleTracks.emptyView.setVisible()
+                setupSpuAdapter(playbackService)
             }
         }
+
+        // TODO: fix me! it causes UI lags, also setupSpuAdapter -> spuTracks() should receive liveData instead of doing it here
+        // TODO: fix me if the video has multiple subtitle tracks, loading for the others will be shown
+        service?.let { playbackService ->
+            lifecycleScope.launch {
+                playbackService.mediaplayer.media?.uri?.let {
+                    SubtitlesRepository.getInstance(requireContext()).getSpuTracksLiveData(it).observe(this@VideoTracksDialog.viewLifecycleOwner) {
+                        lifecycleScope.launch { setupSpuAdapter(playbackService) }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun setupSpuAdapter(playbackService: PlaybackService) {
+        playbackService.spuTracks()?.let { trackList ->
+            val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks().contains(it.id) }, true)
+            trackAdapter.setOnTrackSelectedListener { track ->
+                trackSelectionListener.invoke(track.id, TrackType.SPU)
+                when {
+                    track.isPending() -> {
+                        Snackbar.make(binding.root, R.string.subtitle_is_pending, Snackbar.LENGTH_LONG)
+                                .show()
+                    }
+                    // I DON't have any failed tracks in adapter at the moment, just put it here in case I need it in future
+                    track.isFailed() -> {
+                        Snackbar.make(binding.root, R.string.subtitle_is_failed, Snackbar.LENGTH_LONG).show()
+                    }
+                }
+
+            }
+            binding.subtitleTracks.trackList.adapter = trackAdapter
+            if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
+        }
+
+        if (playbackService.spuTracks() == null) binding.subtitleTracks.emptyView.setVisible()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -173,4 +202,3 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         VIDEO, AUDIO, SPU
     }
 }
-

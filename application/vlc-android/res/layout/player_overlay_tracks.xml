@@ -22,8 +22,7 @@
   ~
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -31,18 +30,22 @@
 
     </data>
 
-    <androidx.core.widget.NestedScrollView
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/player_overlay_tracks"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
 
-            <include
+                <include
                     android:id="@+id/audio_tracks"
                     layout="@layout/player_overlay_track_item"
                     android:layout_width="0dp"
@@ -53,7 +56,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-            <View
+                <View
                     android:id="@+id/tracks_separator_2"
                     android:layout_width="0dp"
                     android:layout_height="1dp"
@@ -65,7 +68,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/audio_tracks" />
 
-            <include
+                <include
                     android:id="@+id/subtitle_tracks"
                     layout="@layout/player_overlay_track_item"
                     android:layout_width="0dp"
@@ -76,7 +79,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tracks_separator_2" />
 
-            <View
+                <View
                     android:id="@+id/tracks_separator_3"
                     android:layout_width="0dp"
                     android:layout_height="1dp"
@@ -88,7 +91,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/subtitle_tracks" />
 
-            <include
+                <include
                     android:id="@+id/video_tracks"
                     layout="@layout/player_overlay_track_item"
                     android:layout_width="0dp"
@@ -98,6 +101,7 @@
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tracks_separator_3" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

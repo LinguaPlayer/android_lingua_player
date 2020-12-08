@@ -4,22 +4,29 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.github.kazemihabib.cueplayer.util.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.flow.collect
 import org.videolan.libvlc.MediaPlayer
+import org.videolan.tools.*
+import org.videolan.vlc.gui.dialogs.SubtitleItem
+import org.videolan.vlc.mediadb.models.Status
+import org.videolan.vlc.repository.EmbeddedSubRepository
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.subs.CaptionsData
 import org.videolan.vlc.subs.SubtitleParser
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ReflectionHelper
+import java.util.*
+
 
 private const val TAG = "SubtitleController"
 private const val INFO_TIMEOUT = 2000L
 
-class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): CoroutineScope {
+class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : CoroutineScope {
 
     override val coroutineContext = Dispatchers.Main.immediate + SupervisorJob()
 
@@ -49,30 +56,59 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         return false
     }
 
+    suspend fun getSpuTracks(): List<out MediaPlayer.TrackDescription> {
+        val videoUri = mediaplayer.media?.uri
+        val pendingToExtractEmbeddedSubs = pendingExtractionTracksLiveData.value
 
-    suspend fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        val embeddedSpuTracks = mediaplayer.spuTracks ?: arrayOf()
-
-        val addedSpuTracks = mediaplayer.media?.uri?.run {
+        val addedSpuTracks = videoUri?.run {
             SubtitlesRepository.getInstance(context).getSpuTracks(this)
         } ?: listOf()
 
         val addedTrackDescriptions = addedSpuTracks.map { subtitle ->
-
-            val name = FileUtils.getFileNameFromPath(subtitle.subtitlePath.path)
+            val name = if (subtitle.embedded) "Track ${subtitle.embeddedIndex}-[${subtitle.language}]"
+            else FileUtils.getFileNameFromPath(subtitle.subtitlePath.path)
             ReflectionHelper.instantiateTrackDescription(subtitle.id, name)
         }
 
-        val embeddedTrackDescription = if (isFFmpegAvailable()) listOf<MediaPlayer.TrackDescription>()
-        else embeddedSpuTracks.filter { it.id != -1 }.map { espu ->
-            ReflectionHelper.instantiateTrackDescription(-1 - espu.id, espu.name)
+        val unExtractedEmbeddedTrackDescription = pendingToExtractEmbeddedSubs?.map { espu ->
+            ReflectionHelper.instantiateTrackDescription(convertIndexToPending(espu.index), "Track ${espu.index}-[${espu.language}]")
+        } ?: listOf()
+
+        return (unExtractedEmbeddedTrackDescription + addedTrackDescriptions)
+    }
+
+    suspend fun getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri: Uri): List<SubtitleStream> {
+        val embeddedSpuTracks = getSubtitleStreams(videoUri)
+        val dbEmbeddedSubs = EmbeddedSubRepository.getInstance(context).getEmbeddedSubtitles(videoUri)
+
+        return embeddedSpuTracks.filter { subtitleStream -> dbEmbeddedSubs.find { it.embeddedIndex == subtitleStream.index } == null }
+    }
+
+    private suspend fun getFailedToExtractEmbeddedSubs(videoUri: Uri): List<SubtitleStream> {
+        val embeddedSpuTracks = getSubtitleStreams(videoUri)
+        val dbEmbeddedSubs = EmbeddedSubRepository.getInstance(context).getEmbeddedSubtitles(videoUri)
+
+        return embeddedSpuTracks.filter { subtitleStream ->
+            val embedded = dbEmbeddedSubs.find { it.embeddedIndex == subtitleStream.index }
+
+            embedded != null && embedded.status == Status.FAILED
         }
+    }
 
-//        val trackDisable = ReflectionHelper.instantiateTrackDescription(-1, "Disable")
+    suspend fun extractEmbeddedSubtitle(videoUri: Uri, index: Int): FFmpegResult {
+        val embeddedRepo = EmbeddedSubRepository.getInstance(context)
+        return try {
+            val ffmpegResult = extractSubtitles(context = context, videoUri = videoUri, index = index)
+            embeddedRepo.addEmbeddedSubtitle(mediaPath = videoUri, status = Status.SUCCESSFUL, embeddedIndex = index)
+            SubtitlesRepository.getInstance(context).addSubtitleTrack(mediaPath = videoUri, subtitlePath = ffmpegResult.extractedPath, selected = true, lang = ffmpegResult.language, isEmbedded = true, embeddedIndex = ffmpegResult.index)
+            ffmpegResult
+        } catch (cancelled: FFmpegUserCancelledException) {
+            cancelled.ffmpegResult
 
-//        val tracks: MutableList<MediaPlayer.TrackDescription> = (embeddedTrackDescription + addedTrackDescriptions) as MutableList<MediaPlayer.TrackDescription>
-//        if (tracks.isNotEmpty()) tracks.add(0, trackDisable)
-        return (embeddedTrackDescription + addedTrackDescriptions).toTypedArray()
+        } catch (failed: FFmpegFailedException) {
+            embeddedRepo.addEmbeddedSubtitle(mediaPath = videoUri, status = Status.FAILED, embeddedIndex = index)
+            failed.ffmpegResult
+        }
     }
 
     suspend fun getSpuTrack(): List<Int> {
@@ -82,20 +118,36 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
     }
 
     fun setSpuTrack(index: Int): Boolean {
-        return if (index < -1) {
-            Log.i(TAG, "setSpuTrack: Embedded subtitles are not available, please install ffmpeg")
-            false
-        } else {
-            mediaplayer.setSpuTrack(index)
+        return when {
+            isPending(index) -> {
+                Log.i(TAG, "toggleSpuTrack: Embedded subtitle is pending, please wait")
+                false
+            }
+            isFailed(index) -> {
+                Log.i(TAG, "toggleSpuTrack: preparing this subtitle is failed")
+                false
+            }
+            else -> {
+                mediaplayer.setSpuTrack(index)
+            }
         }
     }
 
     suspend fun toggleSpuTrack(index: Int): Boolean {
-        return if (index < -1) {
-            false
-        } else {
-            SubtitlesRepository.getInstance(context).toggleSelected(index)
-            true
+        return when {
+            isPending(index) -> {
+                Log.i(TAG, "toggleSpuTrack: Embedded subtitle is pending, please wait")
+                false
+            }
+            isFailed(index) -> {
+                Log.i(TAG, "toggleSpuTrack: preparing this subtitle is failed")
+                false
+
+            }
+            else -> {
+                SubtitlesRepository.getInstance(context).toggleSelected(index)
+                true
+            }
         }
     }
 
@@ -125,7 +177,9 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
 
     suspend fun parseSubtitle(subtitlePaths: List<String>) {
         subtitleParser.parseAsTimedTextObject(context, subtitlePaths).collect {
-            infoActor.send(ShowInfo(it.error, autoHide = true))
+            //TODO: delete subtitle from database if failed to parse
+            if (!it.successful)
+                infoActor.send(ShowInfo(it.error, autoHide = true))
         }
 
         subtitleParser.setSubtitleDelay(getSpuDelay() / 1000)
@@ -146,7 +200,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
 
         prevCaption = stringCaptionData
 
-        _subtitleCaption.value = ShowCaption( caption = stringCaptionData, isTouchable = false )
+        _subtitleCaption.value = ShowCaption(caption = stringCaptionData, isTouchable = false)
 
         return captionData
     }
@@ -155,8 +209,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
         val captionsDataList = subtitleParser.getNextCaption(false)
         _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
             if (alsoSeekThere)
-                minBy { it.minStartTime }?.minStartTime?.run { /*seek(this, false) */}
-        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content }}.joinToString(separator = "<br>"),
+                minByOrNull { it.minStartTime }?.minStartTime?.run { /*seek(this, false) */ }
+        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"),
                 isTouchable = false
         )
         return captionsDataList
@@ -165,11 +219,10 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
     fun getPreviousCaption(alsoSeekThere: Boolean): List<CaptionsData> {
         val captionsDataList = subtitleParser.getPreviousCaption(isSubtitleInDelayedMode)
         _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
-            if (alsoSeekThere) minBy { it.minStartTime }?.minStartTime?.run {
+            if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run {
 //                seek( this, false )
             }
-        }.flatMap { it.captionsOfThisTime .map {caption ->  caption.content }}.joinToString(separator = "<br>")
-                ,isTouchable = false
+        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"), isTouchable = false
         )
         return captionsDataList
     }
@@ -179,10 +232,18 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer): Co
 
 }
 
-fun MediaPlayer.TrackDescription.isParseable() = id >= -1
+fun MediaPlayer.TrackDescription.isReady() = id >= -1
+fun MediaPlayer.TrackDescription.isPending() = isPending(this.id)
+fun MediaPlayer.TrackDescription.isFailed() = isFailed(this.id)
+private fun isPending(index: Int) = index < -100 && index > -200
+private fun isFailed(index: Int) = index < -200
+private fun convertIndexToPending(index: Int) = -100 - index
+private fun convertPendingToIndex(pendingIndex: Int) = -100 - pendingIndex
+private fun convertIndexToFailed(index: Int) = -200 - index
+private fun convertFailedToIndex(failedIndex: Int) = -200 - failedIndex
 
 //TODO: HABIB: Check really is available
 fun isFFmpegAvailable() = false
 
 data class ShowCaption(val caption: String, val isTouchable: Boolean)
-data class ShowInfo(val message: String, val autoHide: Boolean, val autoHideTimeOut: Long= INFO_TIMEOUT)
+data class ShowInfo(val message: String, val autoHide: Boolean, val autoHideTimeOut: Long = INFO_TIMEOUT)

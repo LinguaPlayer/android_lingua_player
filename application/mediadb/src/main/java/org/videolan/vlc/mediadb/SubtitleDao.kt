@@ -14,6 +14,9 @@ interface SubtitleDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(subtitle: Subtitle)
 
+    @Query("DELETE from Subtitle where id = :subtitleId")
+    suspend fun delete(subtitleId: Int)
+
     @Query("SELECT * from Subtitle where mediaPath = :mediaPath")
     suspend fun getSubtitles(mediaPath: Uri): List<Subtitle>
 

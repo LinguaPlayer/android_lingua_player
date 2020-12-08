@@ -47,6 +47,7 @@ package org.videolan.vlc.mediadb
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.room.TypeConverter
+import org.videolan.vlc.mediadb.models.Status
 import java.util.*
 
 class Converters {
@@ -65,4 +66,16 @@ class Converters {
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time?.toLong()
     }
+
+
+    @TypeConverter
+    fun fromStatus(status: Status): String {
+        return status.name
+    }
+
+    @TypeConverter
+    fun toStatus(status: String): Status {
+        return Status.valueOf(status)
+    }
+
 }

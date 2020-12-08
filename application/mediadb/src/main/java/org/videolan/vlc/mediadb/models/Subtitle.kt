@@ -1,6 +1,7 @@
 package org.videolan.vlc.mediadb.models
 
 import android.net.Uri
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -14,5 +15,7 @@ data class Subtitle(
         val language: String,
         val selected: Boolean,
         val delay: Long,
+        val embedded: Boolean,
+        val embeddedIndex: Int
 )
 

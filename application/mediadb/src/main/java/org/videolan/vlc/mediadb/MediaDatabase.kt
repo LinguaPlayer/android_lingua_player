@@ -53,12 +53,13 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.SingletonHolder
 import org.videolan.vlc.mediadb.Converters
+import org.videolan.vlc.mediadb.EmbeddedSubtitleDao
 import org.videolan.vlc.mediadb.SubtitleDao
 import org.videolan.vlc.mediadb.models.*
 
 private const val DB_NAME = "vlc_database"
 
-@Database(entities = [ExternalSub::class, Slave::class, BrowserFav::class, CustomDirectory::class, Subtitle::class], version = 30)
+@Database(entities = [ExternalSub::class, Slave::class, BrowserFav::class, CustomDirectory::class, Subtitle::class, EmbeddedSub::class], version = 30)
 @TypeConverters(Converters::class)
 abstract class MediaDatabase: RoomDatabase() {
     abstract fun externalSubDao(): ExternalSubDao
@@ -66,6 +67,7 @@ abstract class MediaDatabase: RoomDatabase() {
     abstract fun browserFavDao(): BrowserFavDao
     abstract fun customDirectoryDao(): CustomDirectoryDao
     abstract fun subtitleDao(): SubtitleDao
+    abstract fun embeddedSubtitleDao(): EmbeddedSubtitleDao
 
     companion object : SingletonHolder<MediaDatabase, Context>({ buildDatabase(it.applicationContext) })
 }

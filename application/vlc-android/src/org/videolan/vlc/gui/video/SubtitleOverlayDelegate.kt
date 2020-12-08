@@ -23,9 +23,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.github.kazemihabib.cueplayer.util.EventObserver
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import org.videolan.tools.dp
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.mediadb.models.Subtitle
@@ -43,14 +45,27 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun prepareSubtitles(videoUri: Uri) {
+        //TODO: Does just checking unAttempted subs are enough?
+        player.lifecycleScope.launch {
+            player.service?.playlistManager?.player?.apply {
+                val unAttemptedToExtractEmbeddedSubs = getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
+                if (unAttemptedToExtractEmbeddedSubs.isNotEmpty()) Snackbar.make(player.findViewById(R.id.player_root), R.string.video_has_embeddedspu, Snackbar.LENGTH_LONG)
+                        .show()
+                unAttemptedToExtractEmbeddedSubs.forEach {
+                        player.service?.playlistManager?.player?.extractEmbeddedSubtitle(videoUri, it.index)
+                }
+            }
+        }
+
         SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri).observe(player, subtitleObserver)
 
         player.service?.playlistManager?.player?.subtitleCaption?.observe(player, showCaptionObserver)
 
         player.service?.playlistManager?.player?.subtitleInfo?.observe(player, EventObserver {
-            Log.d(TAG, "prepareSubtitles: $it")
+            UiTools.snacker(player, it.message)
         })
     }
+
     private var backgroundColorEnabled = false
     @ColorInt private var subtitleBackgroundColor: Int = ContextCompat.getColor(player.applicationContext, R.color.black)
 
