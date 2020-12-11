@@ -4,15 +4,16 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.github.kazemihabib.cueplayer.util.Event
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.tools.*
-import org.videolan.vlc.gui.dialogs.SubtitleItem
 import org.videolan.vlc.mediadb.models.Status
 import org.videolan.vlc.repository.EmbeddedSubRepository
 import org.videolan.vlc.repository.SubtitlesRepository
@@ -20,7 +21,6 @@ import org.videolan.vlc.subs.CaptionsData
 import org.videolan.vlc.subs.SubtitleParser
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ReflectionHelper
-import java.util.*
 
 
 private const val TAG = "SubtitleController"
@@ -205,23 +205,21 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         return captionData
     }
 
-    fun getNextCaption(alsoSeekThere: Boolean): List<CaptionsData> {
+    fun getNextCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
         val captionsDataList = subtitleParser.getNextCaption(false)
         _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
             if (alsoSeekThere)
-                minByOrNull { it.minStartTime }?.minStartTime?.run { /*seek(this, false) */ }
+                minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"),
                 isTouchable = false
         )
         return captionsDataList
     }
 
-    fun getPreviousCaption(alsoSeekThere: Boolean): List<CaptionsData> {
+    fun getPreviousCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
         val captionsDataList = subtitleParser.getPreviousCaption(isSubtitleInDelayedMode)
         _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
-            if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run {
-//                seek( this, false )
-            }
+            if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"), isTouchable = false
         )
         return captionsDataList

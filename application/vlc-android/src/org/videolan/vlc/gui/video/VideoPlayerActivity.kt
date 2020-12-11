@@ -1200,8 +1200,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     override fun onMediaPlayerEvent(event: MediaPlayer.Event) {
         service?.let { service ->
             when (event.type) {
-                MediaPlayer.Event.Playing -> onPlaying()
-                MediaPlayer.Event.Paused -> overlayDelegate.updateOverlayPausePlay()
+                MediaPlayer.Event.Playing -> {
+                    onPlaying()
+                    subtitleDelegate.hideCaptionButtons()
+                }
+                MediaPlayer.Event.Paused -> {
+                    overlayDelegate.updateOverlayPausePlay()
+                    subtitleDelegate.showCaptionButtons()
+                }
                 MediaPlayer.Event.Opening -> {
                     forcedTime = -1
                     if (!subtitlesExtraPath.isNullOrEmpty()) {

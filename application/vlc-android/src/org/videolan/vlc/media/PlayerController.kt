@@ -132,6 +132,11 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) mediaplayer.time = time
     }
 
+    fun setTimeAndUpdateProgress(time: Long) {
+        setTime(time)
+        updateProgress(time)
+    }
+
     fun isPlaying() = playbackState == PlaybackStateCompat.STATE_PLAYING
 
     fun isVideoPlaying() = !mediaplayer.isReleased && mediaplayer.vlcVout.areViewsAttached()
@@ -203,6 +208,14 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     suspend fun getSelectedSpuTracks(): List<Int> {
         return subtitleController.getSpuTrack()
 //        return mediaplayer.spuTrack
+    }
+
+    fun getNextCaption(alsoSeekThere: Boolean) {
+        subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
+    }
+
+    fun getPrevCaption(alsoSeekThere: Boolean) {
+        subtitleController.getPreviousCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
     }
 
     fun setSpuTrack(index: Int): Boolean {

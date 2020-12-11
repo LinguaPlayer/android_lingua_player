@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.video
 
 import android.graphics.Color
 import android.graphics.Typeface
+import android.media.Image
 import android.net.Uri
 import android.text.Spannable
 import android.text.TextPaint
@@ -12,7 +13,9 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.annotation.ColorInt
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.core.text.toSpannable
@@ -26,6 +29,9 @@ import com.github.kazemihabib.cueplayer.util.EventObserver
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import org.videolan.tools.dp
+import org.videolan.tools.setGone
+import org.videolan.tools.setInvisible
+import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.StrokedTextView
@@ -39,6 +45,34 @@ import java.util.regex.Pattern
 private const val TAG = "SubtitleOverlayDelegate"
 
 class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
+
+    private val nextCaptionButton: ImageView = player.findViewById(R.id.next_caption)
+    private val prevCaptionButton: ImageView = player.findViewById(R.id.prev_caption)
+
+    init {
+        nextCaptionButton.apply {
+            setOnClickListener {
+                player.service?.playlistManager?.player?.getNextCaption(false)
+            }
+            setOnLongClickListener {
+                player.service?.playlistManager?.player?.getNextCaption(true)
+                true
+            }
+        }
+
+        prevCaptionButton.apply {
+            setOnClickListener {
+                player.service?.playlistManager?.player?.getPrevCaption(false)
+            }
+
+            setOnLongClickListener {
+                player.service?.playlistManager?.player?.getPrevCaption(true)
+                true
+            }
+
+        }
+
+    }
 
     val subtitleObserver = Observer { subtitleList: List<Subtitle> ->
         player.lifecycleScope.launch { player.service?.playlistManager?.player?.parseSubtitles(subtitleList.map { it.subtitlePath.path!! }) }
@@ -123,7 +157,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
     private fun updateSubtitlePosition() {
         val subtitleBottomPosition = playerControllerHeight + if (playerControllerHeight == 0) subtitleBottomMargin else 0
-        val subtitleTextView = player.findViewById<StrokedTextView>(R.id.subtitleTextView)
+        val subtitleTextView = player.findViewById<ConstraintLayout>(R.id.subtitle_container)
         subtitleTextView.setMargins(l = subtitleTextView.marginLeft, t = subtitleTextView.marginTop, r = subtitleTextView.marginRight, b = subtitleBottomPosition)
     }
 
@@ -151,6 +185,16 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         }
 
         return spannableText
+    }
+
+    fun hideCaptionButtons() {
+        nextCaptionButton.setGone()
+        prevCaptionButton.setGone()
+    }
+
+    fun showCaptionButtons() {
+        nextCaptionButton.setVisible()
+        prevCaptionButton.setVisible()
     }
 
 }
