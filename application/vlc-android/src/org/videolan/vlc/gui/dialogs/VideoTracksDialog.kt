@@ -64,7 +64,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     private val coroutineContextProvider: CoroutineContextProvider
 
-    override fun initialFocusedView(): View = binding.subtitleTracks.trackMore
+    override fun initialFocusedView(): View = binding.subtitleTracks.emptyView
 
     lateinit var menuItemListener: (Int) -> Unit
     lateinit var trackSelectionListener: (Int, TrackType) -> Unit
@@ -174,8 +174,8 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
             popup.menuInflater.inflate(R.menu.audio_track_menu, popup.menu)
             popup.show()
             popup.setOnMenuItemClickListener {
-                dismiss()
                 menuItemListener.invoke(it.itemId)
+                dismiss()
                 true
             }
         }
@@ -185,8 +185,8 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
             popup.menuInflater.inflate(R.menu.subtitle_track_menu, popup.menu)
             popup.show()
             popup.setOnMenuItemClickListener {
-                dismiss()
                 menuItemListener.invoke(it.itemId)
+                dismiss()
                 true
             }
         }
