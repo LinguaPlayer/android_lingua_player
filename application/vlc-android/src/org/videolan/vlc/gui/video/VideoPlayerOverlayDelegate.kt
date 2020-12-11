@@ -319,9 +319,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
             if (::hudBinding.isInitialized) {
                 val playerControllerSize = if (hudBinding.constraintLayout2.height == 0) 300 else hudBinding.constraintLayout2.height
-                val height = playerControllerSize - hudBinding.constraintLayout2.paddingTop
-                Log.d("Habib", "showControls: height $height")
-                Log.d("Habib", "showControls: height ${hudBinding.constraintLayout2.height}")
+                val height = playerControllerSize
                 player.subtitleDelegate.setOverlayHeight(height)
             }
         }

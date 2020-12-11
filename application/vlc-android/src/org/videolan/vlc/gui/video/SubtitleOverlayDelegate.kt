@@ -26,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.github.kazemihabib.cueplayer.util.EventObserver
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.videolan.tools.dp
 import org.videolan.tools.setGone
@@ -78,18 +79,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun prepareSubtitles(videoUri: Uri) {
-        //TODO: Does just checking unAttempted subs are enough?
-        player.lifecycleScope.launch {
-            player.service?.playlistManager?.player?.apply {
-                val unAttemptedToExtractEmbeddedSubs = getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
-                if (unAttemptedToExtractEmbeddedSubs.isNotEmpty()) Snackbar.make(player.findViewById(R.id.player_root), R.string.video_has_embeddedspu, Snackbar.LENGTH_LONG)
-                        .show()
-                unAttemptedToExtractEmbeddedSubs.forEach {
-                        player.service?.playlistManager?.player?.extractEmbeddedSubtitle(videoUri, it.index)
-                }
-            }
-        }
-
+        prepareEmbeddedSubtitles(videoUri)
         SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri).observe(player, subtitleObserver)
 
         player.service?.playlistManager?.player?.subtitleCaption?.observe(player, showCaptionObserver)
@@ -97,6 +87,28 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         player.service?.playlistManager?.player?.subtitleInfo?.observe(player, EventObserver {
             UiTools.snacker(player, it.message)
         })
+    }
+
+    fun prepareEmbeddedSubtitles(videoUri: Uri) {
+
+        //TODO: Does just checking unAttempted subs are enough?
+        player.lifecycleScope.launch {
+            player.service?.playlistManager?.player?.apply {
+                val unAttemptedToExtractEmbeddedSubs = getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
+                val isThereAnyUnattemptedToExtractEmbeddedSubs = unAttemptedToExtractEmbeddedSubs.isNotEmpty()
+                if (isThereAnyUnattemptedToExtractEmbeddedSubs) Snackbar.make(player.findViewById(R.id.player_root), R.string.video_has_embeddedspu, Snackbar.LENGTH_LONG)
+                        .show()
+                unAttemptedToExtractEmbeddedSubs.forEach {
+                    player.service?.playlistManager?.player?.extractEmbeddedSubtitle(videoUri, it.index)
+                }
+                // If there are multiple subtitles user can select which subtitle to show at the moment
+                if (isThereAnyUnattemptedToExtractEmbeddedSubs) {
+                    delay(50)
+                    if (SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracks(videoUri).size > 1)
+                        player.overlayDelegate.showTracks()
+                }
+            }
+        }
     }
 
     private var backgroundColorEnabled = false

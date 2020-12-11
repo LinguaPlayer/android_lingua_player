@@ -382,9 +382,13 @@ object UiTools {
         addToGroupDialog.newGroupListener = newGroupListener
     }
 
+    lateinit var videoTracksDialog: VideoTracksDialog
     fun FragmentActivity.showVideoTrack(menuListener:(Int) -> Unit, trackSelectionListener:(Int, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
-        val videoTracksDialog = VideoTracksDialog()
+
+        if (::videoTracksDialog.isInitialized)
+            videoTracksDialog.dialog?.let { if (it.isShowing) videoTracksDialog.dismiss() }
+        videoTracksDialog = VideoTracksDialog()
         videoTracksDialog.arguments = bundleOf()
         videoTracksDialog.show(supportFragmentManager, "fragment_video_tracks")
         videoTracksDialog.menuItemListener = menuListener

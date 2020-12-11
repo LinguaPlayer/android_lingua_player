@@ -105,6 +105,7 @@ import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.repository.ExternalSubRepository
 import org.videolan.vlc.repository.SlaveRepository
+import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.Util
@@ -828,7 +829,13 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null) return
         if (data.hasExtra(EXTRA_MRL)) {
-           lifecycleScope.launch { service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), true) }
+           lifecycleScope.launch {
+               service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), true)
+               videoUri?.let {
+                   if (SubtitlesRepository.getInstance(this@VideoPlayerActivity.applicationContext).getSelectedSpuTracks(it).size > 1)
+                       overlayDelegate.showTracks()
+               }
+           }
 
             service?.currentMediaWrapper?.let {
                 SlaveRepository.getInstance(this).saveSlave(it.location, IMedia.Slave.Type.Subtitle, 2, data.getStringExtra(EXTRA_MRL)!!)
