@@ -147,7 +147,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                         })
                     }
                 }
-                // TODO: HABIB CHECK THIS setSputrack
+
                 VideoTracksDialog.TrackType.SPU -> player.service?.toggleSpuTrack(trackID)
                 VideoTracksDialog.TrackType.VIDEO -> {
                     player.service?.let { service ->
@@ -746,7 +746,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         showOverlay()
         player.lockBackButton = false
     }
-//    TODO: "HABIB: picking subtitle happens here"
+
     private fun pickSubtitles() {
         val uri = player.videoUri ?: return
         val media = MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri())

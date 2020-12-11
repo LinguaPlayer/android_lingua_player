@@ -109,63 +109,6 @@
             android:layout_alignParentEnd="true"
             android:layout="@layout/player_hud_right" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/subtitle_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
-
-            <org.videolan.vlc.gui.view.StrokedTextView
-                android:id="@+id/subtitleTextView"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:textAlignment="center"
-                android:textSize="35sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="That did take place" />
-
-            <ImageView
-                android:id="@+id/next_caption"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="64dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/lingua_options_background_selector"
-                android:clickable="true"
-                android:padding="9dp"
-                android:visibility="invisible"
-                android:tint="@color/white"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
-                app:srcCompat="@drawable/ic_next_caption" />
-
-            <ImageView
-                android:id="@+id/prev_caption"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="64dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/lingua_options_background_selector"
-                android:clickable="true"
-                android:padding="9dp"
-                android:tint="@color/white"
-                android:visibility="invisible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
-                app:srcCompat="@drawable/ic_prev_caption"></ImageView>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
         <androidx.appcompat.widget.ViewStubCompat
             android:id="@+id/player_hud_stub"
             android:layout_width="match_parent"
@@ -258,5 +201,62 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout="@layout/player_options" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/subtitle_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <org.videolan.vlc.gui.view.StrokedTextView
+            android:id="@+id/subtitleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:textAlignment="center"
+            android:textSize="35sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="That did take place" />
+
+        <ImageView
+            android:id="@+id/next_caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="64dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/lingua_options_background_selector"
+            android:clickable="true"
+            android:padding="9dp"
+            android:tint="@color/white"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
+            app:srcCompat="@drawable/ic_next_caption" />
+
+        <ImageView
+            android:id="@+id/prev_caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/lingua_options_background_selector"
+            android:clickable="true"
+            android:padding="9dp"
+            android:tint="@color/white"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
+            app:srcCompat="@drawable/ic_prev_caption"></ImageView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>

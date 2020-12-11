@@ -2,7 +2,6 @@ package org.videolan.vlc.gui.video
 
 import android.graphics.Color
 import android.graphics.Typeface
-import android.media.Image
 import android.net.Uri
 import android.text.Spannable
 import android.text.TextPaint
@@ -104,6 +103,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     @ColorInt private var subtitleBackgroundColor: Int = ContextCompat.getColor(player.applicationContext, R.color.black)
 
     private val showCaptionObserver = Observer<ShowCaption> {
+        Log.d(TAG, "showCaptionObserver: $it")
         var caption: Spannable = HtmlCompat.fromHtml(it.caption, HtmlCompat.FROM_HTML_MODE_LEGACY).toSpannable()
         if (!it.isTouchable) makeClickable(caption)
 

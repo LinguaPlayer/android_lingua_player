@@ -113,14 +113,14 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
                 return true
             }
             else -> {
-                if (!player.isLocked) {
+//                if (!player.isLocked) {
                     scaleGestureDetector.onTouchEvent(event)
                     if (scaleGestureDetector.isInProgress) {
                         touchAction = TOUCH_IGNORE
                         return true
                     }
-                }
-                if (touchControls == 0 || player.isLocked) {
+//                }
+                if (touchControls == 0 /*|| player.isLocked*/) {
                     // locked or swipe disabled, only handle show/hide & ignore all actions
                     if (event.action == MotionEvent.ACTION_UP && touchAction != TOUCH_IGNORE) player.overlayDelegate.toggleOverlay()
                     return false
@@ -227,7 +227,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
                         lastTapTimeMs = now
 
                         //handle multi taps
-                        if (numberOfTaps > 1 && !player.isLocked) {
+                        if (numberOfTaps > 1 /*&& !player.isLocked*/) {
                             if (touchControls and TOUCH_FLAG_SEEK == 0) {
                                 player.doPlayPause()
                             } else {
@@ -413,7 +413,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
         }
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            if (player.fov != 0f && !player.isLocked) {
+            if (player.fov != 0f /*&& !player.isLocked*/) {
                 val diff = VideoPlayerActivity.DEFAULT_FOV * (1 - detector.scaleFactor)
                 if (player.updateViewpoint(0f, 0f, diff)) {
                     player.fov = (player.fov + diff).coerceIn(MIN_FOV, MAX_FOV)
@@ -424,7 +424,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
         }
 
         override fun onScaleEnd(detector: ScaleGestureDetector) {
-            if (player.fov == 0f && !player.isLocked) {
+            if (player.fov == 0f /*&& !player.isLocked*/) {
                 val grow = detector.scaleFactor > 1.0f
                 if (grow && player.currentScaleType != MediaPlayer.ScaleType.SURFACE_FIT_SCREEN) {
                     savedScale = player.currentScaleType

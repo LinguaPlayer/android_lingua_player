@@ -1563,10 +1563,10 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     fun doPlayPause() {
         if (service?.isPausable != true) return
         if (service?.isPlaying == true) {
-            overlayDelegate.showOverlayTimeout(OVERLAY_INFINITE)
+//            overlayDelegate.showOverlayTimeout(OVERLAY_INFINITE)
             pause()
         } else {
-            handler.sendEmptyMessageDelayed(FADE_OUT, 300L)
+//            handler.sendEmptyMessageDelayed(FADE_OUT, 300L)
             play()
         }
     }

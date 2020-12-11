@@ -44,7 +44,6 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     private val slaveRepository by lazy { SlaveRepository.getInstance(context) }
 
     private lateinit var subtitleController: SubtitleController
-        private set
 
     var mediaplayer = newMediaPlayer()
         private set
@@ -55,7 +54,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     var pausable = false
     var previousMediaStats: IMedia.Stats? = null
         private set
-    @Volatile var hasRenderer = false
+    @Volatile
+    var hasRenderer = false
         private set
 
     fun cancelCoroutine() {
@@ -125,11 +125,19 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     fun setPosition(position: Float) {
-        if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) mediaplayer.position = position
+        if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
+            mediaplayer.position = position
+            Log.d(TAG, "setPosition: length: ${getLength()} ${getLength().toDouble() / position}")
+            Log.d(TAG, "setPosition: ${mediaplayer.length / position}")
+            subtitleController.getCaption((getLength() * position).toLong())
+        }
     }
 
     fun setTime(time: Long) {
-        if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) mediaplayer.time = time
+        if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
+            mediaplayer.time = time
+            subtitleController.getCaption(time)
+        }
     }
 
     fun setTimeAndUpdateProgress(time: Long) {
@@ -180,7 +188,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
 
     suspend fun addSubtitleTrack(path: String, select: Boolean): Boolean {
-          return subtitleController.addSubtitleTrack(path, select)
+        return subtitleController.addSubtitleTrack(path, select)
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
     }
 
@@ -233,10 +241,10 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     suspend fun getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri: Uri): List<SubtitleStream> =
-        subtitleController.getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
+            subtitleController.getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri)
 
     suspend fun extractEmbeddedSubtitle(videoUri: Uri, index: Int): FFmpegResult =
-        subtitleController.extractEmbeddedSubtitle(videoUri, index)
+            subtitleController.extractEmbeddedSubtitle(videoUri, index)
 
     fun setAudioDelay(delay: Long) = mediaplayer.setAudioDelay(delay)
 
@@ -284,7 +292,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         slaves?.let { slaveRepository.saveSlaves(mw) }
     }
 
-    private fun newMediaPlayer() : MediaPlayer {
+    private fun newMediaPlayer(): MediaPlayer {
         return MediaPlayer(VLCInstance.getInstance(context)).apply {
             setAudioDigitalOutputEnabled(VLCOptions.isAudioDigitalOutputEnabled(settings))
             VLCOptions.getAout(settings)?.let { setAudioOutput(it) }
@@ -292,7 +300,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
             this.vlcVout.addCallback(this@PlayerController)
         }.also {
             // I instantiate here, so I everytime new MediaPlayer is created I have the new one
-            subtitleController = SubtitleController(context, it) }
+            subtitleController = SubtitleController(context, it)
+        }
     }
 
     override fun onSurfacesCreated(vlcVout: IVLCVout?) {}
@@ -358,7 +367,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun getTitleIdx() = if (!mediaplayer.isReleased) mediaplayer.title else -1
 
     fun setTitleIdx(title: Int) {
-        if (!mediaplayer.isReleased)  mediaplayer.title = title
+        if (!mediaplayer.isReleased) mediaplayer.title = title
     }
 
     fun getVolume() = if (!mediaplayer.isReleased) mediaplayer.volume else 100
@@ -401,7 +410,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     @JvmOverloads
-    fun updateProgress(newTime: Long = progress.value?.time ?: 0L, newLength: Long = progress.value?.length ?: 0L) {
+    fun updateProgress(newTime: Long = progress.value?.time
+            ?: 0L, newLength: Long = progress.value?.length ?: 0L) {
         progress.value = progress.value?.apply { time = newTime; length = newLength }
     }
 
@@ -422,7 +432,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        }
 //    }
     companion object {
-        @Volatile var playbackState = PlaybackStateCompat.STATE_NONE
+        @Volatile
+        var playbackState = PlaybackStateCompat.STATE_NONE
             private set
     }
 }
@@ -433,7 +444,7 @@ internal interface MediaPlayerEventListener {
     suspend fun onEvent(event: MediaPlayer.Event)
 }
 
-private fun Array<IMedia.Slave>?.contains(item: IMedia.Slave) : Boolean {
+private fun Array<IMedia.Slave>?.contains(item: IMedia.Slave): Boolean {
     if (this == null) return false
     for (slave in this) if (slave.uri == item.uri) return true
     return false
