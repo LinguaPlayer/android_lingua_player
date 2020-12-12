@@ -318,8 +318,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 player.handler.sendMessageDelayed(player.handler.obtainMessage(VideoPlayerActivity.FADE_OUT), overlayTimeout.toLong())
 
             if (::hudBinding.isInitialized) {
-                val playerControllerSize = if (hudBinding.constraintLayout2.height == 0) 300 else hudBinding.constraintLayout2.height
+                val playerControllerSize = hudBinding.constraintLayout2.height
                 val height = playerControllerSize
+                Log.d("HABIB", "showOverlayTimeout: $height")
                 player.subtitleDelegate.setOverlayHeight(height)
             }
         }

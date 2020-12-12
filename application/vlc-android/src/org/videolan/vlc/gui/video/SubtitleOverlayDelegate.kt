@@ -30,7 +30,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.videolan.tools.dp
 import org.videolan.tools.setGone
-import org.videolan.tools.setInvisible
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.UiTools
@@ -48,6 +47,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
     private val nextCaptionButton: ImageView = player.findViewById(R.id.next_caption)
     private val prevCaptionButton: ImageView = player.findViewById(R.id.prev_caption)
+    val subtitleContainer: ConstraintLayout? = player.findViewById<ConstraintLayout>(R.id.subtitle_container)
 
     init {
         nextCaptionButton.apply {
@@ -158,7 +158,6 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     private var playerControllerHeight = 0
-    private var subtitleBottomMargin = 4.dp.toPixel()
 
     // height is in pixels
     fun setOverlayHeight(height: Int) {
@@ -168,9 +167,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     private fun updateSubtitlePosition() {
-        val subtitleBottomPosition = playerControllerHeight + if (playerControllerHeight == 0) subtitleBottomMargin else 0
-        val subtitleTextView = player.findViewById<ConstraintLayout>(R.id.subtitle_container)
-        subtitleTextView.setMargins(l = subtitleTextView.marginLeft, t = subtitleTextView.marginTop, r = subtitleTextView.marginRight, b = subtitleBottomPosition)
+        val subtitleBottomPosition = playerControllerHeight + if (playerControllerHeight == 0) 4.dp.toPixel() else 0.dp.toPixel()
+        subtitleContainer?.setMargins(l = subtitleContainer.marginLeft, t = subtitleContainer.marginTop, r = subtitleContainer.marginRight, b = subtitleBottomPosition)
     }
 
     fun View.setMargins(l: Int, t: Int, r: Int, b: Int){
