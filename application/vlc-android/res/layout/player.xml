@@ -82,7 +82,7 @@
             android:layout_centerInParent="true"
             android:layout_centerHorizontal="true"
             android:visibility="invisible"
-            app:srcCompat="@drawable/ic_cone_o" />
+            app:srcCompat="@drawable/icon" />
 
         <androidx.appcompat.widget.ViewStubCompat
             android:id="@+id/player_info_stub"
