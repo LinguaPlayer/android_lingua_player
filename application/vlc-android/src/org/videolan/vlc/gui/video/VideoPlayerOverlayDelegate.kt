@@ -76,6 +76,7 @@ import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.FileUtils
+import org.videolan.vlc.util.toPixel
 import org.videolan.vlc.viewmodels.PlaylistModel
 
 @ExperimentalCoroutinesApi
@@ -316,6 +317,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
         }
 
+        updateSubtitlePositionWhenPlayerControllsIsVisible()
+    }
+
+    private fun updateSubtitlePositionWhenPlayerControllsIsVisible() {
         var playerControllerSize = hudBinding.constraintLayout2.height
 
         if (playerControllerSize == 0) {
@@ -326,6 +331,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.constraintLayout2.addOnLayoutChangeListener (layoutChangeListener)
         } else {
             hudBinding.constraintLayout2.removeOnLayoutChangeListener(layoutChangeListener)
+            if (player.service?.playlistManager?.abRepeatOn?.value == true)
+                playerControllerSize += 48.dp.toPixel()
+
             player.subtitleDelegate.updateSubtitlePosition(playerControllerSize, false)
         }
     }
@@ -411,6 +419,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     if (player.settings.getBoolean(VIDEO_TRANSITION_SHOW, true)) showOverlayTimeout(if (abvalues.start == -1L || abvalues.stop == -1L) VideoPlayerActivity.OVERLAY_INFINITE else VideoPlayerActivity.OVERLAY_TIMEOUT)
                 })
                 service.playlistManager.abRepeatOn.observe(player, {
+                    if (!it) updateSubtitlePositionWhenPlayerControllsIsVisible() // remove added margin
                     abRepeatAddMarker.visibility = if (it) View.VISIBLE else View.GONE
                     hudBinding.abRepeatMarkerGuidelineContainer.visibility = if (it) View.VISIBLE else View.GONE
                     if (it) showOverlay(true)
