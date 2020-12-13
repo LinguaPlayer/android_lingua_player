@@ -423,7 +423,7 @@
                 <data android:pathPattern=".*.xspf" />
                 <data android:pathPattern=".*.XSPF" />
             </intent-filter>
-            <intent-filter android:label="Play with VLC">
+            <intent-filter android:label="Play with LinguaPlayer">
                 <action android:name="android.intent.action.SEND"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -488,7 +488,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+<!--                <category android:name="android.intent.category.LAUNCHER"/>-->
             </intent-filter>
         </activity>
         <activity

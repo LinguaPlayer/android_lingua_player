@@ -51,7 +51,8 @@ class SubtitlesRepository(private val subtitleDao: SubtitleDao) {
 
 
     private fun getLanguageFromPath(subtitlePath: Uri): String {
-        return "DUMMY_EN"
+        // TODO implement later
+        return ""
     }
 
     companion object : SingletonHolder<SubtitlesRepository, Context>({ SubtitlesRepository(MediaDatabase.getInstance(it).subtitleDao()) })

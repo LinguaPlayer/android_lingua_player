@@ -33,9 +33,9 @@ allprojects {
 }
 
 ext {
-    appId = "org.videolan.vlc"
-    versionName = '3.3.3 Beta 4'
-    versionCode = 3030270
+    appId = 'ir.habibkazemi.linguaplayer'
+    versionName = '2.0.0'
+    versionCode = 2000000
     libvlcVersion = '3.3.11'
     medialibraryVersion = '0.7.10'
     minSdkVersion = 17
