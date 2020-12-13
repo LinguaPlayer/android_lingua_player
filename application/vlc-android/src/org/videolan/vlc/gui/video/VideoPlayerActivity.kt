@@ -1209,11 +1209,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             when (event.type) {
                 MediaPlayer.Event.Playing -> {
                     onPlaying()
-                    subtitleDelegate.hideCaptionButtons()
+                    subtitleDelegate.decideAboutCaptionButtonVisibility(true)
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
-                    subtitleDelegate.showCaptionButtons()
+                    subtitleDelegate.decideAboutCaptionButtonVisibility(false)
                 }
                 MediaPlayer.Event.Opening -> {
                     forcedTime = -1

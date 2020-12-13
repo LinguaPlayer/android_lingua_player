@@ -45,12 +45,13 @@ private const val TAG = "SubtitleOverlayDelegate"
 
 class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
-    private val nextCaptionButton: ImageView = player.findViewById(R.id.next_caption)
-    private val prevCaptionButton: ImageView = player.findViewById(R.id.prev_caption)
-    val subtitleContainer: ConstraintLayout? = player.findViewById<ConstraintLayout>(R.id.subtitle_container)
+    private val nextCaptionButton: ImageView? = player.findViewById(R.id.next_caption)
+    private val prevCaptionButton: ImageView? = player.findViewById(R.id.prev_caption)
+    private val subtitleContainer: ConstraintLayout? = player.findViewById(R.id.subtitle_container)
+    private val subtitleTextView: StrokedTextView? = player.findViewById(R.id.subtitleTextView)
 
     init {
-        nextCaptionButton.apply {
+        nextCaptionButton?.apply {
             setOnClickListener {
                 player.service?.playlistManager?.player?.getNextCaption(false)
             }
@@ -60,7 +61,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             }
         }
 
-        prevCaptionButton.apply {
+        prevCaptionButton?.apply {
             setOnClickListener {
                 player.service?.playlistManager?.player?.getPrevCaption(false)
             }
@@ -75,7 +76,14 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     val subtitleObserver = Observer { subtitleList: List<Subtitle> ->
-        player.lifecycleScope.launch { player.service?.playlistManager?.player?.parseSubtitles(subtitleList.map { it.subtitlePath.path!! }) }
+        player.lifecycleScope.launch {
+            player.service?.playlistManager?.player?.apply{
+                parseSubtitles(subtitleList.map { it.subtitlePath.path!! })
+                decideAboutCaptionButtonVisibility(isPlaying())
+            }
+
+
+        }
     }
 
     fun prepareSubtitles(videoUri: Uri) {
@@ -123,7 +131,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 //            caption.setBackgroundColor(subtitleBackgroundColor)
 
         // TODO: add clickable span to previous spannable
-        player.findViewById<StrokedTextView>(R.id.subtitleTextView).text = caption
+        subtitleTextView?.text = caption
     }
 
     var color = ContextCompat.getColor(player.applicationContext, R.color.white)
@@ -140,7 +148,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         val backgroundColor = ContextCompat.getColor(player.applicationContext, R.color.black_more_transparent)
 //        Log.d(TAG, "updateSubtitleTextViewStyle: $color $size $bold $backgroundColorEnabled")
 //        Log.d(TAG, "updateSubtitleTextViewStyle: stroke $strokeColor $strokeWidth")
-        player.findViewById<StrokedTextView>(R.id.subtitleTextView).apply {
+        subtitleTextView?.apply {
             setStrokeColor(Color.parseColor("#" + Integer.toHexString(strokeColor)))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, size.toFloat())
             setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP, strokeWidth)
@@ -157,21 +165,20 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         return this
     }
 
-    private var playerControllerHeight = 0
-
-    // height is in pixels
-    fun setOverlayHeight(height: Int) {
-        playerControllerHeight = height
-
-        updateSubtitlePosition()
-    }
-
-    private fun updateSubtitlePosition() {
+    fun updateSubtitlePosition(playerControllerHeight: Int, calledFromOnLayoutChangeListener: Boolean) {
         val subtitleBottomPosition = playerControllerHeight + if (playerControllerHeight == 0) 4.dp.toPixel() else 0.dp.toPixel()
         subtitleContainer?.setMargins(l = subtitleContainer.marginLeft, t = subtitleContainer.marginTop, r = subtitleContainer.marginRight, b = subtitleBottomPosition)
+        // TODO: fixme: dirty hack. when video starts if user pauses then taps on screen setMargin won't take effect unless clicking on a button or calling dimStatusBar
+        if (calledFromOnLayoutChangeListener) {
+            player.overlayDelegate.dimStatusBar(true)
+            player.lifecycleScope.launch {
+                delay(100)
+                player.overlayDelegate.dimStatusBar(false)
+            }
+        }
     }
 
-    fun View.setMargins(l: Int, t: Int, r: Int, b: Int){
+    fun View.setMargins(l: Int, t: Int, r: Int, b: Int) {
         if (this.layoutParams is ViewGroup.MarginLayoutParams){
             val p: ViewGroup.MarginLayoutParams = this.layoutParams as ViewGroup.MarginLayoutParams
             p.setMargins(l, t, r, b)
@@ -197,12 +204,22 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         return spannableText
     }
 
-    fun hideCaptionButtons() {
+    fun decideAboutCaptionButtonVisibility(isPlaying: Boolean) {
+        if (isPlaying)
+            hideCaptionButtons()
+        else
+            player.service?.playlistManager?.player?.numberOfParsedSubs?.let {
+                if (it == 0) hideCaptionButtons()
+                else showCaptionButtons()
+            }
+    }
+
+    private fun hideCaptionButtons() {
         nextCaptionButton.setGone()
         prevCaptionButton.setGone()
     }
 
-    fun showCaptionButtons() {
+    private fun showCaptionButtons() {
         nextCaptionButton.setVisible()
         prevCaptionButton.setVisible()
     }

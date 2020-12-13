@@ -47,7 +47,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -55,8 +54,6 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
@@ -317,12 +314,28 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (overlayTimeout != VideoPlayerActivity.OVERLAY_INFINITE)
                 player.handler.sendMessageDelayed(player.handler.obtainMessage(VideoPlayerActivity.FADE_OUT), overlayTimeout.toLong())
 
-            if (::hudBinding.isInitialized) {
-                val playerControllerSize = hudBinding.constraintLayout2.height
-                val height = playerControllerSize
-                Log.d("HABIB", "showOverlayTimeout: $height")
-                player.subtitleDelegate.setOverlayHeight(height)
-            }
+        }
+
+        var playerControllerSize = hudBinding.constraintLayout2.height
+
+        if (playerControllerSize == 0) {
+            // If it's zero view has not calculated the size yet so I set an onLayoutChangeListener
+            // with the help of that can get the size as soon as it it's available
+            // but we don't need that after that so I remove it afterwards (as video plays this listener
+            // is getting called every few mss and I don't want that
+            hudBinding.constraintLayout2.addOnLayoutChangeListener (layoutChangeListener)
+        } else {
+            hudBinding.constraintLayout2.removeOnLayoutChangeListener(layoutChangeListener)
+            player.subtitleDelegate.updateSubtitlePosition(playerControllerSize, false)
+        }
+    }
+
+    val layoutChangeListener = object: View.OnLayoutChangeListener {
+        override fun onLayoutChange(v: View?, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
+            var playerControllerSize = hudBinding.constraintLayout2.height
+            Log.d("HABIB", "isShowing: ${player.isShowing} showOverlayTimeout: $playerControllerSize")
+            player.subtitleDelegate.updateSubtitlePosition(playerControllerSize, true)
+            hudBinding.constraintLayout2.removeOnLayoutChangeListener(this)
         }
     }
 
@@ -694,8 +707,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             dimStatusBar(true)
         }
 
-        if (::hudBinding.isInitialized)
-            player.subtitleDelegate.setOverlayHeight(0)
+        player.subtitleDelegate.updateSubtitlePosition(0, false)
     }
 
     fun focusPlayPause() {

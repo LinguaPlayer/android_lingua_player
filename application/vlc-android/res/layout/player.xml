@@ -241,7 +241,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
-            app:srcCompat="@drawable/ic_next_caption" />
+            app:srcCompat="@drawable/ic_next_caption"
+            tools:visibility="visible"/>
 
         <ImageView
             android:id="@+id/prev_caption"
@@ -257,7 +258,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
-            app:srcCompat="@drawable/ic_prev_caption"></ImageView>
+            app:srcCompat="@drawable/ic_prev_caption"
+            tools:visibility="visible"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>
