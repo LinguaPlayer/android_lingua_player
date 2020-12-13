@@ -243,6 +243,10 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     SHOW_INFO -> overlayDelegate.showOverlay()
                     HIDE_SEEK -> touchDelegate.hideSeekOverlay()
                     HIDE_SETTINGS -> delayDelegate.endPlaybackSetting()
+
+//                    //lingua
+//                    SHOW_WITING_FOR_TRANSLATION -> startLoading() // change this
+//                    HIDE_WITING_FOR_TRANSLATION -> stopLoading()
                     else -> {}
                 }
             }
@@ -2099,6 +2103,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         internal var sDisplayRemainingTime: Boolean = false
         private const val PREF_TIPS_SHOWN = "video_player_tips_shown"
 
+        //lingua
+        internal const val SHOW_WITING_FOR_TRANSLATION = 40
+        internal const val HIDE_WITING_FOR_TRANSLATION = 41
+        internal const val MAXIMUM_TIME_TO_SHOW_TRANSLATION_WAITING = 5000L
+
         private var clone: Boolean? = null
 
         fun start(context: Context, uri: Uri) {
@@ -2145,6 +2154,31 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             return intent
         }
     }
+
+//    private var wasPlayingBeforeTranslationDialog: Boolean = false
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+//        val isLinguaDialog = supportFragmentManager.fragments.any { it is DialogFragment }
+//        if (!hasFocus && !isLinguaDialog)
+//            googleTranslateBecameVisible()
+
+        super.onWindowFocusChanged(hasFocus)
+    }
+
+//    var googleTranslateIsShowing: Boolean = false
+//    private fun googleTranslateBecameVisible() {
+//        Log.d(TAG, "googleTranslateBecameVisible: true")
+//        googleTranslateIsShowing = true
+//        handler.removeMessages(HIDE_WITING_FOR_TRANSLATION)
+////        stopLoading()
+//        loadingImageView?.alpha = 0f
+//        loadingImageView.setGone()
+//    }
+
+//    private fun showLoadingForTranslation() {
+//        player.handler.sendEmptyMessage(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION)
+//        player.handler.removeMessages(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION, VideoPlayerActivity.MAXIMUM_TIME_TO_SHOW_TRANSLATION_WAITING)
+//    }
 
 
 }

@@ -613,6 +613,18 @@ object UiTools {
         return presentationDisplay != null
     }
 
+    //lingua
+
+    fun installGoogleTranslateDialog(context: Context, positiveListener: DialogInterface.OnClickListener, negativeListener: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(context)
+                .setTitle(context.resources.getString(R.string.google_translate_not_found))
+                .setMessage(context.resources.getString(R.string.install_google_translate_body))
+                .setPositiveButton(R.string.instal_google_translate_now, positiveListener)
+                .setNegativeButton(R.string.install_google_translate_later, negativeListener)
+                .create()
+                .show()
+    }
+
 
 }
 

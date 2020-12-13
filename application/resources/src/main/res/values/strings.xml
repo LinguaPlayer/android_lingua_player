@@ -788,4 +788,10 @@
     <string name="subtitle_is_failed">We are unable to parse this subtitle file</string>
     <string name="video_has_embeddedspu">This video has embedded subtitles, it might take a few seconds to prepare</string>
 
+
+    <string name="google_translate_not_found">Google translate is not installed</string>
+    <string name="install_google_translate_body">Lingua player uses google translate app to translate subtitles, please install it to enable translation feature.</string>
+    <string name="instal_google_translate_now">Install now</string>
+    <string name="install_google_translate_later">Later</string>
+
 </resources>

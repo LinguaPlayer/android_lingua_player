@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.video
 
+import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.Typeface
 import android.net.Uri
@@ -28,9 +29,7 @@ import com.github.kazemihabib.cueplayer.util.EventObserver
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.videolan.tools.dp
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
+import org.videolan.tools.*
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.StrokedTextView
@@ -39,6 +38,7 @@ import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.util.toPixel
 import java.util.regex.Pattern
+import kotlin.math.log
 
 
 private const val TAG = "SubtitleOverlayDelegate"
@@ -123,7 +123,6 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     @ColorInt private var subtitleBackgroundColor: Int = ContextCompat.getColor(player.applicationContext, R.color.black)
 
     private val showCaptionObserver = Observer<ShowCaption> {
-        Log.d(TAG, "showCaptionObserver: $it")
         var caption: Spannable = HtmlCompat.fromHtml(it.caption, HtmlCompat.FROM_HTML_MODE_LEGACY).toSpannable()
         if (!it.isTouchable) makeClickable(caption)
 
@@ -224,16 +223,31 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         prevCaptionButton.setVisible()
     }
 
-}
-
-class SubTouchSpan(val word: String, val caption: String, val color: Int): ClickableSpan() {
-    override fun onClick(widget: View) {
-        Log.d(TAG, "onClick: $word is clicked")
+    private fun showLoadingForTranslation(duration: Long) {
+//        player.handler.sendEmptyMessage(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION)
+//        player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.HIDE_WITING_FOR_TRANSLATION, duration)
     }
 
-    override fun updateDrawState(ds: TextPaint) {
-        ds.linkColor = color
-        ds.isUnderlineText = false
+    inner class SubTouchSpan(val word: String, val caption: String, val color: Int): ClickableSpan() {
+        override fun onClick(widget: View) {
+            val isGoogleTranslateAvailable = translate(word, widget.context.applicationContext)
+            if (isGoogleTranslateAvailable) {
+                player.service?.pause()
+                showLoadingForTranslation(5000L)
+            } else {
+                UiTools.installGoogleTranslateDialog(widget.context, DialogInterface.OnClickListener { _, _ ->
+                    testInstall(widget.context) },
+                        DialogInterface.OnClickListener { _, _->  })
+
+            }
+        }
+
+        override fun updateDrawState(ds: TextPaint) {
+            ds.linkColor = color
+            ds.isUnderlineText = false
+        }
+
     }
 
 }
+
