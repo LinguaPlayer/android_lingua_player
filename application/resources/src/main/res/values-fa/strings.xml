@@ -26,13 +26,13 @@
     <string name="play">پخش</string>
     <string name="playback">بازپخش</string>
     <string name="playback_controls">تنظیمات بازپخش</string>
-    <string name="medialibrary_scan">پویش در کتابخانه رسانه‌ای</string>
-    <string name="Medialibrary_progress">کتابخانه رسانه‌ای در حال پویش به‌روزرسانی‌های پیشرفت است</string>
-    <string name="play_from_start">پخش از آغاز</string>
-    <string name="play_as_audio">پخش بسان صدا</string>
-    <string name="play_as_video">پخش بسان ویدیو</string>
+    <string name="medialibrary_scan">" پویش در کتابخانه رسانه‌ای"</string>
+    <string name="Medialibrary_progress">"بیشرفت "</string>
+    <string name="play_from_start">پخش از ابتدا</string>
+    <string name="play_as_audio">پخش صوتی</string>
+    <string name="play_as_video">پخش ویدیویی</string>
     <string name="video_app_switch_title">حالت پس‌زمینه یا تصویر در تصویر</string>
-    <string name="video_app_switch_summary">انتخاب کن که در زمان رفتن به برنامه دیگری VLC چه کار کند</string>
+    <string name="video_app_switch_summary">انتخاب کن که در زمان رفتن به برنامه دیگری لینگوا پلیر چه کار کند</string>
     <string name="play_pip_title">پخش ویدیوها در حالت تصویر در تصویر</string>
     <string name="play_as_audio_background">پخش ویدیو ها در پس زمینه</string>
     <string name="append">پیوست کردن</string>
@@ -42,7 +42,6 @@
     <string name="resume_playback_short_title">ادامه پخش</string>
     <string name="resume_playback_long_title">ادامه پخش آخرین فهرست پخش</string>
     <string name="delete">حذف</string>
-    <string name="remove">برداشتن</string>
     <string name="set_song">تنظیم به عنوان آهنگ زنگ</string>
     <string name="set_song_question">%1$sبه عنوان آهنگ زنگ تنظیم شود؟</string>
     <string name="info">اطلاعات</string>
@@ -57,7 +56,7 @@
     <string name="pause">مکث</string>
     <string name="unknown_artist">هنرمند ناشناس</string>
     <string name="unknown_album">آلبوم ناشناس</string>
-    <string name="unknown_genre">گونه ناشناس</string>
+    <string name="unknown_genre">ژانر ناشناس</string>
     <string name="songs">آهنگ‌ها</string>
     <string name="track_info_copied_to_clipboard">اطلاعات آهنگ در کلیپ بورد کپی شد</string>
 
@@ -100,20 +99,19 @@
     <string name="bookmarks">نشانک‌ها</string>
     <string name="equalizer">اکولایزر</string>
     <string name="all_albums">همه‌ی آلبوم‌ها</string>
-    <string name="genres">گونه‌ها</string>
     <string name="playlists">فهرست‌های پخش</string>
     <string name="title">عنوان</string>
     <string name="directories">پوشه‌ها</string>
     <string name="loading">درحال بارگذاری</string>
     <string name="please_wait">شکیبا باشید…</string>
-    <string name="nomedia">هیچ پرونده رسانه‌‌ای پیدا نشد، لطفا پرونده‌ای را به دستگاه انتقال داده یا تنظیمات خود را تغییر دهید.</string>
+    <string name="nomedia">هیچ فایل رسانه‌‌ای پیدا نشد، لطفا تعدادی فایل را به دستگاه انتقال یا تنظیمات خود را تغییر دهید.</string>
     <string name="noplaylist">هیچ فهرست پخشی یافت نشد.</string>
     <string name="nosubfolder">زیرشاخه‌ای موجود نیست</string>
     <string name="directorynotfound">مسیر پوشه \'%1$s\' یافت نشد.</string>
     <string name="nohistory">هنوز هیچ سابقه پخشی نداری.</string>
     <string name="validation">آیا مطمئنی؟</string>
 
-    <string name="cover_art">جلد هنری</string>
+    <string name="cover_art">کاور آرت</string>
     <string name="shuffle_all_title">پخش تصادفی همه</string>
     <string name="shuffle_title">حالت تصادفی</string>
     <string name="shuffle">پخش تصادفی خاموش</string>
@@ -145,7 +143,6 @@
     <string name="sound_off">صدا بسته</string>
     <string name="brightness">روشنایی</string>
     <string name="advanced">گزینه‌های پیشرفته</string>
-    <string name="audio_boost_warning">دوباره تا به یش از 100% بالا بکش</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">%1$d مسیر\n</item>
@@ -182,7 +179,7 @@
     <string name="streams">استریم‌ها</string>
     <string name="open_mrl_dialog_msg">نشانی شبكه را وارد کنید: مثل http://, mms:// or rtsp://</string>
     <string name="encountered_error_title">خطای پخش</string>
-    <string name="encountered_error_message">VLC با این رسانه به مشکل مواجه شده./ لطفا کتابخانه رسانه‌‌ها را بازنشانی کنید.</string>
+    <string name="encountered_error_message">لینگوا پلیر با این رسانه با مشکل مشکل مواجه شده. لطفا کتابخانه رسانه‌‌ها را رفرش کنید.</string>
     <string name="invalid_location">محل %1$s نمیتواند اجرا شود.</string>
 
     <string name="search">جستجو</string>
@@ -191,7 +188,7 @@
     <string name="playback_history_title">تاریخچه پخش</string>
     <string name="playback_history_summary">ذخیره همه رسانه های پخش شده در تاریخچه پخش</string>
     <string name="playback_speed_title">ذخیره سرعت پخش</string>
-    <string name="playback_speed_summary">سرعت اطلاعات خواندن در بین رسانه‌ها حفظ شود.</string>
+    <string name="playback_speed_summary">سرعت پخش را در بین رسانه‌ها حفظ شود.</string>
 
     <string name="play_button">کلید پخش</string>
 
@@ -217,11 +214,10 @@
     <string name="hold_to_stop">برای متوفق کردن نگه دارید</string>
 
     <!-- About -->
-    <string name="app_name_full">VLC برای اندروید</string>
     <string name="licence">مجوز</string>
     <string name="revision">مرور</string>
     <string name="about">درباره</string>
-    <string name="about_text">VLC نسخه اندروید™ نسخه‌ای از برنامه پخش کننده معروف و کد باز VLC میباشد. نسخه اندرویدVLC برای اندروید™ برنامه میتواند اکثر فایل‌ها و جریانات شبکه‌ای را اجرا کند.</string>
+    <string name="about_text">" Lingua Player بر پایه‌ی پخش‌کننده‌ی VLC است \\n VLC نسخه اندروید™ نسخه‌ای از برنامه پخش کننده معروف و کد باز VLC میباشد. نسخه اندرویدVLC برای اندروید™ برنامه میتواند اکثر فایل‌ها و جریانات شبکه‌ای را اجرا کن"</string>
     <string name="vlc_authors">و همکاران VLC</string>
     <string name="compiled_by">این نسخه برنامه VLC تالیف شده توسط:</string>
     <string name="feedback_forum">انجمن بازخورد</string>
@@ -241,23 +237,21 @@
     <string name="dev_hardware_decoder">رمزگشای سخت افزاری پیشرفته</string>
     <string name="dev_hardware_decoder_summary">نیروی رمزگشای سخت افزاری، فقط برای کاربران پیشرفته</string>
     <string name="automatic">خودکار</string>
-    <string name="screen_orientation">گرایش صفحه نمایش</string>
+    <string name="screen_orientation">جهت صفحه نمایش</string>
     <string name="screen_orientation_sensor">خودکار (سنسور)</string>
     <string name="screen_orientation_start_lock">قفل در شروع</string>
-    <string name="screen_orientation_portrait">پرتره</string>
-    <string name="screen_orientation_landscape">منظره</string>
+    <string name="screen_orientation_portrait">عمودی</string>
     <string name="enable_black_theme">پوسته مشکی</string>
     <string name="subtitle_text_encoding">کد گذاری متن زیرنویس</string>
-    <string name="daynight_title">حالت شب</string>
-    <string name="daynight_follow_system_title">پیروزی از تنظیمات سامانه</string>
+    <string name="daynight_title">حالت شب و روز</string>
+    <string name="daynight_follow_system_title">پیروزی از تنظیمات دستگاه</string>
 
     <string name="extra_prefs_category">تنظیمات اضافی</string>
 
     <string name="interface_prefs_screen">رابط</string>
     <string name="interface_secondary_display_category_title">صفحه نمایش دوم</string>
     <string name="interface_secondary_display_category_summary">تنظیمات هنگام اتصال نمایشگرهای دیگر (اچ‌دی‌ام‌ای/کروم‌کست)</string>
-    <string name="enable_clone_mode">ترجیحات شبیه‌سازی</string>
-    <string name="enable_clone_mode_summary">صفحه دستگاه را بدون کنترل از راه دور شبیه‌سازی کنید</string>
+    <string name="enable_clone_mode_summary">صفحه دستگاه را بدون کنترل از راه دور کلون کنید</string>
 
     <string name="video_prefs_category">ویدئو</string>
     <string name="video_min_group_length_title">گروه ویدیوها</string>
@@ -265,7 +259,7 @@
     <string name="video_min_group_length_folder">گروه‌بندی برپایه پوشه</string>
     <string name="video_min_group_length_name">گروه‌بندی بر اساس نام</string>
     <string name="media_fast_seek">جابه‌جایی سریع</string>
-    <string name="media_fast_seek_summary">جابجایی در یک رسانه سریعتر اما دقت کمی دارد</string>
+    <string name="media_fast_seek_summary">جابجایی در پخش سریعتر انجام می‌گیرد اما دقت کمتری دارد</string>
     <string name="video_transition_title">جلوه انتقال بین ویدئوها</string>
     <string name="video_transition_summary">نمایش عنوان ویدئوی جدید در حین انتقال</string>
     <string name="media_seen">نمایش نشان مشاهده‌شده</string>
@@ -635,4 +629,10 @@
 
     <string name="swipe_unlock">برای بازکردن بکشید</string>
     <string name="swipe_unlock_no_touch">برای بازکردن طولانی فشار دهید</string>
+    <string name="audio_boost_warning">برای فراتر رفتن از  ۱۰۰٪ دوباره به سمت بالا بکش</string>
+    <string name="remove">برداشتن</string>
+    <string name="genres">ژانرها</string>
+    <string name="app_name_full">Lingua Player</string>
+    <string name="screen_orientation_landscape">افقی</string>
+    <string name="enable_clone_mode">ترجیح کلون</string>
 </resources>
