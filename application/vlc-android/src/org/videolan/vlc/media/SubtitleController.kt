@@ -206,22 +206,32 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
     }
 
     fun getNextCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
-        val captionsDataList = subtitleParser.getNextCaption(false)
-        _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
+        val captionsDataList = subtitleParser.getNextCaption(isSubtitleInDelayedMode)
+        val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere)
                 minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
-        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"),
-                isTouchable = false
-        )
+        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
+
+        if (prevCaption == stringCaptionData) return captionsDataList
+        prevCaption = stringCaptionData
+
+        _subtitleCaption.value = ShowCaption(caption = stringCaptionData, isTouchable = false )
+
         return captionsDataList
     }
 
     fun getPreviousCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
         val captionsDataList = subtitleParser.getPreviousCaption(isSubtitleInDelayedMode)
-        _subtitleCaption.value = ShowCaption(caption = captionsDataList.apply {
+
+        val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
-        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>"), isTouchable = false
-        )
+        }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
+
+        if (prevCaption == stringCaptionData) return captionsDataList
+        prevCaption = stringCaptionData
+
+        _subtitleCaption.value = ShowCaption(caption = stringCaptionData, isTouchable = false )
+
         return captionsDataList
     }
 
