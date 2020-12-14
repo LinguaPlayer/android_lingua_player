@@ -86,40 +86,61 @@
                     android:textSize="14sp" />
 
             <TextView
-                    android:id="@+id/feedback"
+                    android:id="@+id/lingua_link"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
                     android:layout_weight="0.27"
+                    android:autoLink="web"
                     android:gravity="center"
-                    android:text="@string/feedback_link"
+                    android:layout_marginBottom="20dp"
+                    android:text="@string/lingua_link"
                     android:textSize="14sp" />
 
             <TextView
-                    android:id="@+id/main_revision"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center"
-                    android:text="@string/revision"
-                    android:textSize="12sp" />
-
-            <TextView
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:gravity="center"
-                    android:text="@string/compiled_by"
-                    android:textSize="12sp" />
-
-            <TextView
-                    android:id="@+id/main_compiled"
+                    android:id="@+id/developer_contact"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:gravity="center"
                     android:text=""
-                    android:textSize="12sp" />
+                    android:textSize="16sp" />
+
+<!--            <TextView-->
+<!--                android:id="@+id/feedback"-->
+<!--                    android:layout_width="fill_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="15dp"-->
+<!--                    android:layout_weight="0.27"-->
+<!--                    android:gravity="center"-->
+<!--                    android:text="@string/feedback_link"-->
+<!--                    android:textSize="14sp" />-->
+
+<!--            <TextView-->
+<!--                    android:id="@+id/main_revision"-->
+<!--                    android:layout_width="fill_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="20dp"-->
+<!--                    android:gravity="center"-->
+<!--                    android:text="@string/revision"-->
+<!--                    android:textSize="12sp" />-->
+
+<!--            <TextView-->
+<!--                    android:layout_width="fill_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="5dp"-->
+<!--                    android:gravity="center"-->
+<!--                    android:text="@string/compiled_by"-->
+<!--                    android:textSize="12sp" />-->
+
+<!--            <TextView-->
+<!--                    android:id="@+id/main_compiled"-->
+<!--                    android:layout_width="fill_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginTop="5dp"-->
+<!--                    android:gravity="center"-->
+<!--                    android:text=""-->
+<!--                    android:textSize="12sp" />-->
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

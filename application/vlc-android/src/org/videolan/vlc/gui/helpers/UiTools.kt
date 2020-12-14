@@ -36,6 +36,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.renderscript.*
+import android.text.Html
 import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.view.*
@@ -222,7 +223,7 @@ object UiTools {
     /**
      * Print an on-screen message to alert the user
      */
-    fun snacker(activity:Activity, stringId: Int) {
+    fun snacker(activity: Activity, stringId: Int) {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, stringId, Snackbar.LENGTH_SHORT)
 //        snack.setAnchorView()
@@ -233,7 +234,7 @@ object UiTools {
      * Print an on-screen message to alert the user
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    fun snacker(activity:Activity, message: String) {
+    fun snacker(activity: Activity, message: String) {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, message, Snackbar.LENGTH_SHORT)
         if (AndroidUtil.isLolliPopOrLater)
@@ -245,7 +246,7 @@ object UiTools {
      * Print an on-screen message to alert the user, with undo action
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    fun snackerConfirm(activity:Activity, message: String, action: Runnable) {
+    fun snackerConfirm(activity: Activity, message: String, action: Runnable) {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, message, Snackbar.LENGTH_LONG)
                 .setAction(R.string.ok) { action.run() }
@@ -255,7 +256,7 @@ object UiTools {
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    fun CoroutineScope.snackerConfirm(activity:Activity, message: String, action: suspend() -> Unit) {
+    fun CoroutineScope.snackerConfirm(activity: Activity, message: String, action: suspend () -> Unit) {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, message, Snackbar.LENGTH_LONG)
                 .setAction(R.string.ok) { launch { action.invoke() } }
@@ -269,7 +270,7 @@ object UiTools {
      * Print an on-screen message to alert the user, with undo action
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    fun snackerWithCancel(activity:Activity, message: String, action: Runnable?, cancelAction: Runnable?) {
+    fun snackerWithCancel(activity: Activity, message: String, action: Runnable?, cancelAction: Runnable?) {
         val view = getSnackAnchorView(activity) ?: return
         @SuppressLint("WrongConstant") val snack = Snackbar.make(view, message, DELETE_DURATION)
                 .setAction(R.string.cancel) {
@@ -317,21 +318,28 @@ object UiTools {
     fun fillAboutView(v: View) {
         val link = v.findViewById<TextView>(R.id.main_link)
         link.text = HtmlCompat.fromHtml(v.context.getString(R.string.about_link),
-            HtmlCompat.FROM_HTML_MODE_LEGACY)
+                HtmlCompat.FROM_HTML_MODE_LEGACY)
 
-        val feedback : TextView= v.findViewById(R.id.feedback)
-        feedback.text = HtmlCompat.fromHtml(v.context.getString(R.string.feedback_link,
-                v.context.getString(R.string.feedback_forum)), HtmlCompat.FROM_HTML_MODE_LEGACY)
+        val linguaLink = v.findViewById<TextView>(R.id.lingua_link)
+        linguaLink.text = HtmlCompat.fromHtml(v.context.getString(R.string.lingua_link),
+                HtmlCompat.FROM_HTML_MODE_LEGACY)
+
+//        val feedback : TextView= v.findViewById(R.id.feedback)
+//        feedback.text = HtmlCompat.fromHtml(v.context.getString(R.string.feedback_link,
+//                v.context.getString(R.string.feedback_forum)), HtmlCompat.FROM_HTML_MODE_LEGACY)
+//        feedback.movementMethod = LinkMovementMethod.getInstance()
+
+//        val revision = v.context.getString() + " VLC: " + v.context.getString(R.string.build_vlc_revision)
+//        val builddate = v.context.getString(R.string.build_time)
+//        val builder = v.context.getString(R.string.build_host)
+
+//        val compiled = v.findViewById<TextView>(R.id.main_compiled)
+//        compiled.text = "$builder ($builddate)"
+//        val textViewRev = v.findViewById<TextView>(R.id.main_revision)
+//        textViewRev.text = v.context.getString(R.string.revision) + " " + revision + " (" + builddate + ") "
+        val feedback = v.findViewById(R.id.developer_contact) as TextView
+        feedback.text = Html.fromHtml("<a href=\"mailto:playerlingua@gmail.com\">"+ v.context.getString(R.string.feedback) +"</a>")
         feedback.movementMethod = LinkMovementMethod.getInstance()
-
-        val revision = v.context.getString(R.string.build_revision) + " VLC: " + v.context.getString(R.string.build_vlc_revision)
-        val builddate = v.context.getString(R.string.build_time)
-        val builder = v.context.getString(R.string.build_host)
-
-        val compiled = v.findViewById<TextView>(R.id.main_compiled)
-        compiled.text = "$builder ($builddate)"
-        val textViewRev = v.findViewById<TextView>(R.id.main_revision)
-        textViewRev.text = v.context.getString(R.string.revision) + " " + revision + " (" + builddate + ") "
 
         val logo = v.findViewById<ImageView>(R.id.logo)
         logo.setOnClickListener {
@@ -374,7 +382,7 @@ object UiTools {
         savePlaylistDialog.show(supportFragmentManager, "fragment_add_to_playlist")
     }
 
-    fun FragmentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup:Boolean , newGroupListener: ()->Unit) {
+    fun FragmentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup: Boolean, newGroupListener: () -> Unit) {
         if (!isStarted()) return
         val addToGroupDialog = AddToGroupDialog()
         addToGroupDialog.arguments = bundleOf(AddToGroupDialog.KEY_TRACKS to tracks.toTypedArray(), AddToGroupDialog.FORBID_NEW_GROUP to forbidNewGroup)
@@ -383,7 +391,7 @@ object UiTools {
     }
 
     lateinit var videoTracksDialog: VideoTracksDialog
-    fun FragmentActivity.showVideoTrack(menuListener:(Int) -> Unit, trackSelectionListener:(Int, VideoTracksDialog.TrackType) -> Unit) {
+    fun FragmentActivity.showVideoTrack(menuListener: (Int) -> Unit, trackSelectionListener: (Int, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
 
         if (::videoTracksDialog.isInitialized)
@@ -643,7 +651,8 @@ fun setEllipsizeModeByPref(t: TextView, activated: Boolean) {
     if (!activated) return
 
     when (Settings.listTitleEllipsize) {
-        0 -> {}
+        0 -> {
+        }
         1 -> t.ellipsize = TextUtils.TruncateAt.START
         2 -> t.ellipsize = TextUtils.TruncateAt.END
         3 -> t.ellipsize = TextUtils.TruncateAt.MIDDLE

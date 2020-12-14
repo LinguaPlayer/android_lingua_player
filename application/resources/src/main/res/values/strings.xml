@@ -33,7 +33,7 @@
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
     <string name="video_app_switch_title">Background/PiP mode</string>
-    <string name="video_app_switch_summary">Select VLC behavior when you switch to other application from video playback</string>
+    <string name="video_app_switch_summary">Select Lingua Player behavior when you switch to other application from video playback</string>
     <string name="play_pip_title">Play videos in Picture-in-picture mode</string>
     <string name="play_as_audio_background">Play videos in background</string>
     <string name="append">Append</string>
@@ -189,7 +189,7 @@
     <string name="load_3_period" translatable="false">...</string>
 
     <string name="encountered_error_title">Playback error</string>
-    <string name="encountered_error_message">VLC encountered an error with this media.\nPlease try refreshing the media library.</string>
+    <string name="encountered_error_message">Lingua Player encountered an error with this media.\nPlease try refreshing the media library.</string>
     <string name="invalid_location">The location %1$s cannot be played.</string>
 
     <string name="search">Search</string>
@@ -224,12 +224,14 @@
     <string name="hold_to_stop">Hold to stop</string>
 
     <!-- About -->
-    <string name="app_name_full">VLC for Android</string>
+    <string name="app_name_full">Lingua Player</string>
     <string name="licence">License</string>
     <string name="revision">Revision</string>
     <string name="about">About</string>
-    <string name="about_text">VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
+    <string name="about_text">Lingua Player is based on VLC for Android™ \n VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
     <string name="about_link" translatable="false">        &lt;a href=&quot;https://www.videolan.org/vlc/&quot;&gt;https://www.videolan.org/vlc/&lt;/a&gt;</string>
+    <string name="lingua_link" translatable="false">        &lt;a href=&quot;https://github.com/LinguaPlayer/android_lingua_player/&quot;&gt;https://github.com/LinguaPlayer/android_lingua_player/&lt;/a&gt;</string>
+    <string name="feedback" translatable="false">        &lt;a href=&quot;mailto:playerlingua@gmail.com&quot;&gt;Feeback&lt;/a&gt;</string>
     <string name="authors" translatable="false">Edward&#160;Wang, Sébastien&#160;Toque, Adrien&#160;Maglo, Jean-Baptiste&#160;Kempf, Ludovic&#160;Fauvet, Rafaël&#160;Carré, Alexandre&#160;Perraud, Michael&#160;Merg, Martin&#160;Storsjö, Rémi&#160;Duraffort, Dominique&#160;Martinet, Jean-Philippe&#160;André, Felix&#160;Abecassis, Christoph&#160;Miebach, Hugo&#160;Beauzée-Luyssen, Felix&#160;Paul&#160;Kühne, John&#160;Mooring, Pavol&#160;Rusnak, Rohit&#160;Yadav, Tanguy&#160;Pruvot, Thomas&#160;Clavier, Asad&#160;Mehmood, Garret&#160;Kelly, Philipp&#160;Dreimann, Walter&#160;Heck, Thomas&#160;Guillem, Geoffrey&#160;Métais, Habib&#160;Kazemi, Nicolas&#160;Pomepuy</string>
     <string name="feedback_link" translatable="false">&lt;a href=&quot;https://forum.videolan.org/viewforum.php?f=35&quot;&gt;%s&lt;/a&gt;</string>
     <string name="about_copyright" translatable="false">Copyleft &#169; 1996&#8211;2020 by VideoLAN.\n</string>
@@ -337,10 +339,10 @@
     <string name="enable_play_on_headset_insertion">Resume on headset insertion</string>
     <string name="enable_play_on_headset_insertion_summary">Pause otherwise</string>
     <string name="aout">Audio output</string>
-    <string name="aout_summary">Change the method that VLC uses to output audio</string>
+    <string name="aout_summary">Change the method that Lingua Player uses to output audio</string>
     <string name="aout_audiotrack" translatable="false">AudioTrack</string>
     <string name="aout_opensles" translatable="false">OpenSL ES</string>
-    <string name="audio_ducking_title">Lower VLC volume on notifications</string>
+    <string name="audio_ducking_title">Lower Lingua Player volume on notifications</string>
     <string name="audio_ducking_summary">Helps to hear audio notifications, navigation instructions or assistant talking</string>
     <string name="casting_category">Casting</string>
     <string name="casting_switch_title">Wireless casting</string>
@@ -407,7 +409,7 @@
     <string name="start_logging">Start logging</string>
     <string name="stop_logging">Stop logging</string>
     <string name="clear_log">Clear log</string>
-    <string name="log_service_title">VLC logs recording</string>
+    <string name="log_service_title">Lingua Player logs recording</string>
     <string name="log_service_text">Open the log console</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="copied_to_clipboard">Copied log to clipboard.</string>
@@ -417,9 +419,9 @@
     <string name="custom_libvlc_options">Custom libVLC options</string>
     <string name="custom_libvlc_options_invalid">Invalid libVLC options!</string>
 
-    <string name="serious_crash">Unfortunately, a serious error has occurred and VLC had to close.</string>
-    <string name="help_us_send_log">Help us improving VLC by sending the following crash log:</string>
-    <string name="restart_vlc">Restart VLC</string>
+    <string name="serious_crash">Unfortunately, a serious error has occurred and Lingua Player had to close.</string>
+    <string name="help_us_send_log">Help us improving Lingua Player by sending the following crash log:</string>
+    <string name="restart_vlc">Restart Lingua Player</string>
     <string name="send_log">Send the log</string>
     <string name="sending_log">Sending the log…</string>
 
@@ -464,20 +466,20 @@
     <string name="music_now_playing">Now Playing</string>
 
     <!-- Widget -->
-    <string name="widget_name_w">VLC White Widget</string>
-    <string name="widget_name_b">VLC Dark Widget</string>
-    <string name="widget_default_text" translatable="false">VLC mini player</string>
-    <string name="allow_storage_access_title">Allow VLC to access video and audio files</string>
-    <string name="allow_storage_access_description">VLC needs you to grant this permission to access the media files on this device.</string>
-    <string name="allow_settings_access_ringtone_title">Allow VLC to set the ringtone</string>
-    <string name="allow_settings_access_ringtone_description">VLC needs you to grant this permission to set up this song as your ringtone.</string>
-    <string name="allow_settings_access_brightness_title">Allow VLC to change brightness mode</string>
-    <string name="allow_settings_access_brightness_description">VLC needs you to grant this permission to change your brightness mode.</string>
-    <string name="allow_draw_overlays_title">Allow VLC player popup over other apps</string>
-    <string name="allow_sdraw_overlays_description">VLC needs you to grant this permission display your video in a popup over other applications.</string>
+    <string name="widget_name_w">Lingua Player White Widget</string>
+    <string name="widget_name_b">Lingua Player Dark Widget</string>
+    <string name="widget_default_text" translatable="false">Lingua Player mini player</string>
+    <string name="allow_storage_access_title">Allow Lingua Player to access video and audio files</string>
+    <string name="allow_storage_access_description">Lingua Player needs you to grant this permission to access the media files on this device.</string>
+    <string name="allow_settings_access_ringtone_title">Allow Lingua Player to set the ringtone</string>
+    <string name="allow_settings_access_ringtone_description">Lingua Player needs you to grant this permission to set up this song as your ringtone.</string>
+    <string name="allow_settings_access_brightness_title">Allow Lingua Player to change brightness mode</string>
+    <string name="allow_settings_access_brightness_description">Lingua Player needs you to grant this permission to change your brightness mode.</string>
+    <string name="allow_draw_overlays_title">Allow Lingua Player player popup over other apps</string>
+    <string name="allow_sdraw_overlays_description">Lingua Player needs you to grant this permission display your video in a popup over other applications.</string>
     <string name="permission_ask_again">Grant permission</string>
-    <string name="exit_app">Close VLC</string>
-    <string name="exit_app_msg">Are you sure you want to quit VLC?</string>
+    <string name="exit_app">Close Lingua Player</string>
+    <string name="exit_app_msg">Are you sure you want to quit Lingua Player?</string>
 
     <!-- fast scroller -->
     <string name="fastscroller_track">FastScroller track</string>
@@ -518,7 +520,7 @@
     <string name="length">Length</string>
     <string name="tv_settings_hint">Long press OK button to check/uncheck directories</string>
     <string name="ml_external_storage_title">New external storage detected</string>
-    <string name="ml_external_storage_msg">Do you want VLC to add device %1$s to your medialibrary?</string>
+    <string name="ml_external_storage_msg">Do you want Lingua Player to add device %1$s to your medialibrary?</string>
     <string name="ml_external_storage_accept">Yes</string>
     <string name="ml_external_storage_decline">No</string>
     <string name="auto_last_added_media">Last added</string>
@@ -547,8 +549,8 @@
     <string name="browser_storages">Storages</string>
     <string name="msg_delete_failed">Failed to delete media %1$s</string>
     <string name="renderer_list_title">Displays</string>
-    <string name="sdcard_permission_dialog_title">You have to grant VLC write access to your SD Card</string>
-    <string name="sdcard_permission_dialog_message">VLC cannot delete this file without write access permission.\nPlease go to your SD Card and click on \"Select\".\nYou may have to click on \"Show SD card\" first in the top-right menu</string>
+    <string name="sdcard_permission_dialog_title">You have to grant Lingua Player write access to your SD Card</string>
+    <string name="sdcard_permission_dialog_message">Lingua Player cannot delete this file without write access permission.\nPlease go to your SD Card and click on \"Select\".\nYou may have to click on \"Show SD card\" first in the top-right menu</string>
     <string name="dialog_sd_wizard">Show me</string>
     <string name="renderers_disconnect">Disconnect</string>
     <string name="audio_digital_failed">Failed to change Audio Digital Output state</string>
@@ -562,7 +564,7 @@
     <string name="playback_rewind">Rewind</string>
     <string name="playback_forward">Fast forward</string>
     <string name="ml_wizard_scan_checkbox">Scan device for media content</string>
-    <string name="ml_wizard_description">Choose whether VLC will scan your device storage to organize your media library or just use it as a simple player with an integrated browser.</string>
+    <string name="ml_wizard_description">Choose whether Lingua Player will scan your device storage to organize your media library or just use it as a simple player with an integrated browser.</string>
     <string name="tv_my_new_videos">My new videos</string>
     <string name="cast_option_title">Cast medias on another screen</string>
     <string name="otg_device_title">OTG device</string>
@@ -590,24 +592,24 @@
     <string name="ctx_player_subs_track">Subtitles track</string>
     <string name="ctx_pip_title">Pop-Up player</string>
     <string name="device_dialog_title">External device inserted</string>
-    <string name="device_dialog_message">You just plugged a new storage device to your TV box, do you want to open it with VLC?</string>
+    <string name="device_dialog_message">You just plugged a new storage device to your TV box, do you want to open it with Lingua Player?</string>
     <string name="videos_folders_title">Videos by folders</string>
     <string name="videos_groups_title">Video groups</string>
     <string name="video_save_clone_mode">Automatically activate clone mode?</string>
     <string name="video_remote_enable">Switch to remote control mode</string>
     <string name="video_remote_disable">Duplicate screen</string>
     <string name="removed_from_playlist_anonymous">Item(s) removed from playlist</string>
-    <string name="welcome_title">Welcome to VLC!</string>
+    <string name="welcome_title">Welcome to Lingua Player!</string>
     <string name="welcome_subtitle">The free and open source multimedia player</string>
-    <string name="permission_media">VLC needs your permission to access media on your device</string>
-    <string name="medialibrary_scan_explanation">VLC can automatically scan your device to organize your media collection.</string>
+    <string name="permission_media">Lingua Player needs your permission to access media on your device</string>
+    <string name="medialibrary_scan_explanation">Lingua Player can automatically scan your device to organize your media collection.</string>
     <string name="onboarding_theme_title">Make yourself at home</string>
     <string name="done">Done</string>
     <string name="onboarding_scan_title">Auto-discover your media</string>
-    <string name="daynight_system_explanation">VLC will automatically switch to dark mode accordingly with system setting</string>
-    <string name="daynight_legacy_explanation">VLC will automatically switch to night mode at appropriate time</string>
-    <string name="onboarding_scanning_enable">Let VLC scan my device for media content</string>
-    <string name="onboarding_scan_customize">Let me choose which folders VLC will scan</string>
+    <string name="daynight_system_explanation">Lingua Player will automatically switch to dark mode accordingly with system setting</string>
+    <string name="daynight_legacy_explanation">Lingua Player will automatically switch to night mode at appropriate time</string>
+    <string name="onboarding_scanning_enable">Let Lingua Player scan my device for media content</string>
+    <string name="onboarding_scan_customize">Let me choose which folders Lingua Player will scan</string>
     <string name="button_medialibrary_preferences">Go to Medialibrary preferences</string>
     <string name="light_theme">Light theme</string>
     <string name="add">Add</string>
@@ -766,7 +768,7 @@
     <string name="air_action_next">Next item in playback</string>
     <string name="air_action_previous">Previous item in playback</string>
     <string name="allow_otg">Allow OTG access</string>
-    <string name="allow_otg_description">Please select your OTG drive to allow access to VLC.</string>
+    <string name="allow_otg_description">Please select your OTG drive to allow access to Lingua Player.</string>
     <string name="timeout_infinite">Infinite</string>
     <string name="timeout_short">Short</string>
     <string name="timeout_normal">Normal</string>
