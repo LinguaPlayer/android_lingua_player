@@ -69,3 +69,6 @@ libvlc.pc.backup
 libvlcpp.pc
 lib/
 /buildsystem/automation/certificates/
+
+//lingua
+gradle_keys.properties

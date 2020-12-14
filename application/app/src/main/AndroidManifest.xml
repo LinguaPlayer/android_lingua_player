@@ -17,7 +17,6 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.VLC.Transparent"
-        android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         tools:targetApi="q" />
 </manifest>

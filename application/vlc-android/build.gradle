@@ -17,6 +17,8 @@ android {
         pickFirst '**/*.so'
     }
 
+
+
     defaultConfig {
 
         resValue "string", "build_time", buildTime()
@@ -67,7 +69,8 @@ android {
 
     buildTypes {
         release {
-            proguardFile 'proguard.cfg'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            kotlinOptions.freeCompilerArgs = ['-Xno-param-assertions']
             buildConfigField "boolean", "BETA", isBeta()
             resValue 'string', 'benchmark_package_name', 'org.videolan.vlcbenchmark'
         }
@@ -158,6 +161,8 @@ dependencies {
 
     // Lingua
     api 'com.github.albfernandez:juniversalchardet:2.3.0'
+    api 'ir.tapsell.sdk:tapsell-sdk-android:4.6.2'
+
 
     // AppCompat
     api "androidx.activity:activity-ktx:$rootProject.ext.androidxActivityVersion"

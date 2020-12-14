@@ -35,7 +35,6 @@ import android.net.Uri
 import android.os.*
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Editable
-import android.text.Spannable
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
@@ -47,11 +46,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationSet
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.RotateAnimation
-import android.widget.ImageView
-import android.widget.SeekBar
+import android.widget.*
 import android.widget.SeekBar.OnSeekBarChangeListener
-import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -63,8 +59,6 @@ import androidx.constraintlayout.widget.Guideline
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.core.text.HtmlCompat
-import androidx.core.text.toSpannable
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LiveData
@@ -72,8 +66,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import com.github.kazemihabib.cueplayer.util.EventObserver
-import kotlinx.android.synthetic.main.info_item.*
+import ir.tapsell.sdk.bannerads.TapsellBannerType
+import ir.tapsell.sdk.bannerads.TapsellBannerView
+import ir.tapsell.sdk.bannerads.TapsellBannerViewEventListener
 import kotlinx.android.synthetic.main.player_overlay_brightness.*
 import kotlinx.android.synthetic.main.player_overlay_volume.*
 import kotlinx.coroutines.*
@@ -100,9 +95,7 @@ import org.videolan.vlc.gui.dialogs.RenderersDialog
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
-import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
-import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.repository.ExternalSubRepository
 import org.videolan.vlc.repository.SlaveRepository
 import org.videolan.vlc.repository.SubtitlesRepository
@@ -483,6 +476,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         overlayDelegate.playToPause = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_play_pause_video)!!
         overlayDelegate.pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
+
+        initAds()
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -988,8 +983,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     return navigateDvdMenu(keyCode)
                 else if (isLocked) {
                     overlayDelegate.showOverlayTimeout(OVERLAY_TIMEOUT)
-                }
-                else if (!isShowing && !overlayDelegate.playlistContainer.isVisible()) {
+                } else if (!isShowing && !overlayDelegate.playlistContainer.isVisible()) {
                     if (event.isAltPressed && event.isCtrlPressed) {
                         touchDelegate.seekDelta(-300000)
                     } else if (event.isCtrlPressed) {
@@ -1006,8 +1000,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     return navigateDvdMenu(keyCode)
                 else if (isLocked) {
                     overlayDelegate.showOverlayTimeout(OVERLAY_TIMEOUT)
-                }
-                else if (!isShowing && !overlayDelegate.playlistContainer.isVisible()) {
+                } else if (!isShowing && !overlayDelegate.playlistContainer.isVisible()) {
                     if (event.isAltPressed && event.isCtrlPressed) {
                         touchDelegate.seekDelta(300000)
                     } else if (event.isCtrlPressed) {
@@ -1024,8 +1017,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     return navigateDvdMenu(keyCode)
                 else if (isLocked) {
                     overlayDelegate.showOverlayTimeout(OVERLAY_TIMEOUT)
-                }
-                else if (event.isCtrlPressed) {
+                } else if (event.isCtrlPressed) {
                     volumeUp()
                     return true
                 } else if (!isShowing && !overlayDelegate.playlistContainer.isVisible()) {
@@ -1041,8 +1033,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     return navigateDvdMenu(keyCode)
                 else if (isLocked) {
                     overlayDelegate.showOverlayTimeout(OVERLAY_TIMEOUT)
-                }
-                else if (event.isCtrlPressed) {
+                } else if (event.isCtrlPressed) {
                     volumeDown()
                     return true
                 } else if (!isShowing && fov != 0f) {
@@ -1055,8 +1046,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     return navigateDvdMenu(keyCode)
                 else if (isLocked) {
                     overlayDelegate.showOverlayTimeout(OVERLAY_TIMEOUT)
-                }
-                else if (!isShowing) {
+                } else if (!isShowing) {
                     doPlayPause()
                     return true
                 }
@@ -1214,10 +1204,12 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 MediaPlayer.Event.Playing -> {
                     onPlaying()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(true)
+                    hideAds()
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(false)
+                    showAds()
                 }
                 MediaPlayer.Event.Opening -> {
                     forcedTime = -1
@@ -1412,12 +1404,12 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     fun displayWarningToast() {
         warningToast?.cancel()
         warningToast = Toast.makeText(application, R.string.audio_boost_warning, Toast.LENGTH_SHORT).apply {
-            setGravity(Gravity.LEFT or Gravity.BOTTOM, 16.dp,0)
+            setGravity(Gravity.LEFT or Gravity.BOTTOM, 16.dp, 0)
             show()
         }
     }
 
-    internal fun setAudioVolume(volume: Int, fromTouch:Boolean = false) {
+    internal fun setAudioVolume(volume: Int, fromTouch: Boolean = false) {
         var vol = volume
         if (AndroidUtil.isNougatOrLater && (vol <= 0) xor isMute) {
             mute(!isMute)
@@ -2180,12 +2172,49 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 //        player.handler.removeMessages(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION, VideoPlayerActivity.MAXIMUM_TIME_TO_SHOW_TRANSLATION_WAITING)
 //    }
 
+    private var banner: TapsellBannerView? = null
+    private var adCloseButton: ImageView? = null
+    private var adContainer: FrameLayout? = null
+
+    private fun initAds() {
+        banner = findViewById(R.id.banner)
+        adCloseButton = findViewById(R.id.close_ad)
+        adContainer = findViewById(R.id.ad_container)
+    
+        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_300x250)
+        banner?.setEventListener(object : TapsellBannerViewEventListener {
+            override fun onNoAdAvailable() {}
+
+            override fun onNoNetwork() {}
+
+            override fun onError(error: String?) { Log.d(TAG, "onError: $error") }
+
+            override fun onRequestFilled() {
+                adCloseButton?.setVisible()
+                service?.let { if (it.isPlaying) hideAds() }
+            }
+
+            override fun onHideBannerView() {}
+        })
+
+       adCloseButton?.setOnClickListener { hideAds() }
+    }
+
+    private fun hideAds() {
+        banner?.hideBannerView()
+        adCloseButton?.setInvisible()
+    }
+
+    private fun showAds() {
+        banner?.showBannerView()
+        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_300x250)
+    }
 
 }
 
-data class PlayerOrientationMode (
-    var locked:Boolean = false,
-    var orientation:Int = 0
+data class PlayerOrientationMode(
+        var locked: Boolean = false,
+        var orientation: Int = 0
 )
 
 @ExperimentalCoroutinesApi

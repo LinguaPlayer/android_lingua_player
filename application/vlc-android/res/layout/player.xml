@@ -61,6 +61,30 @@
         android:layout_alignParentTop="true"
         android:background="@drawable/gradient_title_player"
         android:visibility="gone" />
+    <FrameLayout
+        android:id="@+id/ad_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="visible">
+        <ir.tapsell.sdk.bannerads.TapsellBannerView
+            android:id="@+id/banner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:tapsell_banner_type="banner_320x50"
+            app:tapsell_zone_id="ZONE_ID" />
+
+        <ImageView
+            android:id="@+id/close_ad"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|left"
+            android:clickable="true"
+            android:text="Close"
+            android:visibility="gone"
+            android:background="@drawable/lingua_options_background_selector"
+            app:srcCompat="@drawable/ic_close_small"></ImageView>
+    </FrameLayout>
 
 
     <RelativeLayout
