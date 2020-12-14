@@ -230,7 +230,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
     inner class SubTouchSpan(val word: String, val caption: String, val color: Int): ClickableSpan() {
         override fun onClick(widget: View) {
-            val isGoogleTranslateAvailable = translate(word, widget.context.applicationContext)
+            val isGoogleTranslateAvailable = translate(word, player)
             if (isGoogleTranslateAvailable) {
                 player.service?.pause()
                 showLoadingForTranslation(5000L)
