@@ -2175,12 +2175,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var banner: TapsellBannerView? = null
     private var adCloseButton: ImageView? = null
     private var adContainer: FrameLayout? = null
+    private var requestFilled = false
 
     private fun initAds() {
         banner = findViewById(R.id.banner)
         adCloseButton = findViewById(R.id.close_ad)
         adContainer = findViewById(R.id.ad_container)
         requestNewAd()
+
         banner?.setEventListener(object : TapsellBannerViewEventListener {
             override fun onNoAdAvailable() {
                 Log.d(TAG, "onNoAdAvailable: ")
@@ -2196,6 +2198,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
             override fun onRequestFilled() {
                 Log.d(TAG, "onRequestFilled")
+                requestFilled = true
                 service?.let {
                     if (it.isPlaying || !shouldShowAds()) hideAds()
                     else adCloseButton?.setVisible()
@@ -2241,7 +2244,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         Log.d(TAG, "showAds")
         banner?.showBannerView()
 
-        adCloseButton?.setVisible()
+        if (requestFilled) adCloseButton?.setVisible()
     }
 
 }
