@@ -2180,34 +2180,68 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         banner = findViewById(R.id.banner)
         adCloseButton = findViewById(R.id.close_ad)
         adContainer = findViewById(R.id.ad_container)
-    
-        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_300x250)
+        requestNewAd()
         banner?.setEventListener(object : TapsellBannerViewEventListener {
-            override fun onNoAdAvailable() {}
-
-            override fun onNoNetwork() {}
-
-            override fun onError(error: String?) { Log.d(TAG, "onError: $error") }
-
-            override fun onRequestFilled() {
-                adCloseButton?.setVisible()
-                service?.let { if (it.isPlaying) hideAds() }
+            override fun onNoAdAvailable() {
+                Log.d(TAG, "onNoAdAvailable: ")
             }
 
-            override fun onHideBannerView() {}
+            override fun onNoNetwork() {
+                Log.d(TAG, "onNoNetwork: ")
+            }
+
+            override fun onError(error: String?) {
+                Log.d(TAG, "onError: $error")
+            }
+
+            override fun onRequestFilled() {
+                Log.d(TAG, "onRequestFilled")
+                service?.let {
+                    if (it.isPlaying || !shouldShowAds()) hideAds()
+                    else adCloseButton?.setVisible()
+                }
+            }
+
+            override fun onHideBannerView() {
+                Log.d(TAG, "onHideBannerView: ")
+            }
         })
 
        adCloseButton?.setOnClickListener { hideAds() }
     }
 
+    private fun requestNewAd() {
+        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_250x250)
+    }
+
     private fun hideAds() {
+        Log.d(TAG, "hideAds")
         banner?.hideBannerView()
         adCloseButton?.setInvisible()
     }
 
+    private var numberOfTimesShowAdsIsCalled: Int = 1
+    private var shouldRequestNewAd = false
+
+    private fun shouldShowAds(): Boolean {
+        if (numberOfTimesShowAdsIsCalled % 4 != 0) {
+            if (shouldRequestNewAd) requestNewAd()
+            shouldRequestNewAd = false
+            return false
+        }
+
+        return true
+    }
     private fun showAds() {
+        numberOfTimesShowAdsIsCalled++
+        if (!shouldShowAds()) return
+
+        shouldRequestNewAd = true
+
+        Log.d(TAG, "showAds")
         banner?.showBannerView()
-        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_300x250)
+
+        adCloseButton?.setVisible()
     }
 
 }
