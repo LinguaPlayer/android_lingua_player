@@ -1,6 +1,10 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+
+
 android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -100,7 +104,7 @@ android {
             matchingFallbacks = ['release']
         }
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             jniDebuggable true
         }
         dev {
@@ -158,6 +162,11 @@ dependencies {
     implementation project(':application:vlc-android')
     implementation project(':application:television')
     testImplementation project(':application:television')
+
+    //lingua
+    implementation platform('com.google.firebase:firebase-bom:26.1.1')
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
 
     androidTestApi "androidx.test.espresso:espresso-contrib:$rootProject.espressoVersion"
     androidTestApi "androidx.test.espresso:espresso-core:$rootProject.espressoVersion"

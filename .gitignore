@@ -70,5 +70,6 @@ libvlcpp.pc
 lib/
 /buildsystem/automation/certificates/
 
-//lingua
+#lingua
 gradle_keys.properties
+application/app/google-services.json
