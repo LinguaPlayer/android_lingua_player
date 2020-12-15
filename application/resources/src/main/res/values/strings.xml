@@ -600,7 +600,7 @@
     <string name="video_remote_disable">Duplicate screen</string>
     <string name="removed_from_playlist_anonymous">Item(s) removed from playlist</string>
     <string name="welcome_title">Welcome to Lingua Player!</string>
-    <string name="welcome_subtitle">The free and open source multimedia player</string>
+    <string name="welcome_subtitle">Powerful multimedia player with language learning features</string>
     <string name="permission_media">Lingua Player needs your permission to access media on your device</string>
     <string name="medialibrary_scan_explanation">Lingua Player can automatically scan your device to organize your media collection.</string>
     <string name="onboarding_theme_title">Make yourself at home</string>
