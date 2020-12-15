@@ -71,14 +71,15 @@
             android:id="@+id/banner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="20dp"
             app:tapsell_banner_type="banner_320x50"
-            app:tapsell_zone_id="ZONE_ID" />
+            app:tapsell_zone_id="ZONE_ID"/>
 
         <ImageView
             android:id="@+id/close_ad"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_gravity="top|left"
+            android:layout_gravity="top|end"
             android:clickable="true"
             android:text="Close"
             android:visibility="gone"
