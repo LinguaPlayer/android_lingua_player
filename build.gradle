@@ -36,7 +36,7 @@ allprojects {
         // Ignores errors from mavenAndroidJavadocs task
         // (reference: github.com/novoda/bintray-release/issues/71#issuecomment-164324255)
         options.addStringOption('Xdoclint:none', '-quiet')
-        options.addStringOption('encoding', 'UTF-8')
+        options.addStringOption('encodipng', 'UTF-8')
     }
 }
 

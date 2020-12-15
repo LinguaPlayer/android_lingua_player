@@ -73,3 +73,4 @@ lib/
 #lingua
 gradle_keys.properties
 application/app/google-services.json
+application/app/signedRelease
