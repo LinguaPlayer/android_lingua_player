@@ -38,7 +38,6 @@ import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.util.toPixel
 import java.util.regex.Pattern
-import kotlin.math.log
 
 
 private const val TAG = "SubtitleOverlayDelegate"
@@ -133,25 +132,27 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         subtitleTextView?.text = caption
     }
 
-    var color = ContextCompat.getColor(player.applicationContext, R.color.white)
+    var color = Color.parseColor("#ffffff")
 
     fun updateSubtitleTextViewStyle() {
         // not in settings yet
-        val strokeColor = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getInt("subtitle_stroke_color", ContextCompat.getColor(player.applicationContext, R.color.black))
+//        val strokeColor = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitle_stroke_color", ContextCompat.getColor(player.applicationContext, R.color.black))
+        val strokeColor = ContextCompat.getColor(player.applicationContext, R.color.black)
         val strokeWidth = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getInt("subtitle_stroke_width", 3)
         //////////////////////
-        color = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_color", ContextCompat.getColor(player.applicationContext, R.color.white).toString())?.toInt() ?: ContextCompat.getColor(player.applicationContext, R.color.white)
-        val size = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitle_size", "25")?.toInt() ?: 25
+        color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_color", "#ffffff") ?: "#ffffff")
+
+        val size = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_size", "25")?.toInt() ?: 25
         val bold = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_bold", false)
         backgroundColorEnabled = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_background", false)
         val backgroundColor = ContextCompat.getColor(player.applicationContext, R.color.black_more_transparent)
 //        Log.d(TAG, "updateSubtitleTextViewStyle: $color $size $bold $backgroundColorEnabled")
 //        Log.d(TAG, "updateSubtitleTextViewStyle: stroke $strokeColor $strokeWidth")
         subtitleTextView?.apply {
-            setStrokeColor(Color.parseColor("#" + Integer.toHexString(strokeColor)))
+            setStrokeColor(strokeColor)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, size.toFloat())
             setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP, strokeWidth)
-            setTextColor(Color.parseColor("#" + Integer.toHexString(color)))
+            setTextColor(color)
             if (bold) setTypeface(null, Typeface.BOLD)
             movementMethod = LinkMovementMethod.getInstance()
             if (backgroundColorEnabled)
