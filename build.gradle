@@ -44,8 +44,8 @@ ext {
     appId = 'ir.habibkazemi.linguaplayer'
     versionName = '2.0.0'
     versionCode = 2000000
-    libvlcVersion = '3.3.11'
-    medialibraryVersion = '0.7.10'
+    libvlcVersion = '3.3.12'
+    medialibraryVersion = '0.7.11'
     minSdkVersion = 17
     targetSdkVersion = 29
     compileSdkVersion = 29

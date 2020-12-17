@@ -77,6 +77,8 @@ import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.toPixel
+import org.videolan.vlc.util.isSchemeFile
+import org.videolan.vlc.util.isSchemeNetwork
 import org.videolan.vlc.viewmodels.PlaylistModel
 
 @ExperimentalCoroutinesApi
@@ -769,7 +771,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun pickSubtitles() {
         val uri = player.videoUri ?: return
-        val media = MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri())
+        val media = if (uri.scheme.isSchemeFile() || uri.scheme.isSchemeNetwork()) MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri()) else null
         player.isShowingDialog = true
         val filePickerIntent = Intent(player, FilePickerActivity::class.java)
         filePickerIntent.putExtra(KEY_MEDIA, media)
