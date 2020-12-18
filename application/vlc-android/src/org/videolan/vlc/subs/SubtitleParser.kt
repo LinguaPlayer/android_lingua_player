@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.videolan.vlc.R
+import org.videolan.vlc.util.FileUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -83,7 +84,7 @@ class SubtitleParser {
                                         SubtitleParsinginfo(
                                                 subtitlePath,
                                                 false,
-                                                String.format(context.resources.getString(R.string.subtitle_parsing_error), subtitlePath)
+                                                String.format(context.resources.getString(R.string.subtitle_parsing_error), FileUtils.getFileNameFromPath(subtitlePath))
                                         )
                                 )
 
@@ -104,7 +105,7 @@ class SubtitleParser {
                         SubtitleParsinginfo(
                                 subtitlePath,
                                 false,
-                                String.format(context.resources.getString(R.string.subtitle_not_found), subtitlePath)
+                                String.format(context.resources.getString(R.string.subtitle_not_found), FileUtils.getFileNameFromPath(subtitlePath))
                         )
                 )
             } catch (exception: Exception) {
@@ -113,7 +114,7 @@ class SubtitleParser {
                         SubtitleParsinginfo(
                                 subtitlePath,
                                 false,
-                                String.format(context.resources.getString(R.string.subtitle_parsing_error), subtitlePath)
+                                String.format(context.resources.getString(R.string.subtitle_parsing_error), FileUtils.getFileNameFromPath(subtitlePath))
                         )
                 )
             }
