@@ -318,8 +318,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         for (externalSub in externalSubs) {
             if (!addedExternalSubs.contains(externalSub)) {
                 lifecycleScope.launch {
-                    val selected = service?.selectedSpuTracks()
-                    service?.addSubtitleTrack(externalSub.subtitlePath, selected.isNullOrEmpty())
+                    val selected = service?.selectedSpuTracks(videoUri)
+                    service?.addSubtitleTrack(videoUri, externalSub.subtitlePath, selected.isNullOrEmpty())
                 }
                 addedExternalSubs.add(externalSub)
             }
@@ -829,7 +829,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         if (data == null) return
         if (data.hasExtra(EXTRA_MRL)) {
            lifecycleScope.launch {
-               service?.addSubtitleTrack(data.getStringExtra(EXTRA_MRL)!!.toUri(), true)
+               service?.addSubtitleTrack(videoUri, data.getStringExtra(EXTRA_MRL)!!.toUri(), true)
                videoUri?.let {
                    if (SubtitlesRepository.getInstance(this@VideoPlayerActivity.applicationContext).getSelectedSpuTracks(it).size > 1)
                        overlayDelegate.showTracks()
@@ -1215,7 +1215,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     forcedTime = -1
                     if (!subtitlesExtraPath.isNullOrEmpty()) {
                         lifecycleScope.launch {
-                            service.addSubtitleTrack(subtitlesExtraPath!!, true)
+                            service.addSubtitleTrack(videoUri, subtitlesExtraPath!!, true)
                             subtitlesExtraPath = null
                         }
                     }
@@ -1722,7 +1722,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 positionInPlaylist = extras.getInt(PLAY_EXTRA_OPENED_POSITION, -1)
 
                 val path = extras.getString(PLAY_EXTRA_SUBTITLES_LOCATION)
-                if (!path.isNullOrEmpty()) lifecycleScope.launch { service.addSubtitleTrack(path, true) }
+                if (!path.isNullOrEmpty()) lifecycleScope.launch { service.addSubtitleTrack(videoUri, path, true) }
                 if (intent.hasExtra(PLAY_EXTRA_ITEM_TITLE))
                     itemTitle = extras.getString(PLAY_EXTRA_ITEM_TITLE)
             }

@@ -42,22 +42,21 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         return mediaplayer.setSpuDelay(delay)
     }
 
-    suspend fun addSubtitleTrack(path: String, select: Boolean): Boolean {
-        mediaplayer.media?.uri?.run {
+    suspend fun addSubtitleTrack(videoUri: Uri?, path: String, select: Boolean): Boolean {
+        videoUri?.run {
             return SubtitlesRepository.getInstance(context).addSubtitleTrack(mediaPath = this, subtitlePath = Uri.parse(path), selected = select)
         }
         return false
     }
 
-    suspend fun addSubtitleTrack(uri: Uri, select: Boolean): Boolean {
-        mediaplayer.media?.uri?.run {
+    suspend fun addSubtitleTrack(videoUri: Uri?, uri: Uri, select: Boolean): Boolean {
+        videoUri?.run {
             return SubtitlesRepository.getInstance(context).addSubtitleTrack(mediaPath = this, subtitlePath = uri, selected = select)
         }
         return false
     }
 
-    suspend fun getSpuTracks(): List<out MediaPlayer.TrackDescription> {
-        val videoUri = mediaplayer.media?.uri
+    suspend fun getSpuTracks(videoUri: Uri?): List<out MediaPlayer.TrackDescription> {
         val pendingToExtractEmbeddedSubs = pendingExtractionTracksLiveData.value
 
         val addedSpuTracks = videoUri?.run {
@@ -78,14 +77,14 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
     }
 
     suspend fun getEmbeddedSubsWhichAreUnattemptedToExtract(videoUri: Uri): List<SubtitleStream> {
-        val embeddedSpuTracks = getSubtitleStreams(videoUri)
+        val embeddedSpuTracks = getSubtitleStreams(context, videoUri)
         val dbEmbeddedSubs = EmbeddedSubRepository.getInstance(context).getEmbeddedSubtitles(videoUri)
 
         return embeddedSpuTracks.filter { subtitleStream -> dbEmbeddedSubs.find { it.embeddedIndex == subtitleStream.index } == null }
     }
 
     private suspend fun getFailedToExtractEmbeddedSubs(videoUri: Uri): List<SubtitleStream> {
-        val embeddedSpuTracks = getSubtitleStreams(videoUri)
+        val embeddedSpuTracks = getSubtitleStreams(context, videoUri)
         val dbEmbeddedSubs = EmbeddedSubRepository.getInstance(context).getEmbeddedSubtitles(videoUri)
 
         return embeddedSpuTracks.filter { subtitleStream ->
@@ -111,8 +110,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         }
     }
 
-    suspend fun getSpuTrack(): List<Int> {
-        return mediaplayer.media?.uri?.run {
+    suspend fun getSpuTrack(videoUri: Uri?): List<Int> {
+        return videoUri?.run {
             SubtitlesRepository.getInstance(context).getSelectedSpuTracks(this).map { it.id }
         } ?: listOf()
     }
@@ -151,8 +150,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         }
     }
 
-    suspend fun getSpuTracksCount(): Int {
-        return mediaplayer.media?.uri?.run {
+    suspend fun getSpuTracksCount(videoUri: Uri?): Int {
+        return videoUri?.run {
             SubtitlesRepository.getInstance(context).getSpuTracks(this)?.size
         } ?: 0
     }

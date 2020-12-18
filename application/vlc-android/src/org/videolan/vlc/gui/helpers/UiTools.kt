@@ -32,6 +32,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.media.MediaRouter
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -391,13 +392,13 @@ object UiTools {
     }
 
     lateinit var videoTracksDialog: VideoTracksDialog
-    fun FragmentActivity.showVideoTrack(menuListener: (Int) -> Unit, trackSelectionListener: (Int, VideoTracksDialog.TrackType) -> Unit) {
+    fun FragmentActivity.showVideoTrack(videoUri: Uri?, menuListener: (Int) -> Unit, trackSelectionListener: (Int, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
 
         if (::videoTracksDialog.isInitialized)
             videoTracksDialog.dialog?.let { if (it.isShowing) videoTracksDialog.dismiss() }
         videoTracksDialog = VideoTracksDialog()
-        videoTracksDialog.arguments = bundleOf()
+        videoTracksDialog.arguments = bundleOf(Pair("videoUri", videoUri))
         videoTracksDialog.show(supportFragmentManager, "fragment_video_tracks")
         videoTracksDialog.menuItemListener = menuListener
         videoTracksDialog.trackSelectionListener = trackSelectionListener

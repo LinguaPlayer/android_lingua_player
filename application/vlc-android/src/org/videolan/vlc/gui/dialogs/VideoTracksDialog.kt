@@ -24,7 +24,9 @@
 
 package org.videolan.vlc.gui.dialogs
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -68,6 +70,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     lateinit var menuItemListener: (Int) -> Unit
     lateinit var trackSelectionListener: (Int, TrackType) -> Unit
+    var videoUri: Uri? = null
 
     init {
         VideoTracksDialog.registerCreator { CoroutineContextProvider() }
@@ -75,6 +78,8 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        videoUri = this.arguments?.get("videoUri") as Uri
+
         PlaybackService.serviceFlow.onEach { onServiceChanged(it) }.launchIn(MainScope())
         super.onCreate(savedInstanceState)
     }
@@ -116,7 +121,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         // TODO: fix me if the video has multiple subtitle tracks, loading for the others will be shown
         service?.let { playbackService ->
             lifecycleScope.launch {
-                playbackService.mediaplayer.media?.uri?.let {
+                videoUri?.let {
                     SubtitlesRepository.getInstance(requireContext()).getSpuTracksLiveData(it).observe(this@VideoTracksDialog.viewLifecycleOwner) {
                         lifecycleScope.launch { setupSpuAdapter(playbackService) }
                     }
@@ -126,8 +131,8 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
     }
 
     private suspend fun setupSpuAdapter(playbackService: PlaybackService) {
-        playbackService.spuTracks()?.let { trackList ->
-            val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks().contains(it.id) }, true)
+        playbackService.spuTracks(videoUri)?.let { trackList ->
+            val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks(videoUri).contains(it.id) }, true)
             trackAdapter.setOnTrackSelectedListener { track ->
                 trackSelectionListener.invoke(track.id, TrackType.SPU)
                 when {
@@ -146,7 +151,7 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
             if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
         }
 
-        if (playbackService.spuTracks() == null) binding.subtitleTracks.emptyView.setVisible()
+        if (playbackService.spuTracks(videoUri) == null) binding.subtitleTracks.emptyView.setVisible()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

@@ -437,16 +437,16 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         get() = playlistManager.player.getVideoTrack()
 
 //    TODO: "HABIB: Update here for subtitles"
-    suspend fun spuTracks(): Array<out MediaPlayer.TrackDescription>?=
-        playlistManager.player.getSpuTracks()
+    suspend fun spuTracks(videoUri: Uri?): Array<out MediaPlayer.TrackDescription>?=
+        playlistManager.player.getSpuTracks(videoUri)
 
 
-    suspend fun selectedSpuTracks(): List<Int> {
-        return playlistManager.player.getSelectedSpuTracks()
+    suspend fun selectedSpuTracks(videoUri: Uri?): List<Int> {
+        return playlistManager.player.getSelectedSpuTracks(videoUri)
     }
 
-    suspend fun spuTracksCount(): Int {
-        return playlistManager.player.getSpuTracksCount()
+    suspend fun spuTracksCount(videoUri: Uri?): Int {
+        return playlistManager.player.getSpuTracksCount(videoUri)
     }
 
     val audioDelay: Long
@@ -1349,10 +1349,10 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
     fun setVideoTrack(index: Int) = playlistManager.player.setVideoTrack(index)
 
     @MainThread
-    suspend fun addSubtitleTrack(path: String, select: Boolean) = playlistManager.player.addSubtitleTrack(path, select)
+    suspend fun addSubtitleTrack(videoUri: Uri?, path: String, select: Boolean) = playlistManager.player.addSubtitleTrack(videoUri, path, select)
 
     @MainThread
-    suspend fun addSubtitleTrack(uri: Uri, select: Boolean) = playlistManager.player.addSubtitleTrack(uri, select)
+    suspend fun addSubtitleTrack(videoUri: Uri?, uri: Uri, select: Boolean) = playlistManager.player.addSubtitleTrack(videoUri, uri, select)
 
     @MainThread
     fun setSpuTrack(index: Int) = playlistManager.setSpuTrack(index)

@@ -129,6 +129,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun showTracks() {
         player.showVideoTrack(
+                player.videoUri,
                 {
                     when (it) {
                         R.id.audio_track_delay -> player.delayDelegate.showAudioDelaySetting()

@@ -2,7 +2,7 @@ package org.videolan.tools
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
+import android.os.ParcelFileDescriptor
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.arthenica.mobileffmpeg.Config.RETURN_CODE_CANCEL
@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.*
 
 
@@ -23,8 +24,22 @@ private val _pendingExtractionTracksLiveData = MutableLiveData<Set<SubtitleStrea
 val pendingExtractionTracksLiveData: LiveData<Set<SubtitleStream>>
     get() = _pendingExtractionTracksLiveData
 
-suspend fun getSubtitleStreams(videoUri: Uri): List<SubtitleStream> = withContext(Dispatchers.IO) {
-    val info = FFprobe.getMediaInformation(videoUri.toString())
+fun getPipe(context: Context, videoUri: Uri): String {
+    return try {
+        val parcelFileDescriptor: ParcelFileDescriptor? = context.contentResolver.openFileDescriptor(videoUri, "r")
+        java.lang.String.format(Locale.getDefault(), "pipe:%d", parcelFileDescriptor?.fd)
+    } catch (e: FileNotFoundException) { "" }
+}
+
+fun getPipeOrPath(context: Context, videoUri: Uri): String {
+    return if (videoUri.scheme == "content")
+        getPipe(context, videoUri)
+    else videoUri.toString()
+}
+
+suspend fun getSubtitleStreams(context: Context, videoUri: Uri): List<SubtitleStream> = withContext(Dispatchers.IO) {
+    val path = getPipeOrPath(context, videoUri)
+    val info = FFprobe.getMediaInformation(path)
     val result = info?.streams?.filter { it.type == "subtitle" }?.map {
         var language = ""
         try {
@@ -44,15 +59,20 @@ private fun generatePathForExtractedSubtitle(context: Context): File {
     return File(subsDir, fileName)
 }
 
+
 suspend fun extractSubtitles(context: Context, videoUri: Uri, index: Int): FFmpegResult {
     val extractedPath = generatePathForExtractedSubtitle(context).path
-    val command = "-i ${videoUri.path} -map 0:${index} $extractedPath"
-    Log.d(TAG, "extractSubtitles: $command")
 
-    val subtitleStream = getSubtitleStreams(videoUri).find { it.index == index }
+    val path = getPipeOrPath(context, videoUri)
+
+    val command = "-i $path -map 0:${index} $extractedPath"
+
+    val subtitleStream = getSubtitleStreams(context, videoUri).find { it.index == index }
             ?: return FFmpegResult(videoUri = videoUri, index = index, extractedPath = Uri.parse(""), language = "", message = "Asked sub index not found", returnCode = 10)
+
     pendingExtractionTracks.add(subtitleStream)
     _pendingExtractionTracksLiveData.postValue(pendingExtractionTracks)
+
 
     return suspendCancellableCoroutine { cont ->
         FFmpeg.executeAsync(command) { _, returnCode ->
@@ -67,12 +87,13 @@ suspend fun extractSubtitles(context: Context, videoUri: Uri, index: Int): FFmpe
                     cont.resumeWith(Result.failure(FFmpegUserCancelledException(FFmpegResult(videoUri = videoUri, index = index, extractedPath = Uri.parse(""), language = subtitleStream.language, message = "Cancelled by user", returnCode = returnCode))))
                 }
                 else -> {
-                    cont.resumeWith(Result.failure(FFmpegFailedException(FFmpegResult(videoUri = videoUri, index = index, extractedPath = Uri.parse(""),language = subtitleStream.language, message = "Failed", returnCode = returnCode))))
+                    cont.resumeWith(Result.failure(FFmpegFailedException(FFmpegResult(videoUri = videoUri, index = index, extractedPath = Uri.parse(""), language = subtitleStream.language, message = "Failed", returnCode = returnCode))))
                 }
             }
         }
     }
 }
+
 
 private fun generateRandomFileName() = UUID.randomUUID().toString()
 

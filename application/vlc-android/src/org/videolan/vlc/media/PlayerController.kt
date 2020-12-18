@@ -187,13 +187,13 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
 
-    suspend fun addSubtitleTrack(path: String, select: Boolean): Boolean {
-        return subtitleController.addSubtitleTrack(path, select)
+    suspend fun addSubtitleTrack(videoUri: Uri?, path: String, select: Boolean): Boolean {
+        return subtitleController.addSubtitleTrack(videoUri, path, select)
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, path, select)
     }
 
-    suspend fun addSubtitleTrack(uri: Uri, select: Boolean): Boolean {
-        return subtitleController.addSubtitleTrack(uri, select)
+    suspend fun addSubtitleTrack(videoUri: Uri?, uri: Uri, select: Boolean): Boolean {
+        return subtitleController.addSubtitleTrack(videoUri, uri, select)
 //        return mediaplayer.addSlave(IMedia.Slave.Type.Subtitle, uri, select)
     }
 
@@ -208,13 +208,13 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     val subtitleInfo: LiveData<Event<ShowInfo>>
         get() = subtitleController.subtitleInfo
 
-    suspend fun getSpuTracks(): Array<out MediaPlayer.TrackDescription>? {
-        return subtitleController.getSpuTracks().toTypedArray()
+    suspend fun getSpuTracks(videoUri: Uri?): Array<out MediaPlayer.TrackDescription>? {
+        return subtitleController.getSpuTracks(videoUri).toTypedArray()
 //        return mediaplayer.spuTracks
     }
 
-    suspend fun getSelectedSpuTracks(): List<Int> {
-        return subtitleController.getSpuTrack()
+    suspend fun getSelectedSpuTracks(videoUri: Uri?): List<Int> {
+        return subtitleController.getSpuTrack(videoUri)
 //        return mediaplayer.spuTrack
     }
 
@@ -235,8 +235,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         return subtitleController.toggleSpuTrack(index)
     }
 
-    suspend fun getSpuTracksCount(): Int {
-        return subtitleController.getSpuTracksCount()
+    suspend fun getSpuTracksCount(videoUri: Uri?): Int {
+        return subtitleController.getSpuTracksCount(videoUri)
 //        return mediaplayer.spuTracksCount
     }
 

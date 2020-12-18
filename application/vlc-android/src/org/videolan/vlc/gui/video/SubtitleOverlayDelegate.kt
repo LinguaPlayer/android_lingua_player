@@ -114,6 +114,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                     if (SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracks(videoUri).size > 1)
                         player.overlayDelegate.showTracks()
                 }
+
             }
         }
     }
