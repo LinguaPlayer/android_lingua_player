@@ -2,18 +2,20 @@ package org.videolan.vlc.gui.video
 
 import android.content.DialogInterface
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.Spannable
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
-import android.text.style.ClickableSpan
-import android.util.Log
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -141,7 +143,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         val strokeColor = ContextCompat.getColor(player.applicationContext, R.color.black)
         val strokeWidth = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getInt("subtitle_stroke_width", 3)
         //////////////////////
-        color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_color", "#ffffff") ?: "#ffffff")
+        color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_color", "#ffffff")
+                ?: "#ffffff")
 
         val size = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_size", "25")?.toInt() ?: 25
         val bold = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_bold", false)
@@ -155,7 +158,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             setStrokeWidth(TypedValue.COMPLEX_UNIT_DIP, strokeWidth)
             setTextColor(color)
             if (bold) setTypeface(null, Typeface.BOLD)
-            movementMethod = LinkMovementMethod.getInstance()
+            movementMethod = LinkTouchMovementMethod()
             if (backgroundColorEnabled)
                 setBackgroundColor(backgroundColor)
         }
@@ -191,14 +194,15 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         val pattern = "[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+]"
         val r: Pattern = Pattern.compile(pattern)
         val words = spannableText.toString().split("(?=[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+])|(?<=[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+])".toRegex())
+//        val words = spannableText.toString().split("\\/\\s+".toRegex())
         var start = 0
         var end = 0
         words.forEach { word ->
             end = start + word.length
-            if (!r.matcher(word).find()) {
-                val clickableSpan: ClickableSpan = SubTouchSpan(word, spannableText.toString(), color)
+//            if (!r.matcher(word).find()) {
+                val clickableSpan: ForegroundColorSpan = SubTouchSpan(start = start, end = end, underlineText = false, normalTextColor = color, pressedTextColor = ContextCompat.getColor(player.applicationContext, R.color.orange500), bgColor = Color.TRANSPARENT, pressedBackgroundColor = Color.TRANSPARENT)
                 spannableText.setSpan(clickableSpan, start, end, 0)
-            }
+//            }
             start = end
         }
 
@@ -230,26 +234,120 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 //        player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.HIDE_WITING_FOR_TRANSLATION, duration)
     }
 
-    inner class SubTouchSpan(val word: String, val caption: String, val color: Int): ClickableSpan() {
-        override fun onClick(widget: View) {
-            val isGoogleTranslateAvailable = translate(word, player)
+    private inner class LinkTouchMovementMethod : LinkMovementMethod() {
+        private var touchedSpans: Array<SubTouchSpan>? = null
+        private var startOffset: Int = -1
+        var endOffset: Int = -1
+
+        override fun onTouchEvent(textView: TextView, spannable: Spannable, event: MotionEvent): Boolean {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    onDown(textView, spannable, event)
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    onMove(textView, spannable, event)
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    onUp(textView.text.toString())
+                }
+            }
+            return true
+        }
+
+        private fun onDown(textView: TextView, spannable: Spannable, event: MotionEvent) {
+            player.service?.pause()
+            startOffset = getOffset(textView, event)
+        }
+
+        private fun onMove(textView: TextView, spannable: Spannable, event: MotionEvent) {
+            player.service?.pause()
+            endOffset = getOffset(textView, event)
+
+            // user redoed his highlights and went behind his/her first touch
+            if (endOffset < startOffset) {
+                touchedSpans?.forEach { it.setPressed(false) }
+                touchedSpans = null
+                return
+            }
+
+            // user redoed his highlights and went behind his/her first touch
+            val newTouchedSpans = getTouchedSpans(spannable, startOffset, endOffset)
+            if (!touchedSpans.isNullOrEmpty() && newTouchedSpans.isNotEmpty()) {
+                getTouchedSpans(spannable, newTouchedSpans.last().end + 1, touchedSpans!!.last().end).forEach {
+                    it.setPressed(false)
+                }
+            }
+            touchedSpans = newTouchedSpans
+            touchedSpans?.forEach { it.setPressed(true) }
+
+        }
+
+        private fun onUp(text: String) {
+            touchedSpans?.let { selectedSpans ->
+                selectedSpans.forEach {
+                    it.setPressed(false)
+                }
+
+                if (selectedSpans.isNotEmpty()) {
+                    translate(text.subSequence(selectedSpans.first().start, selectedSpans.last().end).toString())
+                }
+
+            }
+            startOffset = -1
+            endOffset = -1
+            touchedSpans = null
+
+        }
+
+        private fun getOffset(textView: TextView, event: MotionEvent): Int {
+            var x = event.x.toInt()
+            var y = event.y.toInt()
+            val layout = textView.layout
+            val line = layout.getLineForVertical(y)
+            return layout.getOffsetForHorizontal(line, x.toFloat())
+        }
+
+        private fun getTouchedSpans(spannable: Spannable, startOffset: Int, endOffset: Int): Array<SubTouchSpan> {
+            return spannable.getSpans(startOffset, endOffset, SubTouchSpan::class.java)
+        }
+
+        private fun translate(text: String) {
+            val isGoogleTranslateAvailable = translate(text, player)
             if (isGoogleTranslateAvailable) {
-                player.service?.pause()
                 showLoadingForTranslation(5000L)
             } else {
-                UiTools.installGoogleTranslateDialog(widget.context, DialogInterface.OnClickListener { _, _ ->
-                    installGoogleTranslate(widget.context) },
-                        DialogInterface.OnClickListener { _, _->  })
-
+                UiTools.installGoogleTranslateDialog(player.applicationContext, DialogInterface.OnClickListener { _, _ ->
+                    installGoogleTranslate(player.applicationContext)
+                },
+                        DialogInterface.OnClickListener { _, _ -> })
             }
         }
 
-        override fun updateDrawState(ds: TextPaint) {
-            ds.linkColor = color
-            ds.isUnderlineText = false
+
+    }
+}
+
+private class SubTouchSpan(val start: Int, val end: Int, private val underlineText: Boolean, private val normalTextColor: Int, private val pressedTextColor: Int, private val bgColor: Int, private val pressedBackgroundColor: Int) : ForegroundColorSpan(Color.WHITE) {
+    private var isPressed = false
+    fun setPressed(isSelected: Boolean) {
+        isPressed = isSelected
+    }
+
+    override fun updateDrawState(ds: TextPaint) {
+        if (isPressed) {
+            ds.strokeWidth = 0f
+            ds.color = pressedTextColor
+        }
+        else {
+            ds.color = ds.color
         }
 
+        ds.bgColor = if (isPressed) pressedBackgroundColor else bgColor
+        ds.isUnderlineText = underlineText
     }
 
 }
+
 
