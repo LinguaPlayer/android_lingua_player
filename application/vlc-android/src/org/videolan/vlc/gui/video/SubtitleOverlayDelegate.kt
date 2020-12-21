@@ -1,8 +1,8 @@
 package org.videolan.vlc.gui.video
 
 import android.content.DialogInterface
+import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.Typeface
 import android.net.Uri
 import android.text.Spannable
@@ -10,6 +10,7 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -18,6 +19,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.core.text.toSpannable
@@ -86,6 +88,51 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
         }
     }
+
+    fun onConfigurationChanged(newConfig: Configuration) {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            goToLandscapeMode()
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            goToPortraiteMode()
+        }
+    }
+
+    private fun goToLandscapeMode() {
+        val constraintLayout: ConstraintLayout = player.findViewById(R.id.subtitle_container)
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(constraintLayout)
+        constraintSet.connect(R.id.subtitleTextView, ConstraintSet.END, R.id.next_caption, ConstraintSet.START, 0)
+        constraintSet.connect(R.id.subtitleTextView, ConstraintSet.START, R.id.prev_caption, ConstraintSet.END, 0)
+        constraintSet.connect(R.id.next_caption, ConstraintSet.BOTTOM, R.id.subtitle_container, ConstraintSet.BOTTOM, 0)
+        constraintSet.connect(R.id.prev_caption, ConstraintSet.BOTTOM, R.id.subtitle_container, ConstraintSet.BOTTOM, 0)
+
+        constraintSet.connect(R.id.next_caption, ConstraintSet.TOP, R.id.subtitle_container, ConstraintSet.TOP, 0)
+        constraintSet.connect(R.id.prev_caption, ConstraintSet.TOP, R.id.subtitle_container, ConstraintSet.TOP, 0)
+        constraintSet.setVerticalBias(R.id.next_caption, 1f)
+        constraintSet.setVerticalBias(R.id.prev_caption, 1f)
+
+        constraintSet.clear(R.id.next_caption, ConstraintSet.TOP)
+        constraintSet.clear(R.id.prev_caption, ConstraintSet.TOP)
+        constraintSet.applyTo(constraintLayout)
+    }
+
+    private fun goToPortraiteMode() {
+        val constraintLayout: ConstraintLayout = player.findViewById(R.id.subtitle_container)
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(constraintLayout)
+        constraintSet.connect(R.id.subtitleTextView, ConstraintSet.END, R.id.subtitle_container, ConstraintSet.END, 8.dp)
+        constraintSet.connect(R.id.subtitleTextView, ConstraintSet.START, R.id.subtitle_container, ConstraintSet.START, 8.dp)
+        constraintSet.connect(R.id.next_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM)
+        constraintSet.connect(R.id.prev_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM)
+        constraintSet.clear(R.id.next_caption, ConstraintSet.BOTTOM)
+        constraintSet.clear(R.id.prev_caption, ConstraintSet.BOTTOM)
+
+        constraintSet.setVerticalBias(R.id.next_caption, 0.5f)
+        constraintSet.setVerticalBias(R.id.prev_caption, 0.5f)
+
+        constraintSet.applyTo(constraintLayout)
+    }
+
 
     fun prepareSubtitles(videoUri: Uri) {
         prepareEmbeddedSubtitles(videoUri)

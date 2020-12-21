@@ -640,11 +640,13 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     newConfig.orientation)
             touchDelegate.screenConfig = sc
         }
+
         overlayDelegate.resetHudLayout()
         overlayDelegate.showControls(isShowing)
         statsDelegate.onConfigurationChanged()
         overlayDelegate.updateHudMargins()
         overlayDelegate.updateTitleConstraints()
+        subtitleDelegate.onConfigurationChanged(newConfig)
     }
 
     override fun onStart() {
@@ -2235,6 +2237,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         return true
     }
+
     private fun showAds() {
         numberOfTimesShowAdsIsCalled++
         if (!shouldShowAds()) return
