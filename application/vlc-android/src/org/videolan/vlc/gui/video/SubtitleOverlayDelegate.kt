@@ -78,6 +78,18 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
         }
 
+        smartSub?.setOnClickListener {
+            player.service?.playlistManager?.player?.run {
+                if (isSmartSubtitleEnabled()) {
+                    disableSmartSubtitle()
+                    it.isSelected = false
+                } else {
+                    enableSmartSubtitle()
+                    it.isSelected = true
+                }
+            }
+        }
+
     }
 
     val subtitleObserver = Observer { subtitleList: List<Subtitle> ->

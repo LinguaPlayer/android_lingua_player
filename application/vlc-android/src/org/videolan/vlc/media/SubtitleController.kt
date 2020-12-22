@@ -157,7 +157,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         } ?: 0
     }
 
-    private val isSubtitleInDelayedMode = false
+    var isSmartSubtitle = false
     private val _subtitleCaption = MutableLiveData<ShowCaption>()
     val subtitleCaption: LiveData<ShowCaption>
         get() = _subtitleCaption
@@ -190,7 +190,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
 
     private var prevCaption = ""
     fun getCaption(time: Long): List<CaptionsData> {
-        val captionData = subtitleParser.getCaption(isSubtitleInDelayedMode, time)
+        val captionData = subtitleParser.getCaption(isSmartSubtitle, time)
 
         val stringCaptionData = captionData.flatMap {
             it.captionsOfThisTime.map { caption -> caption.content }
@@ -206,7 +206,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
     }
 
     fun getNextCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
-        val captionsDataList = subtitleParser.getNextCaption(isSubtitleInDelayedMode)
+        val captionsDataList = subtitleParser.getNextCaption(isSmartSubtitle)
         val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere)
                 minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
@@ -221,7 +221,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
     }
 
     fun getPreviousCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
-        val captionsDataList = subtitleParser.getPreviousCaption(isSubtitleInDelayedMode)
+        val captionsDataList = subtitleParser.getPreviousCaption(isSmartSubtitle)
 
         val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }

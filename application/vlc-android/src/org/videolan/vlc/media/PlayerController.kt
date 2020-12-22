@@ -231,6 +231,18 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         subtitleController.getPreviousCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
     }
 
+    fun enableSmartSubtitle() {
+        subtitleController.isSmartSubtitle = true
+    }
+
+    fun disableSmartSubtitle() {
+        subtitleController.isSmartSubtitle = false
+    }
+
+    fun isSmartSubtitleEnabled(): Boolean {
+        return subtitleController.isSmartSubtitle
+    }
+
     fun setSpuTrack(index: Int): Boolean {
         return subtitleController.setSpuTrack(index)
 //        return mediaplayer.setSpuTrack(index)
