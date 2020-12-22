@@ -133,12 +133,12 @@ class SubtitleParser {
     // because later I might use that for example show the all list of
     // subs and jump to specific caption by pressing on it.
 
-    fun getCaption(delayedMode: Boolean, currentTime: Long): List<CaptionsData> {
+    fun getCaption(isSmartSubtitleEnabled: Boolean, currentTime: Long): List<CaptionsData> {
         return try {
 
             parsedSubtitles.map { mapEntry ->
                 mapEntry.value.run {
-                    if (delayedMode) getCaption(currentTime - subtitleDelay, delayedCaptions)
+                    if (isSmartSubtitleEnabled) getCaption(currentTime - subtitleDelay, smartCaptions)
                     else getCaption(currentTime - subtitleDelay, captions)
                 }
             }.filterNotNull().apply {
@@ -155,14 +155,14 @@ class SubtitleParser {
 
     private val acceptableDelay = 500
 
-    fun getNextCaption(delayedMode: Boolean): List<CaptionsData> {
+    fun getNextCaption(isSmartSubtitleEnabled: Boolean): List<CaptionsData> {
         // show the nextCaption
         // if user selected multiple caption it will show multiple captions so I choose the min one
         // if there are other subs that are close to min I'll show them also
         // I save the min and max time of shown subs
         return parsedSubtitles.map { mapEntry ->
             mapEntry.value.run {
-                if (delayedMode) getNextCaption(lastMaxCaptionTime, delayedCaptions)
+                if (isSmartSubtitleEnabled) getNextCaption(lastMaxCaptionTime, smartCaptions)
                 else getNextCaption(lastMaxCaptionTime, captions)
             }
         }.filterNotNull().run {
@@ -180,10 +180,10 @@ class SubtitleParser {
 
 
 
-    fun getPreviousCaption(delayedMode: Boolean): List<CaptionsData> {
+    fun getPreviousCaption(isSmartSubtitleEnabled: Boolean): List<CaptionsData> {
         return parsedSubtitles.map { mapEntry ->
             mapEntry.value.run {
-                if (delayedMode) getPreviousCaption(lastMinCaptionTime, delayedCaptions)
+                if (isSmartSubtitleEnabled) getPreviousCaption(lastMinCaptionTime, smartCaptions)
                 else getPreviousCaption(lastMinCaptionTime, captions)
             }
         }.filterNotNull().run {

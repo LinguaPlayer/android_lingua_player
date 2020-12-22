@@ -71,7 +71,7 @@ public class TimedTextObject {
     //represented by a tree map to maintain order
     public TreeMap<Integer, Caption> captions;
 
-    public TreeMap<Integer, Caption> delayedCaptions;
+    public TreeMap<Integer, Caption> smartCaptions;
 
     //to store non fatal errors produced during parsing
     public String warnings;
@@ -91,7 +91,7 @@ public class TimedTextObject {
     protected TimedTextObject() {
         styling = new Hashtable<String, Style>();
         captions = new TreeMap<Integer, Caption>();
-        delayedCaptions = new TreeMap<Integer, Caption>();
+        smartCaptions = new TreeMap<Integer, Caption>();
         warnings = "List of non fatal errors produced during parsing:\n\n";
     }
 
@@ -104,8 +104,8 @@ public class TimedTextObject {
             value.start = new Time(value.end.mseconds);
             value.end = new Time(2 * value.end.mseconds - previousStart.mseconds);
             int key = value.start.mseconds;
-            while(delayedCaptions.containsKey(key)) key++;
-            delayedCaptions.put(key, value);
+            while(smartCaptions.containsKey(key)) key++;
+            smartCaptions.put(key, value);
         }
     }
 

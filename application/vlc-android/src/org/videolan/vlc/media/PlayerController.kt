@@ -13,7 +13,6 @@ import com.github.kazemihabib.cueplayer.util.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.RendererItem
@@ -223,6 +222,9 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.spuTrack
     }
 
+    fun updateCurrentCaption() {
+        subtitleController.getCaption(mediaplayer.time)
+    }
     fun getNextCaption(alsoSeekThere: Boolean) {
         subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
     }
@@ -232,15 +234,15 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     fun enableSmartSubtitle() {
-        subtitleController.isSmartSubtitle = true
+        subtitleController.isSmartSubtitleEnabled = true
     }
 
     fun disableSmartSubtitle() {
-        subtitleController.isSmartSubtitle = false
+        subtitleController.isSmartSubtitleEnabled = false
     }
 
     fun isSmartSubtitleEnabled(): Boolean {
-        return subtitleController.isSmartSubtitle
+        return subtitleController.isSmartSubtitleEnabled
     }
 
     fun setSpuTrack(index: Int): Boolean {

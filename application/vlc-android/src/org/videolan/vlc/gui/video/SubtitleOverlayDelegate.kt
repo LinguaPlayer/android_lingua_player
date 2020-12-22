@@ -87,6 +87,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                     enableSmartSubtitle()
                     it.isSelected = true
                 }
+
+                updateCurrentCaption()
             }
         }
 
