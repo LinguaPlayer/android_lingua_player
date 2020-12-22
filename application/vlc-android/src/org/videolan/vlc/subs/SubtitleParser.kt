@@ -28,30 +28,30 @@ class SubtitleParser {
 
     private fun parse(subtitlePath: String, subtitleLanguage: String? = null, subtitleManualEncoding: String = ""): TimedTextObject {
         val subtitlePathFile = File(subtitlePath)
-        return when(subtitlePathFile.extension) {
+        return when (subtitlePathFile.extension) {
             "srt" -> {
                 return FormatSRT().parseFile(
-                    subtitlePathFile.name,
-                    SubUtils.inputstreamToCharsetString(
-                        FileInputStream(File(subtitlePath)),
-                        subtitleLanguage, subtitleManualEncoding
-                    ).split("\n").toTypedArray())
+                        subtitlePathFile.name,
+                        SubUtils.inputstreamToCharsetString(
+                                FileInputStream(File(subtitlePath)),
+                                subtitleLanguage, subtitleManualEncoding
+                        ).split("\n").toTypedArray())
             }
-            "ssa","ass" -> {
+            "ssa", "ass" -> {
                 return FormatASS().parseFile(
-                    subtitlePathFile.name,
-                    SubUtils.inputstreamToCharsetString(
-                        FileInputStream(File(subtitlePath)),
-                        subtitleLanguage, subtitleManualEncoding
-                    ).split("\n").toTypedArray())
+                        subtitlePathFile.name,
+                        SubUtils.inputstreamToCharsetString(
+                                FileInputStream(File(subtitlePath)),
+                                subtitleLanguage, subtitleManualEncoding
+                        ).split("\n").toTypedArray())
             }
             "vtt" -> {
                 return FormatVTT().parseFile(
-                    subtitlePathFile.name,
-                    SubUtils.inputstreamToCharsetString(
-                        FileInputStream(File(subtitlePath)),
-                        subtitleLanguage, subtitleManualEncoding
-                    ).split("\n").toTypedArray())
+                        subtitlePathFile.name,
+                        SubUtils.inputstreamToCharsetString(
+                                FileInputStream(File(subtitlePath)),
+                                subtitleLanguage, subtitleManualEncoding
+                        ).split("\n").toTypedArray())
             }
 
             else -> TimedTextObject()
@@ -63,15 +63,14 @@ class SubtitleParser {
             context: Context,
             subtitlePaths: List<String>,
             subtitleLanguage: String? = null,
-            subtitleManualEncoding: String = "" ) : Flow<SubtitleParsinginfo> = flow {
+            subtitleManualEncoding: String = ""): Flow<SubtitleParsinginfo> = flow {
         // Remove unselected items from parsedSubtitles
         parsedSubtitles.filterNot { subtitlePaths.contains(it.key) }.forEach {
             parsedSubtitles.remove(it.key)
         }
 
 
-        subtitlePaths.filterNot { parsedSubtitles.containsKey(it) }.
-        forEach { subtitlePath ->
+        subtitlePaths.filterNot { parsedSubtitles.containsKey(it) }.forEach { subtitlePath ->
             try {
                 parse(subtitlePath, subtitleLanguage, subtitleManualEncoding).also {
 //                        it.captions.forEach { a ->
@@ -130,15 +129,22 @@ class SubtitleParser {
     // subs and jump to specific caption by pressing on it.
 
     fun getCaption(delayedMode: Boolean, currentTime: Long): List<CaptionsData> {
+        return try {
 
-        return parsedSubtitles.map { mapEntry ->
-            mapEntry.value.run {
-                if (delayedMode) getCaption(currentTime - subtitleDelay, delayedCaptions)
-                else getCaption(currentTime - subtitleDelay, captions)
+            parsedSubtitles.map { mapEntry ->
+                mapEntry.value.run {
+                    if (delayedMode) getCaption(currentTime - subtitleDelay, delayedCaptions)
+                    else getCaption(currentTime - subtitleDelay, captions)
+                }
+            }.filterNotNull().apply {
+                lastMaxCaptionTime = maxBy { it.maxEndTime }?.maxEndTime ?: currentTime
+                lastMinCaptionTime = minBy { it.minStartTime }?.minStartTime ?: currentTime
             }
-        }.filterNotNull().apply {
-            lastMaxCaptionTime = maxBy { it.maxEndTime }?.maxEndTime ?: currentTime
-            lastMinCaptionTime = minBy { it.minStartTime }?.minStartTime ?: currentTime
+        } catch (e: ConcurrentModificationException) {
+            Log.d(TAG, "getCaption: ConcurrentModificationException")
+            listOf()
+        } catch (e: Exception) {
+            listOf()
         }
     }
 
