@@ -152,6 +152,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         prepareEmbeddedSubtitles(videoUri)
         SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri).observe(player, subtitleObserver)
 
+        player.service?.playlistManager?.player?.subtitleCaption?.observe(player, showCaptionObserver)
 
         player.lifecycleScope.launchWhenStarted {
             player.service?.playlistManager?.player?.numberOfParsedSubsFlow?.collect { numberOfSubs ->
