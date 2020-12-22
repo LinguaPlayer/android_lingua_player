@@ -10,11 +10,11 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -32,6 +32,7 @@ import androidx.preference.PreferenceManager
 import com.github.kazemihabib.cueplayer.util.EventObserver
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.videolan.tools.*
 import org.videolan.vlc.R
@@ -52,6 +53,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     private val prevCaptionButton: ImageView? = player.findViewById(R.id.prev_caption)
     private val subtitleContainer: ConstraintLayout? = player.findViewById(R.id.subtitle_container)
     private val subtitleTextView: StrokedTextView? = player.findViewById(R.id.subtitleTextView)
+    private val smartSub: ImageButton? = player.findViewById(R.id.listening_mode)
 
     init {
         nextCaptionButton?.apply {
@@ -138,7 +140,13 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         prepareEmbeddedSubtitles(videoUri)
         SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri).observe(player, subtitleObserver)
 
-        player.service?.playlistManager?.player?.subtitleCaption?.observe(player, showCaptionObserver)
+
+        player.lifecycleScope.launchWhenStarted {
+            player.service?.playlistManager?.player?.numberOfParsedSubsFlow?.collect { numberOfSubs ->
+                if (numberOfSubs > 0) smartSub.setVisible()
+                else smartSub.setGone()
+            }
+        }
 
         player.service?.playlistManager?.player?.subtitleInfo?.observe(player, EventObserver {
             UiTools.snacker(player, it.message)

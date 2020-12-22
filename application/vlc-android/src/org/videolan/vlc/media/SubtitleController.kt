@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.tools.*
@@ -236,6 +237,9 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
 
     val getNumberOfParsedSubs: Int
         get() = subtitleParser.getNumberOfParsedSubs()
+
+    val getNumberOfParsedSubsFlow: StateFlow<Int>
+        get() = subtitleParser.parsedSubtitlesFlow
 
 }
 

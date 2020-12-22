@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.videolan.vlc.R
@@ -24,6 +25,8 @@ class SubtitleParser {
         subtitleDelay = delay
     }
 
+    private val _parsedSubtitlesFlow = MutableStateFlow(0)
+    val parsedSubtitlesFlow = _parsedSubtitlesFlow
     fun getNumberOfParsedSubs(): Int = parsedSubtitles.size
 
     private fun parse(subtitlePath: String, subtitleLanguage: String? = null, subtitleManualEncoding: String = ""): TimedTextObject {
@@ -67,6 +70,7 @@ class SubtitleParser {
         // Remove unselected items from parsedSubtitles
         parsedSubtitles.filterNot { subtitlePaths.contains(it.key) }.forEach {
             parsedSubtitles.remove(it.key)
+            _parsedSubtitlesFlow.value = parsedSubtitles.size
         }
 
 
@@ -90,6 +94,7 @@ class SubtitleParser {
                             } else {
                                 createDelayedCaptions()
                                 parsedSubtitles[subtitlePath] = this
+                                _parsedSubtitlesFlow.value = parsedSubtitles.size
                                 emit(
                                         SubtitleParsinginfo(
                                                 subtitlePath,

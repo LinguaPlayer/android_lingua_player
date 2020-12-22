@@ -19,6 +19,7 @@
         android:fitsSystemWindows="false" />
 
 
+
     <androidx.appcompat.widget.ViewStubCompat
         android:id="@+id/player_seek_stub"
         android:layout_width="match_parent"
@@ -62,6 +63,7 @@
         android:background="@drawable/gradient_title_player"
         android:visibility="gone" />
 
+    <include layout="@layout/lingua_player_overlay_options" ></include>
 
 
     <RelativeLayout

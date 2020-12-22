@@ -13,6 +13,8 @@ import com.github.kazemihabib.cueplayer.util.Event
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.RendererItem
 import org.videolan.libvlc.interfaces.IMedia
@@ -199,6 +201,9 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     val numberOfParsedSubs: Int
         get() = subtitleController.getNumberOfParsedSubs
+
+    val numberOfParsedSubsFlow: StateFlow<Int>
+        get() = subtitleController.getNumberOfParsedSubsFlow
 
     suspend fun parseSubtitles(subtitlePaths: List<String>) = subtitleController.parseSubtitle(subtitlePaths)
 
