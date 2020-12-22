@@ -623,7 +623,7 @@ object UiTools {
     }
 
     //lingua
-
+    // TODO: Refactor these alertdialogs and design a proper Dialog
     fun installGoogleTranslateDialog(context: Context, positiveListener: DialogInterface.OnClickListener, negativeListener: DialogInterface.OnClickListener) {
         AlertDialog.Builder(context)
                 .setTitle(context.resources.getString(R.string.google_translate_not_found))
@@ -632,6 +632,15 @@ object UiTools {
                 .setNegativeButton(R.string.install_google_translate_later, negativeListener)
                 .create()
                 .show()
+    }
+
+    fun disableSmartSubtitleRequest(context: Context) {
+        AlertDialog.Builder(context)
+                .setTitle(context.resources.getString(R.string.disable_smart_subtitle))
+                .setMessage(context.resources.getString(R.string.disable_smart_subtitle_body))
+                .create()
+                .show()
+
     }
 
 

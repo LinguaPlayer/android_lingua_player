@@ -797,4 +797,7 @@
     <string name="instal_google_translate_now">Install now</string>
     <string name="install_google_translate_later">Later</string>
 
+    <string name="disable_smart_subtitle">Disable smart subtitle</string>
+    <string name="disable_smart_subtitle_body">Delaying subtitles do not work when smart subtitle is enabled, please first disable the smart subtitle and then try again</string>
+
 </resources>

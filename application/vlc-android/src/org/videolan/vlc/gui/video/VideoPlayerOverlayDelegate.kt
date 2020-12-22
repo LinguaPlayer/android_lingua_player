@@ -133,7 +133,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 {
                     when (it) {
                         R.id.audio_track_delay -> player.delayDelegate.showAudioDelaySetting()
-                        R.id.subtitle_track_delay -> player.delayDelegate.showSubsDelaySetting()
+                        R.id.subtitle_track_delay -> showSubsDelaySettings()
                         R.id.subtitle_track_download -> downloadSubtitles()
                         R.id.subtitle_track_file -> pickSubtitles()
                     }
@@ -162,6 +162,17 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 }
             }
         })
+    }
+
+    fun showSubsDelaySettings() {
+        player.service?.playlistManager?.player?.let{
+           if (it.isSmartSubtitleEnabled()) {
+               UiTools.disableSmartSubtitleRequest(player)
+               return
+           }
+        }
+
+        player.delayDelegate.showSubsDelaySetting()
     }
 
     fun showInfo(@StringRes textId: Int, duration: Int) {
