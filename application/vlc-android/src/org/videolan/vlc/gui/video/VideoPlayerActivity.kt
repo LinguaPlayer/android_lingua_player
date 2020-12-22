@@ -172,6 +172,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     val delayDelegate: VideoDelayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoDelayDelegate(this@VideoPlayerActivity) }
     val overlayDelegate: VideoPlayerOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoPlayerOverlayDelegate(this@VideoPlayerActivity) }
     val subtitleDelegate: SubtitleOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { SubtitleOverlayDelegate(this@VideoPlayerActivity)}
+    val adsDelegate: AdsDelegate by lazy(LazyThreadSafetyMode.NONE) {AdsDelegate(this@VideoPlayerActivity)}
     var isTv: Boolean = false
 
     /**
@@ -477,7 +478,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.playToPause = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_play_pause_video)!!
         overlayDelegate.pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
 
-        initAds()
+        adsDelegate.initAds()
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -1206,12 +1207,12 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 MediaPlayer.Event.Playing -> {
                     onPlaying()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(true)
-                    hideAds()
+                    adsDelegate.playerStateChanged(true)
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(false)
-                    showAds()
+                    adsDelegate.playerStateChanged(false)
                 }
                 MediaPlayer.Event.Opening -> {
                     forcedTime = -1
@@ -2157,97 +2158,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 //            googleTranslateBecameVisible()
 
         super.onWindowFocusChanged(hasFocus)
-    }
-
-//    var googleTranslateIsShowing: Boolean = false
-//    private fun googleTranslateBecameVisible() {
-//        Log.d(TAG, "googleTranslateBecameVisible: true")
-//        googleTranslateIsShowing = true
-//        handler.removeMessages(HIDE_WITING_FOR_TRANSLATION)
-////        stopLoading()
-//        loadingImageView?.alpha = 0f
-//        loadingImageView.setGone()
-//    }
-
-//    private fun showLoadingForTranslation() {
-//        player.handler.sendEmptyMessage(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION)
-//        player.handler.removeMessages(VideoPlayerActivity.SHOW_WITING_FOR_TRANSLATION, VideoPlayerActivity.MAXIMUM_TIME_TO_SHOW_TRANSLATION_WAITING)
-//    }
-
-    private var banner: TapsellBannerView? = null
-    private var adCloseButton: ImageView? = null
-    private var adContainer: FrameLayout? = null
-    private var requestFilled = false
-
-    private fun initAds() {
-        banner = findViewById(R.id.banner)
-        adCloseButton = findViewById(R.id.close_ad)
-        adContainer = findViewById(R.id.ad_container)
-        requestNewAd()
-
-        banner?.setEventListener(object : TapsellBannerViewEventListener {
-            override fun onNoAdAvailable() {
-                Log.d(TAG, "onNoAdAvailable: ")
-            }
-
-            override fun onNoNetwork() {
-                Log.d(TAG, "onNoNetwork: ")
-            }
-
-            override fun onError(error: String?) {
-                Log.d(TAG, "onError: $error")
-            }
-
-            override fun onRequestFilled() {
-                Log.d(TAG, "onRequestFilled")
-                requestFilled = true
-                service?.let {
-                    if (it.isPlaying || !shouldShowAds()) hideAds()
-                    else adCloseButton?.setVisible()
-                }
-            }
-
-            override fun onHideBannerView() {
-                Log.d(TAG, "onHideBannerView: ")
-            }
-        })
-
-       adCloseButton?.setOnClickListener { hideAds() }
-    }
-
-    private fun requestNewAd() {
-        banner?.loadAd(this.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_250x250)
-    }
-
-    private fun hideAds() {
-        Log.d(TAG, "hideAds")
-        banner?.hideBannerView()
-        adCloseButton?.setInvisible()
-    }
-
-    private var numberOfTimesShowAdsIsCalled: Int = 1
-    private var shouldRequestNewAd = false
-
-    private fun shouldShowAds(): Boolean {
-        if (numberOfTimesShowAdsIsCalled % 4 != 0) {
-            if (shouldRequestNewAd) requestNewAd()
-            shouldRequestNewAd = false
-            return false
-        }
-
-        return true
-    }
-
-    private fun showAds() {
-        numberOfTimesShowAdsIsCalled++
-        if (!shouldShowAds()) return
-
-        shouldRequestNewAd = true
-
-        Log.d(TAG, "showAds")
-        banner?.showBannerView()
-
-        if (requestFilled) adCloseButton?.setVisible()
     }
 
 }
