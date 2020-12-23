@@ -200,7 +200,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var downloadedSubtitleLiveData: LiveData<List<org.videolan.vlc.mediadb.models.ExternalSub>>? = null
     private var previousMediaPath: String? = null
 
-    private var linguaPlayerOverlayOptions: ConstraintLayout? = null
     private val isInteractive: Boolean
         @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
         get() {
@@ -480,7 +479,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
 
         adsDelegate.initAds()
-        linguaPlayerOverlayOptions = findViewById(R.id.lingua_player_overlay_options)
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -1211,13 +1209,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     onPlaying()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(true)
                     adsDelegate.playerStateChanged(true)
-                    linguaPlayerOverlayOptions.setGone()
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(false)
                     adsDelegate.playerStateChanged(false)
-                    linguaPlayerOverlayOptions.setVisible()
                 }
                 MediaPlayer.Event.Opening -> {
                     forcedTime = -1

@@ -8,6 +8,7 @@
     android:layout_marginStart="32dp"
     android:layout_marginTop="36dp"
     android:id="@+id/lingua_player_overlay_options"
+    android:visibility="gone"
     tools:layout_height="wrap_content"
     tools:layout_width="match_parent">
 

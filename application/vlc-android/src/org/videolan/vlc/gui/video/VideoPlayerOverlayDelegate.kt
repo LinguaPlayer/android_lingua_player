@@ -52,6 +52,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.android.synthetic.main.lingua_player_overlay_options.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.videolan.libvlc.util.AndroidUtil
@@ -126,6 +127,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     lateinit var playlist: RecyclerView
     lateinit var playlistSearchText: TextInputLayout
     lateinit var playlistAdapter: PlaylistAdapter
+
+
+    private var linguaPlayerOverlayOptions: ConstraintLayout? = null
 
     fun showTracks() {
         player.showVideoTrack(
@@ -332,6 +336,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         }
 
         updateSubtitlePositionWhenPlayerControllsIsVisible()
+        linguaPlayerOverlayOptions.setVisible()
     }
 
     private fun updateSubtitlePositionWhenPlayerControllsIsVisible() {
@@ -406,6 +411,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private fun initOverlay() {
+        if (linguaPlayerOverlayOptions == null)
+            linguaPlayerOverlayOptions = player.findViewById(R.id.lingua_player_overlay_options)
+
         player.service?.let { service ->
             val vscRight = player.findViewById<ViewStubCompat>(R.id.player_hud_right_stub)
             vscRight?.let {
@@ -731,6 +739,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         }
 
         player.subtitleDelegate.updateSubtitlePosition(0, false)
+        linguaPlayerOverlayOptions.setGone()
     }
 
     fun focusPlayPause() {
