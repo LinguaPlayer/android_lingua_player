@@ -83,9 +83,11 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                 if (isSmartSubtitleEnabled()) {
                     disableSmartSubtitle()
                     it.isSelected = false
+                    player.overlayDelegate.showInfo(R.string.smart_subtitle_disabled, 1000)
                 } else {
                     enableSmartSubtitle()
                     it.isSelected = true
+                    player.overlayDelegate.showInfo(R.string.smart_subtitle_enabled, 1000)
                 }
 
                 updateCurrentCaption()

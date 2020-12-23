@@ -800,4 +800,7 @@
     <string name="disable_smart_subtitle">Disable smart subtitle</string>
     <string name="disable_smart_subtitle_body">Delaying subtitles do not work when smart subtitle is enabled, please first disable the smart subtitle and then try again</string>
 
+    <string name="smart_subtitle_enabled">Smart sub enabled</string>
+    <string name="smart_subtitle_disabled">Smart sub disabled</string>
+
 </resources>
