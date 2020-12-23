@@ -5,7 +5,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/video_list_length_bg"
+        android:background="@drawable/info_background"
         android:visibility="invisible">
 
     <TextView
@@ -15,7 +15,7 @@
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="@color/grey200"
             android:textSize="36sp"
             tools:text="Audio delay\n0ms" />
 </LinearLayout>
