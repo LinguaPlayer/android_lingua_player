@@ -44,6 +44,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
     fun setSpuDelay(delay: Long): Boolean {
         this.delay = delay
         subtitleParser.setSubtitleDelay(delay / 1000)
+        if (!mediaplayer.isPlaying)
+            getCaption(mediaplayer.time)
         return true
     }
 
