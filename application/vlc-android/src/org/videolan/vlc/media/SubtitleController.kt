@@ -33,14 +33,18 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
 
     private val subtitleParser = SubtitleParser()
 
-    fun getSpuDelay(): Long = mediaplayer.spuDelay
+    // Delay are saved in MediaWrapper, check PlaylistManager setSpuDelay
+    private var delay = 0L
+
+    fun getSpuDelay(): Long =  delay
 
     // Habib: right now I'm not sure about an apropriate UI/UX for delay for each individual
     // subtitle, so for now I just use the VLC medialibrary
     // But I'll put the delay field for each subttile in the database
     fun setSpuDelay(delay: Long): Boolean {
+        this.delay = delay
         subtitleParser.setSubtitleDelay(delay / 1000)
-        return mediaplayer.setSpuDelay(delay)
+        return true
     }
 
     suspend fun addSubtitleTrack(videoUri: Uri?, path: String, select: Boolean): Boolean {
@@ -209,7 +213,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         val captionsDataList = subtitleParser.getNextCaption(isSmartSubtitleEnabled)
         val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere)
-                minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
+                minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this + delay/1000) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
 
         if (prevCaption == stringCaptionData) return captionsDataList
@@ -224,7 +228,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         val captionsDataList = subtitleParser.getPreviousCaption(isSmartSubtitleEnabled)
 
         val stringCaptionData = captionsDataList.apply {
-            if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this) }
+            if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this + delay/1000) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
 
         if (prevCaption == stringCaptionData) return captionsDataList
