@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -17,6 +18,8 @@ import java.util.*
 
 private const val TAG = "SubtitleParser"
 
+@ObsoleteCoroutinesApi
+@ExperimentalCoroutinesApi
 class SubtitleParser {
     private val parsedSubtitles = TreeMap<String, TimedTextObject>()
     private var subtitleDelay = 0L
@@ -61,7 +64,6 @@ class SubtitleParser {
         }
     }
 
-    @ExperimentalCoroutinesApi
     fun parseAsTimedTextObject(
             context: Context,
             subtitlePaths: List<String>,
@@ -142,8 +144,8 @@ class SubtitleParser {
                     else getCaption(currentTime - subtitleDelay, captions)
                 }
             }.filterNotNull().apply {
-                lastMaxCaptionTime = maxBy { it.maxEndTime }?.maxEndTime ?: currentTime
-                lastMinCaptionTime = minBy { it.minStartTime }?.minStartTime ?: currentTime
+                lastMaxCaptionTime = maxByOrNull { it.maxEndTime }?.maxEndTime ?: currentTime
+                lastMinCaptionTime = minByOrNull { it.minStartTime }?.minStartTime ?: currentTime
             }
         } catch (e: ConcurrentModificationException) {
             Log.d(TAG, "getCaption: ConcurrentModificationException")
@@ -166,12 +168,12 @@ class SubtitleParser {
                 else getNextCaption(lastMaxCaptionTime, captions)
             }
         }.filterNotNull().run {
-            val minTime = minBy { it.minStartTime }?.minStartTime
+            val minTime = minByOrNull { it.minStartTime }?.minStartTime
             if (minTime != null) {
                 lastMinCaptionTime = minTime
                 lastMaxCaptionTime = minTime
                 filter { kotlin.math.abs(it.minStartTime - minTime) <= acceptableDelay }.also { captionList ->
-                    captionList.maxBy { it?.minStartTime}?.minStartTime?.let{ lastMaxCaptionTime = it }
+                    captionList.maxByOrNull { it?.minStartTime }?.minStartTime?.let{ lastMaxCaptionTime = it }
                 }
             }
             else  listOf()
@@ -187,12 +189,12 @@ class SubtitleParser {
                 else getPreviousCaption(lastMinCaptionTime, captions)
             }
         }.filterNotNull().run {
-            val maxTime = maxBy { it.minStartTime}?.minStartTime
+            val maxTime = maxByOrNull { it.minStartTime}?.minStartTime
             if (maxTime != null) {
                 lastMinCaptionTime = maxTime
                 lastMaxCaptionTime = maxTime
                 filter { kotlin.math.abs(it.minStartTime - maxTime) <= acceptableDelay }.also { captionList ->
-                    captionList.minBy { it?.minStartTime }?.minStartTime?.let{ lastMinCaptionTime = it }
+                    captionList.minByOrNull { it?.minStartTime }?.minStartTime?.let{ lastMinCaptionTime = it }
                 }
             }
             else  listOf()
