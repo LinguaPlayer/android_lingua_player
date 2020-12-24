@@ -137,15 +137,14 @@ class SubtitleParser {
 
     fun getCaption(isSmartSubtitleEnabled: Boolean, currentTime: Long): List<CaptionsData> {
         return try {
-
             parsedSubtitles.map { mapEntry ->
                 mapEntry.value.run {
                     if (isSmartSubtitleEnabled) getCaption(currentTime - subtitleDelay, smartCaptions)
                     else getCaption(currentTime - subtitleDelay, captions)
                 }
             }.filterNotNull().apply {
-                lastMaxCaptionTime = maxByOrNull { it.maxEndTime }?.maxEndTime ?: currentTime
-                lastMinCaptionTime = minByOrNull { it.minStartTime }?.minStartTime ?: currentTime
+                lastMaxCaptionTime = maxByOrNull { it.maxEndTime }?.maxEndTime ?: currentTime - subtitleDelay
+                lastMinCaptionTime = minByOrNull { it.minStartTime }?.minStartTime ?: currentTime - subtitleDelay
             }
         } catch (e: ConcurrentModificationException) {
             Log.d(TAG, "getCaption: ConcurrentModificationException")

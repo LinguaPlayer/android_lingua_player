@@ -235,10 +235,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     fun enableSmartSubtitle() {
         subtitleController.isSmartSubtitleEnabled = true
+        if (!mediaplayer.isPlaying) updateCurrentCaption()
     }
 
     fun disableSmartSubtitle() {
         subtitleController.isSmartSubtitleEnabled = false
+        if (!mediaplayer.isPlaying) updateCurrentCaption()
     }
 
     fun isSmartSubtitleEnabled(): Boolean {
