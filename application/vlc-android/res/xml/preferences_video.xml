@@ -22,12 +22,12 @@
             android:key="playback_speed"
             android:summary="@string/playback_speed_summary"
             android:title="@string/playback_speed_title"/>
-    <CheckBoxPreference
-            app:singleLineTitle="false"
-            android:defaultValue="true"
-            android:key="media_fast_seek"
-            android:summary="@string/media_fast_seek_summary"
-            android:title="@string/media_fast_seek"/>
+<!--    <CheckBoxPreference-->
+<!--            app:singleLineTitle="false"-->
+<!--            android:defaultValue="false"-->
+<!--            android:key="media_fast_seek"-->
+<!--            android:summary="@string/media_fast_seek_summary"-->
+<!--            android:title="@string/media_fast_seek"/>-->
     <CheckBoxPreference
             app:singleLineTitle="false"
             android:defaultValue="true"

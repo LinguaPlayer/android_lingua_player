@@ -222,7 +222,7 @@ object VLCOptions {
 //        if (!prefs.getBoolean("subtitles_autoload", true)) media.addOption(":sub-language=none")
         // Lingua
         media.addOption(":sub-language=none")
-        if (!benchmark && prefs.getBoolean("media_fast_seek", true)) media.addOption(":input-fast-seek")
+        if (!benchmark && prefs.getBoolean("media_fast_seek", false)) media.addOption(":input-fast-seek")
 
         if (hasRenderer) {
             media.addOption(":sout-chromecast-audio-passthrough=" + prefs.getBoolean("casting_passthrough", true))
