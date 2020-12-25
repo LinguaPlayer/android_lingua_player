@@ -131,14 +131,17 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
             mediaplayer.position = position
             Log.d(TAG, "setPosition: length: ${getLength()} ${getLength().toDouble() / position}")
             Log.d(TAG, "setPosition: ${mediaplayer.length / position}")
-            subtitleController.getCaption((getLength() * position).toLong())
+            if (isShadowingModeEnabled) loopOverCaption((getLength() * position).toLong())
+            else subtitleController.getCaption((getLength() * position).toLong())
         }
     }
 
     fun setTime(time: Long) {
         if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
             mediaplayer.time = time
-            subtitleController.getCaption(time)
+
+            if (isShadowingModeEnabled) loopOverCaption(time)
+            else subtitleController.getCaption(time)
         }
     }
 

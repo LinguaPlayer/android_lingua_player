@@ -60,7 +60,7 @@
 
     <androidx.appcompat.widget.ViewStubCompat
         android:id="@+id/player_speaking_overlay_stub"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inflatedId="@+id/player_speaking_overlay"
         android:layout="@layout/player_speaking_overlay"

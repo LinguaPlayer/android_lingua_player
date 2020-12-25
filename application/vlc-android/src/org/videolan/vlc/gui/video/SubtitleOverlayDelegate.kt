@@ -164,6 +164,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         playerSpeakingOverlayBinding = DataBindingUtil.bind(player.findViewById(R.id.player_speaking_overlay)) ?: return
         playerSpeakingOverlayBinding.vm = this
         playerSpeakingOverlayBinding.lifecycleOwner = player
+        playerSpeakingOverlayBinding.progress = player?.service?.playlistManager?.player?.progress
+        playerSpeakingOverlayBinding.player = player
         playerSpeakingOverlayBinding.recordBtn.setOnClickListener {
             // TODO: ASK PERMISSION
             toggleAudioRecord()
@@ -264,8 +266,10 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             setShadowingMode(true)
             player.overlayDelegate.showInfo(R.string.shadowing_mode_enabled, 1000)
             player.overlayDelegate.enableMinimizeMode()
-            if (::playerSpeakingOverlayBinding.isInitialized)
+            if (::playerSpeakingOverlayBinding.isInitialized) {
                 playerSpeakingOverlayBinding.playerSpeakingOverlay.setVisible()
+                playerSpeakingOverlayBinding.playerOverlaySeekbar.setOnSeekBarChangeListener(player.seekListener)
+            }
         }
     }
 
@@ -275,8 +279,10 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             shadowing?.isSelected = false
             setShadowingMode(false)
             player.overlayDelegate.showInfo(R.string.shadowin_mode_disabled, 1000)
-            if (::playerSpeakingOverlayBinding.isInitialized)
+            if (::playerSpeakingOverlayBinding.isInitialized) {
                 playerSpeakingOverlayBinding.playerSpeakingOverlay.setGone()
+                playerSpeakingOverlayBinding.playerOverlaySeekbar.setOnSeekBarChangeListener(null)
+            }
 
             player.overlayDelegate.disableMinimizeMode()
         }
