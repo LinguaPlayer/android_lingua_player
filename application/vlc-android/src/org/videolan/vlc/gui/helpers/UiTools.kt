@@ -643,6 +643,17 @@ object UiTools {
 
     }
 
+    fun shadowingModeAddASubtitle(context: Context, positiveListener: DialogInterface.OnClickListener, negativeListener: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(context)
+                .setTitle(context.resources.getString(R.string.shadowing_mode_requires_subtitle))
+                .setMessage(context.resources.getString(R.string.shadowing_mode_requires_subtitle_body))
+                .setPositiveButton(R.string.ok, positiveListener)
+                .setNegativeButton(R.string.cancel, negativeListener)
+                .create()
+                .show()
+
+    }
+
 
 }
 

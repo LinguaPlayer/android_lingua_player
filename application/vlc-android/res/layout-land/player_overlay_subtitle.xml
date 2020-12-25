@@ -21,6 +21,7 @@
         app:layout_constraintEnd_toStartOf="@+id/next_caption"
         app:layout_constraintStart_toEndOf="@+id/prev_caption"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/player_speaking_overlay"
         tools:text="That did take place" />
 
     <ImageView
@@ -56,4 +57,17 @@
         app:layout_constraintVertical_bias="1.0"
         app:srcCompat="@drawable/ic_prev_caption"
         tools:visibility="visible" />
+
+    <androidx.appcompat.widget.ViewStubCompat
+        android:id="@+id/player_speaking_overlay_stub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inflatedId="@+id/player_speaking_overlay"
+        android:layout="@layout/player_speaking_overlay"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/subtitleTextView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_goneMarginBottom="24dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

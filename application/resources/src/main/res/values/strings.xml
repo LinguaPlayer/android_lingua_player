@@ -800,7 +800,14 @@
     <string name="disable_smart_subtitle">Disable smart subtitle</string>
     <string name="disable_smart_subtitle_body">Delaying subtitles do not work when smart subtitle is enabled, please first disable the smart subtitle and then try again</string>
 
+
+    <string name="shadowing_mode_requires_subtitle">Add a subtitle file</string>
+    <string name="shadowing_mode_requires_subtitle_body">Shadowing mode only works when there is a synced subtitle file, please add a subtitle file.</string>
+
     <string name="smart_subtitle_enabled">Smart sub enabled</string>
     <string name="smart_subtitle_disabled">Smart sub disabled</string>
+
+    <string name="shadowing_mode_enabled">Shadowing mode enabled</string>
+    <string name="shadowin_mode_disabled">Shadowing mode disabled</string>
 
 </resources>

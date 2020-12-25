@@ -46,8 +46,11 @@ import android.view.animation.Animation
 import android.view.animation.AnimationSet
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.RotateAnimation
-import android.widget.*
+import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -66,9 +69,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import ir.tapsell.sdk.bannerads.TapsellBannerType
-import ir.tapsell.sdk.bannerads.TapsellBannerView
-import ir.tapsell.sdk.bannerads.TapsellBannerViewEventListener
 import kotlinx.android.synthetic.main.player_overlay_brightness.*
 import kotlinx.android.synthetic.main.player_overlay_volume.*
 import kotlinx.coroutines.*
@@ -171,7 +171,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     val statsDelegate: VideoStatsDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoStatsDelegate(this, { overlayDelegate.showOverlayTimeout(OVERLAY_INFINITE) }, { overlayDelegate.showOverlay(true) }) }
     val delayDelegate: VideoDelayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoDelayDelegate(this@VideoPlayerActivity) }
     val overlayDelegate: VideoPlayerOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoPlayerOverlayDelegate(this@VideoPlayerActivity) }
-    val subtitleDelegate: SubtitleOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { SubtitleOverlayDelegate(this@VideoPlayerActivity)}
+    val subtitleDelegate: SubtitleOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { SubtitleOverlayDelegate(this@VideoPlayerActivity) }
     val adsDelegate: AdsDelegate by lazy(LazyThreadSafetyMode.NONE) {AdsDelegate(this@VideoPlayerActivity)}
     var isTv: Boolean = false
 
@@ -1208,11 +1208,13 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 MediaPlayer.Event.Playing -> {
                     onPlaying()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(true)
+                    subtitleDelegate.isPlaying.set(true)
                     adsDelegate.playerStateChanged(true)
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(false)
+                    subtitleDelegate.isPlaying.set(false)
                     adsDelegate.playerStateChanged(false)
                 }
                 MediaPlayer.Event.Opening -> {

@@ -10,6 +10,7 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -18,6 +19,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
+import androidx.appcompat.widget.ViewStubCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -26,8 +28,9 @@ import androidx.core.text.toSpannable
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ObservableField
+import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import com.github.kazemihabib.cueplayer.util.EventObserver
 import com.google.android.material.snackbar.Snackbar
@@ -36,12 +39,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.videolan.tools.*
 import org.videolan.vlc.R
+import org.videolan.vlc.databinding.PlayerSpeakingOverlayBinding
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
-import org.videolan.vlc.util.toPixel
+import org.videolan.vlc.util.*
+import java.io.File
 import java.util.regex.Pattern
 
 
@@ -54,7 +59,34 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     private val subtitleContainer: ConstraintLayout? = player.findViewById(R.id.subtitle_container)
     private val subtitleTextView: StrokedTextView? = player.findViewById(R.id.subtitleTextView)
     private val smartSub: ImageButton? = player.findViewById(R.id.listening_mode)
+    private val shadowing: ImageButton? = player.findViewById(R.id.shadowing_mode)
 
+    ///////////////////////////////////////////////////////////////////////
+
+    val audioRecorder = AudioRecorder(player.applicationContext)
+    private val _speakingMode = MutableLiveData<Boolean>()
+    val speakingMode: LiveData<Boolean>
+        get() = _speakingMode
+
+    val isPlaying = ObservableField(true)
+
+    val isRecording = ObservableField(false)
+    val isRecordedPlaying = ObservableField(false)
+    val isRecordedFileExist = ObservableField(isRecordedFileExist())
+
+    val amplitudeLiveData: LiveData<Int>
+        get() = audioRecorder.amplitudeLiveData
+
+    private val audioRecordEventsObserver = Observer<AudioRecordEvents> {
+        when(it) {
+            is RecordingStarted -> { recordingStarted() }
+            is RecordingStopped -> { recordingStopped(it.audoPlay) }
+            is RecordedStopped -> { recordedStopping() }
+            is RecordedPlaying -> { recordedPlaying() }
+            is RecordNone -> {}
+        }
+    }
+    /////////////////////////////////////////////////////////////////////////
     init {
         nextCaptionButton?.apply {
             setOnClickListener {
@@ -68,32 +100,186 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
         prevCaptionButton?.apply {
             setOnClickListener {
-                player.service?.playlistManager?.player?.getPrevCaption(false)
+                player.service?.playlistManager?.player?.getPreviousCaption(false)
             }
 
             setOnLongClickListener {
-                player.service?.playlistManager?.player?.getPrevCaption(true)
+                player.service?.playlistManager?.player?.getPreviousCaption(true)
                 true
             }
 
         }
 
         smartSub?.setOnClickListener {
-            player.service?.playlistManager?.player?.run {
-                if (isSmartSubtitleEnabled()) {
-                    disableSmartSubtitle()
-                    it.isSelected = false
-                    player.overlayDelegate.showInfo(R.string.smart_subtitle_disabled, 1000)
+            toggleSmartSubtitle()
+        }
+
+        shadowing?.setOnClickListener {
+            initShadowingUI()
+            player.service?.playlistManager?.player?.apply {
+                if (numberOfParsedSubs == 0) {
+                    UiTools.shadowingModeAddASubtitle(player, DialogInterface.OnClickListener { _, _ ->
+                        player.overlayDelegate.showTracks()
+                    },
+                            DialogInterface.OnClickListener { _, _ -> }
+
+                    )
                 } else {
-                    enableSmartSubtitle()
-                    it.isSelected = true
-                    player.overlayDelegate.showInfo(R.string.smart_subtitle_enabled, 1000)
+                    toggleShadowing()
                 }
 
-                updateCurrentCaption()
             }
         }
 
+        audioRecorder.audioRecordEventsLiveData.observeForever(audioRecordEventsObserver)
+    }
+
+    private fun toggleSmartSubtitle() {
+        player.service?.playlistManager?.player?.run {
+            if (isSmartSubtitleEnabled())  this@SubtitleOverlayDelegate.disableSmartSubtitle()
+            else this@SubtitleOverlayDelegate.enableSmartSubtitle()
+            updateCurrentCaption()
+        }
+    }
+
+    private fun disableSmartSubtitle() {
+        player.service?.playlistManager?.player?.disableSmartSubtitle()
+        smartSub?.isSelected = false
+        player.overlayDelegate.showInfo(R.string.smart_subtitle_disabled, 1000)
+    }
+
+    private fun enableSmartSubtitle() {
+        player.service?.playlistManager?.player?.enableSmartSubtitle()
+        smartSub?.isSelected = true
+        player.overlayDelegate.showInfo(R.string.smart_subtitle_enabled, 1000)
+    }
+
+    ////////////////////////////////////////////////////////////////
+
+    lateinit var playerSpeakingOverlayBinding: PlayerSpeakingOverlayBinding
+    private fun initShadowingUI() {
+        val speakingModeViewStub = player.findViewById<ViewStubCompat>(R.id.player_speaking_overlay_stub) ?: return
+        speakingModeViewStub.inflate()
+
+        playerSpeakingOverlayBinding = DataBindingUtil.bind(player.findViewById(R.id.player_speaking_overlay)) ?: return
+        playerSpeakingOverlayBinding.vm = this
+        playerSpeakingOverlayBinding.lifecycleOwner = player
+        playerSpeakingOverlayBinding.recordBtn.setOnClickListener {
+            // TODO: ASK PERMISSION
+            toggleAudioRecord()
+        }
+    }
+
+
+    fun loopOverNextCaption(): Boolean {
+        player.service?.playlistManager?.player?.loopOverNextCaption()
+        return true
+    }
+
+    fun loopOverPreviousCaption(): Boolean {
+        player.service?.playlistManager?.player?.loopOverPreviousCaption()
+        return true
+    }
+
+    fun togglePlayPause() {
+        if (isRecording.get() == true)  audioRecorder.stopRecording(autoPlay = false)
+        if (isRecordedPlaying.get() == true) audioRecorder.stopPlaying()
+
+        player.service?.playlistManager?.player?.apply {
+            if (isPlaying()) pause()
+            else play()
+        }
+    }
+
+    fun togglePlayPauseRecord() {
+        player.lifecycleScope.launch {
+            if (isPlaying.get() == true) player.service?.playlistManager?.pause()
+
+            if (isRecording.get() == true) {
+                audioRecorder.stopRecording()
+                delay(10)
+            }
+
+            audioRecorder.togglePlayPauseRecord()
+        }
+    }
+
+    fun toggleAudioRecord() {
+        if (isPlaying.get() == true)  player.service?.playlistManager?.player?.pause()
+        if (isRecordedPlaying.get() == true) audioRecorder.stopPlaying()
+        audioRecorder.toggleAudioRecord()
+        if (isRecordedFileExist.get() != true)
+            isRecordedFileExist.set(isRecordedFileExist())
+    }
+
+
+    private fun recordingStarted() {
+        isRecording.set(true)
+    }
+
+    private fun recordingStopped(autoPlay: Boolean) {
+        isRecording.set(false)
+        player.lifecycleScope.launch {
+            // user played pause when recording, so recording stopped
+            if (autoPlay && isPlaying.get() != true) {
+                delay(100)
+                audioRecorder.startPlaying(audioRecorder.getAudioPath())
+            }
+        }
+    }
+
+
+
+    private fun isRecordedFileExist() = File(audioRecorder.getAudioPath()).exists()
+
+    private fun recordedPlaying() {
+        isRecordedPlaying.set(true)
+    }
+
+    private fun recordedStopping() {
+        isRecordedPlaying.set(false)
+    }
+
+    ////////////////////////////////////////////////////////////////////
+
+    private fun toggleShadowing() {
+        player.service?.playlistManager?.player?.apply {
+            if (isShadowingModeEnabled) {
+                disableShadowingMode()
+            } else {
+                enableShadowingMode()
+//                player.overlayDelegate.updateSubtitlePositionWhenPlayerControllsIsVisible()
+            }
+        }
+        player.service?.isPlaying?.let {
+            decideAboutCaptionButtonVisibility(it)
+        }
+    }
+
+    private fun enableShadowingMode() {
+        smartSub?.setGone()
+        player.service?.playlistManager?.player?.apply {
+            if (isSmartSubtitleEnabled()) this@SubtitleOverlayDelegate.disableSmartSubtitle()
+            shadowing?.isSelected = true
+            setShadowingMode(true)
+            player.overlayDelegate.showInfo(R.string.shadowing_mode_enabled, 1000)
+            player.overlayDelegate.enableMinimizeMode()
+            if (::playerSpeakingOverlayBinding.isInitialized)
+                playerSpeakingOverlayBinding.playerSpeakingOverlay.setVisible()
+        }
+    }
+
+    private fun disableShadowingMode() {
+        smartSub?.setVisible()
+        player.service?.playlistManager?.player?.apply {
+            shadowing?.isSelected = false
+            setShadowingMode(false)
+            player.overlayDelegate.showInfo(R.string.shadowin_mode_disabled, 1000)
+            if (::playerSpeakingOverlayBinding.isInitialized)
+                playerSpeakingOverlayBinding.playerSpeakingOverlay.setGone()
+
+            player.overlayDelegate.disableMinimizeMode()
+        }
     }
 
     val subtitleObserver = Observer { subtitleList: List<Subtitle> ->
@@ -102,8 +288,6 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                 parseSubtitles(subtitleList.map { it.subtitlePath.path!! })
                 decideAboutCaptionButtonVisibility(isPlaying())
             }
-
-
         }
     }
 
@@ -160,8 +344,11 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
         player.lifecycleScope.launchWhenStarted {
             player.service?.playlistManager?.player?.numberOfParsedSubsFlow?.collect { numberOfSubs ->
-                if (numberOfSubs > 0) smartSub.setVisible()
-                else smartSub.setGone()
+                when {
+                    player.service?.playlistManager?.player?.isShadowingModeEnabled == true -> smartSub.setGone()
+                    numberOfSubs > 0 -> smartSub.setVisible()
+                    else -> smartSub.setGone()
+                }
             }
         }
 
@@ -282,13 +469,17 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun decideAboutCaptionButtonVisibility(isPlaying: Boolean) {
-        if (isPlaying)
-            hideCaptionButtons()
-        else
-            player.service?.playlistManager?.player?.numberOfParsedSubs?.let {
-                if (it == 0) hideCaptionButtons()
+        player.service?.playlistManager?.player?.let {
+            if (it.isShadowingModeEnabled) {
+                hideCaptionButtons()
+            }
+            else if (isPlaying) {
+                hideCaptionButtons()
+            } else {
+                if (it.numberOfParsedSubs == 0) hideCaptionButtons()
                 else showCaptionButtons()
             }
+        }
     }
 
     private fun hideCaptionButtons() {
@@ -390,7 +581,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             if (isGoogleTranslateAvailable) {
                 showLoadingForTranslation(5000L)
             } else {
-                UiTools.installGoogleTranslateDialog(player.applicationContext, DialogInterface.OnClickListener { _, _ ->
+                UiTools.installGoogleTranslateDialog(player, DialogInterface.OnClickListener { _, _ ->
                     installGoogleTranslate(player.applicationContext)
                 },
                         DialogInterface.OnClickListener { _, _ -> })
@@ -421,5 +612,4 @@ private class SubTouchSpan(val start: Int, val end: Int, private val underlineTe
     }
 
 }
-
 

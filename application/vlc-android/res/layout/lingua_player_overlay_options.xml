@@ -23,7 +23,7 @@
         android:tint="@color/white"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/speaking_mode"
+        app:layout_constraintEnd_toStartOf="@+id/shadowing_mode"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,7 +33,7 @@
         tools:visibility="visible" />
 
     <ImageButton
-        android:id="@+id/speaking_mode"
+        android:id="@+id/shadowing_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/lingua_options_background_selector"
@@ -46,7 +46,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/listening_mode"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_speaking_mode"
+        app:srcCompat="@drawable/ic_shadowing_mode"
         tools:tint="@color/white"
         tools:visibility="visible" />
 </androidx.constraintlayout.widget.ConstraintLayout>

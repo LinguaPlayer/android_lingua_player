@@ -162,6 +162,8 @@ dependencies {
     // Lingua
     api 'com.github.albfernandez:juniversalchardet:2.3.0'
     api 'ir.tapsell.sdk:tapsell-sdk-android:4.6.2'
+    api 'com.github.Armen101:AudioRecordView:1.0.2'
+
 
 
     // AppCompat

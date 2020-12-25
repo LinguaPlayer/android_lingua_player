@@ -26,6 +26,7 @@ import org.videolan.tools.*
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.repository.SlaveRepository
+import org.videolan.vlc.subs.CaptionsData
 import kotlin.math.abs
 
 private const val TAG = "PlayerController"
@@ -186,6 +187,62 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.setSpuDelay(delay)
     }
 
+    var isShadowingModeEnabled: Boolean = false
+        private set
+
+    private val shadowingABRepeat = ABRepeat()
+
+    fun setABRepeat(start: Long, stop: Long) {
+        shadowingABRepeat.start = start
+        shadowingABRepeat.stop = stop
+    }
+
+    fun clearABRepeat() {
+        shadowingABRepeat.start = -1
+        shadowingABRepeat.stop = -1
+    }
+
+    fun setShadowingMode(enabled: Boolean) {
+        isShadowingModeEnabled = enabled
+        if (enabled) loopOverCaption(mediaplayer?.time ?: 0)
+        else clearABRepeat()
+    }
+
+
+    private fun loopOver(lst: List<CaptionsData>) {
+        val start = lst.minByOrNull { it.minStartTime }
+        val stop = lst.maxByOrNull { it.maxEndTime }
+        if (start != null && stop != null)
+            setABRepeat( start = start.minStartTime, stop = stop.maxEndTime)
+    }
+
+    private fun loopOverCaption(time: Long) {
+        if (numberOfParsedSubs == 0) return
+
+        val captionsDataList = subtitleController.getCaption(time)
+
+        if (captionsDataList.isNotEmpty()) { loopOver(captionsDataList) }
+        else { if (!loopOverNextCaption()) loopOverPreviousCaption() }
+    }
+
+    fun loopOverNextCaption(): Boolean {
+        if (numberOfParsedSubs > 0)
+            getNextCaption(alsoSeekThere = true).apply {
+                return if (this.isNotEmpty()) { loopOver(this); true }
+                else { false }
+            }
+        else return false
+    }
+
+    fun loopOverPreviousCaption(): Boolean {
+        if (numberOfParsedSubs > 0)
+            getPreviousCaption(alsoSeekThere = true).apply {
+                return if (this.isNotEmpty()) { loopOver(this); true }
+                else { false }
+            }
+        else return false
+    }
+
     fun setVideoTrackEnabled(enabled: Boolean) = mediaplayer.setVideoTrackEnabled(enabled)
 
     suspend fun addSubtitleTrack(videoUri: Uri?, path: String, select: Boolean): Boolean {
@@ -225,13 +282,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun updateCurrentCaption() {
         subtitleController.getCaption(mediaplayer.time)
     }
-    fun getNextCaption(alsoSeekThere: Boolean) {
-        subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
-    }
 
-    fun getPrevCaption(alsoSeekThere: Boolean) {
+    fun getNextCaption(alsoSeekThere: Boolean) =
+        subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
+
+    fun getPreviousCaption(alsoSeekThere: Boolean) =
         subtitleController.getPreviousCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
-    }
 
     fun enableSmartSubtitle() {
         subtitleController.isSmartSubtitleEnabled = true
@@ -424,6 +480,10 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
                         lastTime = time
                     }
                     subtitleController.getCaption(time)
+
+                    if (shadowingABRepeat.start != -1L) {
+                        if (time > shadowingABRepeat.stop) setTime(shadowingABRepeat.start)
+                    }
                 }
             }
             mediaplayerEventListener?.onEvent(event)

@@ -52,7 +52,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.android.synthetic.main.lingua_player_overlay_options.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.videolan.libvlc.util.AndroidUtil
@@ -60,7 +59,9 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.*
-import org.videolan.vlc.*
+import org.videolan.vlc.PlaybackService
+import org.videolan.vlc.R
+import org.videolan.vlc.RendererDelegate
 import org.videolan.vlc.databinding.PlayerHudBinding
 import org.videolan.vlc.databinding.PlayerHudRightBinding
 import org.videolan.vlc.gui.audio.PlaylistAdapter
@@ -73,15 +74,15 @@ import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.view.PlayerProgress
-import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.FileUtils
-import org.videolan.vlc.util.toPixel
 import org.videolan.vlc.util.isSchemeFile
 import org.videolan.vlc.util.isSchemeNetwork
+import org.videolan.vlc.util.toPixel
 import org.videolan.vlc.viewmodels.PlaylistModel
 
+private const val TAG = "VideoPlayerOverlayDeleg"
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
@@ -130,6 +131,17 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
 
     private var linguaPlayerOverlayOptions: ConstraintLayout? = null
+    private var minimizeMode: Boolean = false
+
+    fun enableMinimizeMode() {
+        minimizeMode = true
+        hideOverlay(false)
+    }
+
+    fun disableMinimizeMode() {
+        minimizeMode = false
+        showOverlay()
+    }
 
     fun showTracks() {
         player.showVideoTrack(
@@ -321,12 +333,19 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 }
                 dimStatusBar(false)
 
-                enterAnimate(arrayOf(hudBinding.progressOverlay, hudBackground), 100.dp.toFloat())
-                enterAnimate(arrayOf(hudRightBinding.hudRightOverlay, hudRightBackground), -100.dp.toFloat())
+                if (!minimizeMode) {
+                    Log.d(TAG, "showOverlayTimeout: in if")
+                    enterAnimate(arrayOf(hudBinding.progressOverlay, hudBackground), 100.dp.toFloat())
+                    enterAnimate(arrayOf(hudRightBinding.hudRightOverlay, hudRightBackground), -100.dp.toFloat())
+                } else {
+                    Log.d(TAG, "showOverlayTimeout: in else")
+//                    enterAnimate(arrayOf(hudBinding.playerOverlaySeekbar), 100.dp.toFloat())
+                }
 
 
                 if (!player.displayManager.isPrimary)
                     overlayBackground.setVisible()
+
                 updateOverlayPausePlay(true)
             }
             player.handler.removeMessages(VideoPlayerActivity.FADE_OUT)
@@ -339,7 +358,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         linguaPlayerOverlayOptions.setVisible()
     }
 
-    private fun updateSubtitlePositionWhenPlayerControllsIsVisible() {
+    fun updateSubtitlePositionWhenPlayerControllsIsVisible() {
         var playerControllerSize = hudBinding.constraintLayout2.height
 
         if (playerControllerSize == 0) {
@@ -353,7 +372,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (player.service?.playlistManager?.abRepeatOn?.value == true)
                 playerControllerSize += 48.dp.toPixel()
 
-            player.subtitleDelegate.updateSubtitlePosition(playerControllerSize, false)
+            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) 0 else playerControllerSize, false)
         }
     }
 
@@ -361,7 +380,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         override fun onLayoutChange(v: View?, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
             var playerControllerSize = hudBinding.constraintLayout2.height
             Log.d("HABIB", "isShowing: ${player.isShowing} showOverlayTimeout: $playerControllerSize")
-            player.subtitleDelegate.updateSubtitlePosition(playerControllerSize, true)
+            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) 0 else playerControllerSize, true)
             hudBinding.constraintLayout2.removeOnLayoutChangeListener(this)
         }
     }

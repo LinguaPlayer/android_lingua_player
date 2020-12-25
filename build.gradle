@@ -31,6 +31,8 @@ allprojects {
         }
 
         jcenter()
+
+        maven { url 'https://jitpack.io' }
     }
     tasks.withType(Javadoc) {
         // Ignores errors from mavenAndroidJavadocs task
