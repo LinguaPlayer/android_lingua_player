@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.video
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
@@ -29,6 +30,7 @@ import android.bluetooth.BluetoothA2dp
 import android.bluetooth.BluetoothHeadset
 import android.content.*
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.Uri
@@ -59,6 +61,8 @@ import androidx.appcompat.widget.ViewStubCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.constraintlayout.widget.Guideline
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -105,6 +109,10 @@ import org.videolan.vlc.util.Util
 import org.videolan.vlc.viewmodels.PlaylistModel
 import java.lang.Runnable
 import kotlin.math.roundToInt
+
+private const val REQUEST_MIC= 2
+private const val PERMISSION_SHARED_PREF = "mic_permission_shared_pref"
+private const val SHARED_PREF_FIRST_ASK = "mic_first_ask"
 
 @Suppress("DEPRECATION")
 @ObsoleteCoroutinesApi
@@ -173,6 +181,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     val overlayDelegate: VideoPlayerOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { VideoPlayerOverlayDelegate(this@VideoPlayerActivity) }
     val subtitleDelegate: SubtitleOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) { SubtitleOverlayDelegate(this@VideoPlayerActivity) }
     val adsDelegate: AdsDelegate by lazy(LazyThreadSafetyMode.NONE) {AdsDelegate(this@VideoPlayerActivity)}
+    val shadowingDelegate: ShadowingOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) {ShadowingOverlayDelegate(this@VideoPlayerActivity)}
     var isTv: Boolean = false
 
     /**
@@ -479,6 +488,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
 
         adsDelegate.initAds()
+        shadowingDelegate.initShadowing()
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -1208,13 +1218,13 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 MediaPlayer.Event.Playing -> {
                     onPlaying()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(true)
-                    subtitleDelegate.isPlaying.set(true)
+                    shadowingDelegate.isPlaying.set(true)
                     adsDelegate.playerStateChanged(true)
                 }
                 MediaPlayer.Event.Paused -> {
                     overlayDelegate.updateOverlayPausePlay()
                     subtitleDelegate.decideAboutCaptionButtonVisibility(false)
-                    subtitleDelegate.isPlaying.set(false)
+                    shadowingDelegate.isPlaying.set(false)
                     adsDelegate.playerStateChanged(false)
                 }
                 MediaPlayer.Event.Opening -> {
@@ -2163,6 +2173,83 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         super.onWindowFocusChanged(hasFocus)
     }
 
+    // TODO(I wrote this permission handler in a rush as a temporary solution
+    //  Think again about it and make it modern with jetpack)
+
+    fun handleMICPermission(fromOnRequestPermissionResult: Boolean = false) {
+        if (ContextCompat.checkSelfPermission( this, Manifest.permission.RECORD_AUDIO )
+                != PackageManager.PERMISSION_GRANTED) {
+            // User already denied but didn't check never ask again
+            if (fromOnRequestPermissionResult) return
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+                showPermissionDialog( false)
+            } else {
+                if (isFirstPermissionAsk()) {
+                    // first time permission been asked
+                    setFirstPermissionAsk()
+                    requestMICPermission()
+                } else {
+                    // User already denied and check never ask again
+                    showPermissionDialog( true)
+                }
+            }
+
+        }
+        else {shadowingDelegate.toggleAudioRecord()}
+    }
+
+    private fun setFirstPermissionAsk() {
+        val sp = getSharedPreferences(
+                PERMISSION_SHARED_PREF, Context.MODE_PRIVATE
+        )
+
+        val editor = sp.edit()
+        editor.putBoolean(SHARED_PREF_FIRST_ASK, false)
+        editor.commit()
+    }
+
+    private fun isFirstPermissionAsk(): Boolean {
+        return getSharedPreferences(
+                PERMISSION_SHARED_PREF, Context.MODE_PRIVATE
+        )
+                .getBoolean(SHARED_PREF_FIRST_ASK, true)
+    }
+
+    private var permissionDialog: AlertDialog? = null
+
+    private fun showPermissionDialog(openSettings: Boolean ) {
+        permissionDialog?.dismiss()
+        permissionDialog = AlertDialog.Builder(this)
+                .setMessage(if (openSettings) R.string.mic_permission_request_settings else R.string.mic_permission_request)
+                .setPositiveButton(if (openSettings) R.string.mic_open_settings else R.string.mic_allow_access) { _, _ ->
+                    if (openSettings) opnSettings()
+                    else requestMICPermission()
+                }
+                .setNegativeButton(R.string.mic_cancel) { _, _ -> }
+                .setCancelable(false)
+                .show()
+    }
+
+    private fun opnSettings() {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri: Uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivity(intent)
+    }
+
+    private fun requestMICPermission() {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_MIC
+        )
+    }
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        handleMICPermission(true)
+    }
 }
 
 data class PlayerOrientationMode(

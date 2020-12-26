@@ -802,12 +802,21 @@
 
 
     <string name="shadowing_mode_requires_subtitle">Add a subtitle file</string>
-    <string name="shadowing_mode_requires_subtitle_body">Shadowing mode only works when there is a synced subtitle file, please add a subtitle file.</string>
+    <string name="shadowing_mode_requires_subtitle_body">Shadowing mode only works when there is a synced subtitle file. Please add a subtitle file.</string>
 
     <string name="smart_subtitle_enabled">Smart sub enabled</string>
     <string name="smart_subtitle_disabled">Smart sub disabled</string>
 
     <string name="shadowing_mode_enabled">Shadowing mode enabled</string>
     <string name="shadowin_mode_disabled">Shadowing mode disabled</string>
+
+
+    <!-- Permissions -->
+    <string name="mic_permission_request">In order to record your voice, we need microphone access on your device.</string>
+    <string name="mic_permission_request_settings">In order to record your voice, we need microphone access on your device.
+    Go to settings to enable the permission</string>
+    <string name="mic_allow_access">ALLOW ACCESS</string>
+    <string name="mic_open_settings">OPEN SETTINGS</string>
+    <string name="mic_cancel">Cancel</string>
 
 </resources>

@@ -9,7 +9,7 @@
 
         <variable
             name="vm"
-            type="org.videolan.vlc.gui.video.SubtitleOverlayDelegate"/>
+            type="org.videolan.vlc.gui.video.ShadowingOverlayDelegate"/>
 
 
         <variable
