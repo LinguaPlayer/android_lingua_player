@@ -16,6 +16,6 @@
             android:paddingRight="10dp"
             android:gravity="center"
             android:textColor="@color/grey200"
-            android:textSize="36sp"
+            android:textSize="26sp"
             tools:text="Audio delay\n0ms" />
 </LinearLayout>
