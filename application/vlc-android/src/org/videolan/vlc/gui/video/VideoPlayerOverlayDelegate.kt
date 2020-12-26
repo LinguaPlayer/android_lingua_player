@@ -141,6 +141,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     fun disableMinimizeMode() {
         minimizeMode = false
         showOverlay()
+        enterAnimate(arrayOf(hudBinding.progressOverlay, hudBackground), 100.dp.toFloat())
+        enterAnimate(arrayOf(hudRightBinding.hudRightOverlay, hudRightBackground), -100.dp.toFloat())
     }
 
     fun showTracks() {
@@ -337,9 +339,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     Log.d(TAG, "showOverlayTimeout: in if")
                     enterAnimate(arrayOf(hudBinding.progressOverlay, hudBackground), 100.dp.toFloat())
                     enterAnimate(arrayOf(hudRightBinding.hudRightOverlay, hudRightBackground), -100.dp.toFloat())
-                } else {
-                    Log.d(TAG, "showOverlayTimeout: in else")
-//                    enterAnimate(arrayOf(hudBinding.playerOverlaySeekbar), 100.dp.toFloat())
                 }
 
 
