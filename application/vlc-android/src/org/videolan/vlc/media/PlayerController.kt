@@ -220,7 +220,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         val start = lst.minByOrNull { it.minStartTime }
         val stop = lst.maxByOrNull { it.maxEndTime }
         if (start != null && stop != null)
-            setABRepeat( start = start.minStartTime, stop = stop.maxEndTime)
+            setABRepeat( start = start.minStartTime + subtitleController.getSpuDelay()/1000, stop = stop.maxEndTime + subtitleController.getSpuDelay()/1000)
     }
 
     private fun loopOverCaption(time: Long) {
