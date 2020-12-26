@@ -793,12 +793,12 @@
 
 
     <string name="google_translate_not_found">Google translate is not installed</string>
-    <string name="install_google_translate_body">Lingua player uses google translate app to translate subtitles, please install it to enable translation feature.</string>
+    <string name="install_google_translate_body">Lingua player uses google translate app to translate subtitles. Please install it to enable translation feature.</string>
     <string name="instal_google_translate_now">Install now</string>
     <string name="install_google_translate_later">Later</string>
 
     <string name="disable_smart_subtitle">Disable smart subtitle</string>
-    <string name="disable_smart_subtitle_body">Delaying subtitles do not work when smart subtitle is enabled, please first disable the smart subtitle and then try again</string>
+    <string name="disable_smart_subtitle_body">Delaying subtitles do not work when the smart subtitle is enabled. Please first disable the smart subtitle and then try again</string>
 
 
     <string name="shadowing_mode_requires_subtitle">Add a subtitle file</string>
