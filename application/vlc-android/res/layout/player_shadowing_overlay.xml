@@ -21,7 +21,7 @@
             type="androidx.lifecycle.LiveData&lt;org.videolan.vlc.media.Progress>" />
     </data>
     <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/player_speaking_overlay"
+        android:id="@+id/player_shadowing_overlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"

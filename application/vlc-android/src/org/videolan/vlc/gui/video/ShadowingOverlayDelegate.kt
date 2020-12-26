@@ -11,8 +11,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.PlayerSpeakingOverlayBinding
 import org.videolan.vlc.gui.helpers.UiTools
@@ -54,9 +52,9 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         audioRecorder.audioRecordEventsLiveData.observeForever(audioRecordEventsObserver)
     }
 
-    private val _speakingMode = MutableLiveData<Boolean>()
-    val speakingMode: LiveData<Boolean>
-        get() = _speakingMode
+    private val _shadowingMode = MutableLiveData<Boolean>()
+    val shadowingMode: LiveData<Boolean>
+        get() = _shadowingMode
 
     val isPlaying = ObservableField(true)
 
@@ -70,10 +68,10 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
     lateinit var playerSpeakingOverlayBinding: PlayerSpeakingOverlayBinding
     private fun initShadowingUI() {
-        val speakingModeViewStub = player.findViewById<ViewStubCompat>(R.id.player_speaking_overlay_stub) ?: return
-        speakingModeViewStub.inflate()
+        val shadowingModeViewStub = player.findViewById<ViewStubCompat>(R.id.shadowing_overlay_stub) ?: return
+        shadowingModeViewStub.inflate()
 
-        playerSpeakingOverlayBinding = DataBindingUtil.bind(player.findViewById(R.id.player_speaking_overlay)) ?: return
+        playerSpeakingOverlayBinding = DataBindingUtil.bind(player.findViewById(R.id.player_shadowing_overlay)) ?: return
         playerSpeakingOverlayBinding.vm = this
         playerSpeakingOverlayBinding.lifecycleOwner = player
         playerSpeakingOverlayBinding.progress = player?.service?.playlistManager?.player?.progress
