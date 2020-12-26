@@ -1,6 +1,7 @@
 package org.videolan.vlc.gui.video
 
 import android.content.DialogInterface
+import android.net.Uri
 import android.widget.ImageButton
 import androidx.appcompat.widget.ViewStubCompat
 import androidx.databinding.DataBindingUtil
@@ -196,6 +197,16 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
             player.overlayDelegate.disableMinimizeMode()
         }
+    }
+
+    private var prevVideoUri: Uri? = null
+    fun newVideoUriPlaying(videoUri: Uri?) {
+        // Disable shadowing mode when next video in playlist is playing
+        if (prevVideoUri != videoUri) {
+           disableShadowingMode()
+        }
+
+        prevVideoUri = videoUri
     }
 
     fun activityPaused() {

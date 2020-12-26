@@ -567,6 +567,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             lastTime = -1
             forcedTime = lastTime
             enableSubs()
+            shadowingDelegate.newVideoUriPlaying(videoUri)
         }
     }
 
