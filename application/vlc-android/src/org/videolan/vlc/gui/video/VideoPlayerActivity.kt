@@ -100,6 +100,7 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
+import org.videolan.vlc.media.ABRepeat
 import org.videolan.vlc.repository.ExternalSubRepository
 import org.videolan.vlc.repository.SlaveRepository
 import org.videolan.vlc.repository.SubtitlesRepository
@@ -154,6 +155,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     var lockBackButton = false
     private var wasPaused = false
     private var savedTime: Long = -1
+
+    private var wasShadowingMode = false
+    private var shadowingABRepeat: ABRepeat = ABRepeat()
 
     /**
      * For uninterrupted switching between audio and video mode
@@ -574,6 +578,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         else
             overlayDelegate.hideOverlay(true)
         super.onPause()
+        shadowingDelegate.activityPaused()
         overlayDelegate.setListeners(false)
 
         /* Stop the earliest possible to avoid vout error */
@@ -726,7 +731,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     }
 
     override fun onDestroy() {
-        Log.d(TAG, "onDestroy: ")
         super.onDestroy()
         playlistModel?.run {
             dataset.removeObserver(playlistObserver)
@@ -749,6 +753,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         service?.run {
             playbackStarted = true
+
+            playlistManager.player.setShadowingMode(wasShadowingMode, shadowingABRepeat.start, shadowingABRepeat.stop)
 
             val vlcVout = vout
             if (vlcVout != null && vlcVout.areViewsAttached()) {
@@ -796,6 +802,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         service?.run {
             val tv = Settings.showTvUi
             val interactive = isInteractive
+            wasShadowingMode = playlistManager.player.isShadowingModeEnabled
+            shadowingABRepeat = playlistManager.player.getABRepeat()
+            playlistManager.player.setShadowingMode(false)
             wasPaused = !isPlaying || (!tv && !interactive)
             if (wasPaused) settings.putSingle(VIDEO_PAUSED, true)
             if (!isFinishing) {

@@ -129,8 +129,6 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     fun setPosition(position: Float) {
         if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
             mediaplayer.position = position
-            Log.d(TAG, "setPosition: length: ${getLength()} ${getLength().toDouble() / position}")
-            Log.d(TAG, "setPosition: ${mediaplayer.length / position}")
             if (isShadowingModeEnabled) loopOverCaption((getLength() * position).toLong())
             else subtitleController.getCaption((getLength() * position).toLong())
         }
@@ -195,9 +193,13 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     private val shadowingABRepeat = ABRepeat()
 
-    fun setABRepeat(start: Long, stop: Long) {
+    private fun setABRepeat(start: Long, stop: Long) {
         shadowingABRepeat.start = start
         shadowingABRepeat.stop = stop
+    }
+
+    fun getABRepeat(): ABRepeat {
+        return ABRepeat(shadowingABRepeat.start, shadowingABRepeat.stop)
     }
 
     fun clearABRepeat() {
@@ -205,11 +207,12 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         shadowingABRepeat.stop = -1
     }
 
-    fun setShadowingMode(enabled: Boolean) {
-        Log.d(TAG, "setShadowingMode: ")
+    fun setShadowingMode(enabled: Boolean, start: Long = -1L, stop: Long = -1L) {
         isShadowingModeEnabled = enabled
-        if (enabled) loopOverCaption(mediaplayer?.time ?: 0)
-        else clearABRepeat()
+        if (enabled) {
+            if (start != -1L) setABRepeat(start, stop)
+            else loopOverCaption(mediaplayer.time)
+        } else clearABRepeat()
     }
 
 
@@ -222,9 +225,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 
     private fun loopOverCaption(time: Long) {
         if (numberOfParsedSubs == 0) return
-
         val captionsDataList = subtitleController.getCaption(time)
-
         if (captionsDataList.isNotEmpty()) { loopOver(captionsDataList) }
         else { if (!loopOverNextCaption()) loopOverPreviousCaption() }
     }

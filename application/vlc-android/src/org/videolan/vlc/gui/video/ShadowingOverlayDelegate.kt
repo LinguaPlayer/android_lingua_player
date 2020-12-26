@@ -183,6 +183,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     private fun disableShadowingMode() {
+        if (isRecording.get() == true)  audioRecorder.stopRecording(autoPlay = false)
         player.subtitleDelegate.shadowingModeDisabled()
         player.service?.playlistManager?.player?.apply {
             shadowing?.isSelected = false
@@ -195,5 +196,9 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
             player.overlayDelegate.disableMinimizeMode()
         }
+    }
+
+    fun activityPaused() {
+        if (isRecording.get() == true)  audioRecorder.stopRecording(autoPlay = false)
     }
 }
