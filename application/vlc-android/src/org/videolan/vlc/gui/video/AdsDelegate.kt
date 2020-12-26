@@ -39,6 +39,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
             layoutParams.removeRule(RelativeLayout.CENTER_IN_PARENT)
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
             layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE)
+            layoutParams.setMargins(0.dp, 25.dp, 0.dp, 0.dp)
             container.layoutParams = layoutParams
         }
 
@@ -50,6 +51,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
             layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP)
             layoutParams.removeRule(RelativeLayout.CENTER_HORIZONTAL)
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE)
+            layoutParams.setMargins(0.dp, 0.dp, 0.dp, 0.dp)
             container.layoutParams = layoutParams
         }
     }

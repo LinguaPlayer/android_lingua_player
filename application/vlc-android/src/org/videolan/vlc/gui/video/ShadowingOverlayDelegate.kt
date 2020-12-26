@@ -11,8 +11,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.videolan.tools.setGone
+import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlayerSpeakingOverlayBinding
+import org.videolan.vlc.databinding.PlayerShadowingOverlayBinding
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.util.*
 import java.io.File
@@ -66,7 +68,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         get() = audioRecorder.amplitudeLiveData
 
 
-    lateinit var playerSpeakingOverlayBinding: PlayerSpeakingOverlayBinding
+    lateinit var playerSpeakingOverlayBinding: PlayerShadowingOverlayBinding
     private fun initShadowingUI() {
         val shadowingModeViewStub = player.findViewById<ViewStubCompat>(R.id.shadowing_overlay_stub) ?: return
         shadowingModeViewStub.inflate()
@@ -174,7 +176,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
             player.overlayDelegate.showInfo(R.string.shadowing_mode_enabled, 1000)
             player.overlayDelegate.enableMinimizeMode()
             if (::playerSpeakingOverlayBinding.isInitialized) {
-                playerSpeakingOverlayBinding.playerSpeakingOverlay.setVisible()
+                playerSpeakingOverlayBinding.playerShadowingOverlay.setVisible()
                 playerSpeakingOverlayBinding.playerOverlaySeekbar.setOnSeekBarChangeListener(player.seekListener)
             }
         }
@@ -187,7 +189,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
             setShadowingMode(false)
             player.overlayDelegate.showInfo(R.string.shadowin_mode_disabled, 1000)
             if (::playerSpeakingOverlayBinding.isInitialized) {
-                playerSpeakingOverlayBinding.playerSpeakingOverlay.setGone()
+                playerSpeakingOverlayBinding.playerShadowingOverlay.setGone()
                 playerSpeakingOverlayBinding.playerOverlaySeekbar.setOnSeekBarChangeListener(null)
             }
 

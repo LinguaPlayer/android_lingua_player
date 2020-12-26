@@ -10,7 +10,6 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -19,7 +18,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.ColorInt
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -28,8 +26,6 @@ import androidx.core.text.toSpannable
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.ObservableField
 import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import com.github.kazemihabib.cueplayer.util.EventObserver
@@ -39,14 +35,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.videolan.tools.*
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlayerSpeakingOverlayBinding
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.StrokedTextView
 import org.videolan.vlc.media.ShowCaption
 import org.videolan.vlc.mediadb.models.Subtitle
 import org.videolan.vlc.repository.SubtitlesRepository
 import org.videolan.vlc.util.*
-import java.io.File
 import java.util.regex.Pattern
 
 

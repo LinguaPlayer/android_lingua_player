@@ -726,6 +726,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy: ")
         super.onDestroy()
         playlistModel?.run {
             dataset.removeObserver(playlistObserver)
@@ -734,6 +735,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         // Dismiss the presentation when the activity is not visible.
         displayManager.release()
+
+        //Disable shadowing mode before loading media
+        // so if user plays video, goes to shadowingMode, presses back button, open another video
+        // it will start in normal mode
+        service?.playlistManager?.player?.setShadowingMode(false)
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)

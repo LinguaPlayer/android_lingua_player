@@ -108,10 +108,6 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     private fun resetPlaybackState(time: Long, duration: Long) {
-        //Disable shadowing mode before loading media
-        // so if user plays video, goes to shadowingMode, presses back button, open another video
-        // it will start in normal mode
-        setShadowingMode(false)
         seekable = true
         pausable = true
         lastTime = time
@@ -210,6 +206,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     fun setShadowingMode(enabled: Boolean) {
+        Log.d(TAG, "setShadowingMode: ")
         isShadowingModeEnabled = enabled
         if (enabled) loopOverCaption(mediaplayer?.time ?: 0)
         else clearABRepeat()
