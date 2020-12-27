@@ -31,15 +31,20 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import org.videolan.tools.*
 
-private const val CURRENT_VERSION = 1
+private const val CURRENT_VERSION = 2
 
 object SettingsMigration {
 
     fun migrateSettings(context: Context) {
         val settings = Settings.getInstance(context)
         val lastVersion = settings.getInt(KEY_CURRENT_SETTINGS_VERSION, 0)
-        if (lastVersion < 1) {
-            migrateToVersion1(settings)
+        if (lastVersion < CURRENT_VERSION) {
+            for (i in 1..CURRENT_VERSION) {
+                when(i) {
+                    1 -> migrateToVersion1(settings)
+                    2 -> migrateToVersion2(settings)
+                }
+            }
         }
         settings.putSingle(KEY_CURRENT_SETTINGS_VERSION, CURRENT_VERSION)
     }
@@ -63,5 +68,10 @@ object SettingsMigration {
             remove("daynight")
             remove("enable_black_theme")
         }
+    }
+
+    private fun migrateToVersion2(settings: SharedPreferences) {
+        Log.i(this::class.java.simpleName, "Migrating preferences to Version 1")
+        settings.edit { putBoolean("media_fast_seek", false) }
     }
 }
