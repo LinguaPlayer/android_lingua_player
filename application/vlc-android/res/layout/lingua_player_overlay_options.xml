@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
     android:layout_marginStart="32dp"
-    android:layout_marginTop="42dp"
+    android:layout_marginTop="52dp"
     android:id="@+id/lingua_player_overlay_options"
     android:visibility="gone"
     tools:layout_height="wrap_content"
