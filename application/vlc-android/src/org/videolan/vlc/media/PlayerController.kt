@@ -126,25 +126,25 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         else setTime(position)
     }
 
-    fun setPosition(position: Float) {
+    fun setPosition(position: Float, doLoopOver: Boolean = true) {
         if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
             mediaplayer.position = position
-            if (isShadowingModeEnabled) loopOverCaption((getLength() * position).toLong())
+            if (doLoopOver && isShadowingModeEnabled) loopOverCaption((getLength() * position).toLong())
             else subtitleController.getCaption((getLength() * position).toLong())
         }
     }
 
-    fun setTime(time: Long) {
+    fun setTime(time: Long, doLoopOver: Boolean = true) {
         if (seekable && mediaplayer.hasMedia() && !mediaplayer.isReleased) {
             mediaplayer.time = time
 
-            if (isShadowingModeEnabled) loopOverCaption(time)
+            if (doLoopOver && isShadowingModeEnabled) { loopOverCaption(time) }
             else subtitleController.getCaption(time)
         }
     }
 
     fun setTimeAndUpdateProgress(time: Long) {
-        setTime(time)
+        setTime(time, false)
         updateProgress(time)
     }
 
@@ -487,7 +487,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
                     subtitleController.getCaption(time)
 
                     if (shadowingABRepeat.start != -1L) {
-                        if (time > shadowingABRepeat.stop) setTime(shadowingABRepeat.start)
+                        if (time > shadowingABRepeat.stop) setTime(shadowingABRepeat.start, false)
                     }
                 }
             }
