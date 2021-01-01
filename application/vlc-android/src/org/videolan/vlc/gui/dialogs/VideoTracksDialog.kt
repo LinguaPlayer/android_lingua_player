@@ -122,8 +122,10 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         service?.let { playbackService ->
             lifecycleScope.launch {
                 videoUri?.let {
-                    SubtitlesRepository.getInstance(requireContext()).getSpuTracksLiveData(it).observe(this@VideoTracksDialog.viewLifecycleOwner) {
-                        lifecycleScope.launch { setupSpuAdapter(playbackService) }
+                    context?.let { ctx ->
+                        SubtitlesRepository.getInstance(ctx).getSpuTracksLiveData(it).observe(this@VideoTracksDialog.viewLifecycleOwner) {
+                            lifecycleScope.launch { setupSpuAdapter(playbackService) }
+                        }
                     }
                 }
             }
