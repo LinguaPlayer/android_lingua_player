@@ -3,19 +3,16 @@ package org.videolan.tools
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat.startActivity
-import com.arthenica.mobileffmpeg.Config.getPackageName
 
 
 private const val TAG = "GoogleTranslateUtils"
 
-fun installGoogleTranslate(context: Context) {
+fun installGoogleTranslate(context: Activity) {
     val appPackageName = "com.google.android.apps.translate"
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName")))

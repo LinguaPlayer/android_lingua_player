@@ -417,7 +417,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                 showLoadingForTranslation(5000L)
             } else {
                 UiTools.installGoogleTranslateDialog(player, DialogInterface.OnClickListener { _, _ ->
-                    installGoogleTranslate(player.applicationContext)
+                    installGoogleTranslate(player)
                 },
                         DialogInterface.OnClickListener { _, _ -> })
             }
