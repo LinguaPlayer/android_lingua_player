@@ -422,8 +422,11 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                         DialogInterface.OnClickListener { _, _ -> })
             }
         }
+    }
 
-
+    fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        if (isInPictureInPictureMode) subtitleContainer.setInvisible()
+        else subtitleContainer.setVisible()
     }
 }
 

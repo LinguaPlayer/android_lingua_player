@@ -5,12 +5,9 @@ import android.util.Log
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import ir.tapsell.sdk.bannerads.TapsellBannerType
 import ir.tapsell.sdk.bannerads.TapsellBannerView
 import ir.tapsell.sdk.bannerads.TapsellBannerViewEventListener
-import org.videolan.libvlc.MediaPlayer
 import org.videolan.tools.dp
 import org.videolan.tools.setInvisible
 import org.videolan.tools.setVisible
@@ -111,6 +108,8 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     private var shouldRequestNewAd = false
 
     private fun shouldShowAds(): Boolean {
+        if (isInPictureInPictureMode) return false
+
         if (numberOfTimesShowAdsIsCalled % 4 != 0) {
             if (shouldRequestNewAd) requestNewAd()
             shouldRequestNewAd = false
@@ -130,5 +129,11 @@ class AdsDelegate (val player: VideoPlayerActivity) {
         banner?.showBannerView()
 
         if (requestFilled) adCloseButton?.setVisible()
+    }
+
+    private var isInPictureInPictureMode: Boolean = false
+    fun onPictureInPictureModeChanged(inPictureInPictureMode: Boolean) {
+        isInPictureInPictureMode = inPictureInPictureMode
+        if (inPictureInPictureMode) hideAds()
     }
 }

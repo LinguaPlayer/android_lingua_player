@@ -390,7 +390,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         Util.checkCpuCompatibility(this)
 
         settings = Settings.getInstance(this)
@@ -1404,6 +1403,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        subtitleDelegate.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        adsDelegate.onPictureInPictureModeChanged(isInPictureInPictureMode)
         service?.mediaplayer?.updateVideoSurfaces()
     }
 
