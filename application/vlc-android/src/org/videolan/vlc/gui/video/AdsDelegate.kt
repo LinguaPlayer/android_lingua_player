@@ -61,19 +61,23 @@ class AdsDelegate (val player: VideoPlayerActivity) {
 
         banner?.setEventListener(object : TapsellBannerViewEventListener {
             override fun onNoAdAvailable() {
-                Log.d(TAG, "onNoAdAvailable: ")
+//                Log.d(TAG, "onNoAdAvailable: ")
+                shouldRequestNewAd = true
             }
 
             override fun onNoNetwork() {
-                Log.d(TAG, "onNoNetwork: ")
+//                Log.d(TAG, "onNoNetwork: ")
+                shouldRequestNewAd = true
             }
 
             override fun onError(error: String?) {
-                Log.d(TAG, "onError: $error")
+//                Log.d(TAG, "onError: $error")
+                shouldRequestNewAd = true
             }
 
             override fun onRequestFilled() {
-                Log.d(TAG, "onRequestFilled")
+                shouldRequestNewAd = false
+//                Log.d(TAG, "onRequestFilled")
                 requestFilled = true
                 player.service?.let {
                     if (it.isPlaying || !shouldShowAds()) hideAds()
@@ -81,9 +85,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
                 }
             }
 
-            override fun onHideBannerView() {
-                Log.d(TAG, "onHideBannerView: ")
-            }
+            override fun onHideBannerView() { }
         })
 
         adCloseButton?.setOnClickListener { hideAds() }
@@ -95,22 +97,22 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     }
 
     private fun requestNewAd() {
+//        Log.d(TAG, "requestNewAd:")
         banner?.loadAd(player.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_320x100)
     }
 
     private fun hideAds() {
-        Log.d(TAG, "hideAds")
+//        Log.d(TAG, "hideAds")
         banner?.hideBannerView()
         adCloseButton?.setInvisible()
     }
 
     private var numberOfTimesShowAdsIsCalled: Int = 1
     private var shouldRequestNewAd = false
-
     private fun shouldShowAds(): Boolean {
         if (isInPictureInPictureMode) return false
 
-        if (numberOfTimesShowAdsIsCalled % 4 != 0) {
+        if (numberOfTimesShowAdsIsCalled % 3 != 0) {
             if (shouldRequestNewAd) requestNewAd()
             shouldRequestNewAd = false
             return false
@@ -123,9 +125,9 @@ class AdsDelegate (val player: VideoPlayerActivity) {
         numberOfTimesShowAdsIsCalled++
         if (!shouldShowAds()) return
 
-        shouldRequestNewAd = true
+//        shouldRequestNewAd = true
 
-        Log.d(TAG, "showAds")
+//        Log.d(TAG, "showAds")
         banner?.showBannerView()
 
         if (requestFilled) adCloseButton?.setVisible()
