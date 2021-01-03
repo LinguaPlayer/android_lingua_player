@@ -20,6 +20,7 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.util.*
 import java.io.File
 
+private const val TAG = "ShadowingOverlayDelegat"
 class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
     private val shadowing: ImageButton? = player.findViewById(R.id.shadowing_mode)
@@ -170,6 +171,8 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     private fun enableShadowingMode() {
+        prevVideoUri = player.videoUri
+        _shadowingMode.value = true
         player.subtitleDelegate.shadowingModeEnabled()
         player.service?.playlistManager?.player?.apply {
             shadowing?.isSelected = true
@@ -184,6 +187,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     private fun disableShadowingMode() {
+        _shadowingMode.value = false
         if (isRecording.get() == true)  audioRecorder.stopRecording(autoPlay = false)
         player.subtitleDelegate.shadowingModeDisabled()
         player.service?.playlistManager?.player?.apply {
@@ -202,8 +206,8 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     private var prevVideoUri: Uri? = null
     fun newVideoUriPlaying(videoUri: Uri?) {
         // Disable shadowing mode when next video in playlist is playing
-        if (prevVideoUri != videoUri) {
-           disableShadowingMode()
+        if (_shadowingMode.value == true && prevVideoUri != videoUri) {
+            disableShadowingMode()
         }
 
         prevVideoUri = videoUri
