@@ -53,6 +53,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     private val subtitleContainer: ConstraintLayout? = player.findViewById(R.id.subtitle_container)
     private val subtitleTextView: StrokedTextView? = player.findViewById(R.id.subtitleTextView)
     private val smartSub: ImageButton? = player.findViewById(R.id.listening_mode)
+    private val copySelected = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitle_copy", false)
 
     init {
         nextCaptionButton?.apply {
@@ -389,7 +390,11 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
                 }
 
                 if (selectedSpans.isNotEmpty()) {
-                    translate(text.subSequence(selectedSpans.first().start, selectedSpans.last().end).toString())
+                    val selectedText = text.subSequence(selectedSpans.first().start, selectedSpans.last().end).toString()
+                    if (copySelected) {
+                        player.copy("Lingua Player", selectedText)
+                    }
+                    translate(selectedText)
                 }
 
             }

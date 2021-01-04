@@ -736,4 +736,6 @@
     <string name="shadowin_mode_disabled">حالت سایه (shadowing) غیرفعال شد</string>
     <string name="welcome_title">به لینگواپلیر خوش  آمدید!</string>
     <string name="welcome_subtitle">پخش کنندی قدرتمند صوتی و تصویری با قابلیت‌های یادگیری زبان</string>
+    <string name="subtitle_copy_selected">" بخشی از زیرنویس که برای ترجمه لمس میشود در کلیپ بورد کپی شود"</string>
+    <string name="subtitle_copy_selected_title">کپی متن انتخاب شده</string>
 </resources>

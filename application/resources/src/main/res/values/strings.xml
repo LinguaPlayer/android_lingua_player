@@ -817,5 +817,7 @@
     <string name="mic_allow_access">ALLOW ACCESS</string>
     <string name="mic_open_settings">OPEN SETTINGS</string>
     <string name="mic_cancel">Cancel</string>
+    <string name="subtitle_copy_selected">Copy the part of subtitle which is highlighted to translate</string>
+    <string name="subtitle_copy_selected_title">Copy highlighted text</string>
 
 </resources>
