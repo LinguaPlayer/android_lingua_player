@@ -191,7 +191,7 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         subtitleParser.setSubtitleDelay(getSpuDelay() / 1000)
 
         // To update immediately in pause mode
-        getCaption(mediaplayer.time)
+        if (!mediaplayer.isReleased) getCaption(mediaplayer.time)
     }
 
     private var prevCaption = ""
