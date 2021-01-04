@@ -9,9 +9,10 @@
         android:onClick="onClickOverlayTips">
 
     <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:id="@+id/top"
             android:weightSum="4">
 
         <TextView
@@ -25,63 +26,89 @@
                 android:textSize="18sp" />
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="189dp"
+            android:layout_weight="1"
+            android:gravity="top"
+            android:orientation="horizontal"
+            android:paddingTop="15dp"
+            android:weightSum="3">
+
+            <TextView
+                style="@style/TipsFontStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="top"
-                android:paddingTop="15dp"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-            <TextView
-                    style="@style/TipsFontStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawableBottom="@drawable/ic_gesture_swipe_vertically"
-                    android:gravity="center"
-                    android:text="@string/brightness" />
+                android:drawableBottom="@drawable/ic_gesture_swipe_vertically"
+                android:gravity="center"
+                android:text="@string/brightness" />
 
             <LinearLayout
-                    android:layout_width="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TipsFontStyle"
+                    android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
+                    android:drawableBottom="@drawable/ic_gesture_swipe_horizontally"
+                    android:gravity="center"
+                    android:text="@string/seek" />
 
                 <TextView
-                        style="@style/TipsFontStyle"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:drawableBottom="@drawable/ic_gesture_swipe_horizontally"
-                        android:gravity="center"
-                        android:text="@string/seek" />
-
-                <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="15dp"
-                        android:background="@drawable/button_oval"
-                        android:clickable="true"
-                        android:onClick="onClickDismissTips"
-                        android:text="@string/ok_got_it"
-                        android:textColor="@color/white"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/button_oval"
+                    android:clickable="true"
+                    android:onClick="onClickDismissTips"
+                    android:text="@string/ok_got_it"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <TextView
-                    style="@style/TipsFontStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:drawableBottom="@drawable/ic_gesture_swipe_vertically"
-                    android:gravity="center"
-                    android:text="@string/volume" />
+                style="@style/TipsFontStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableBottom="@drawable/ic_gesture_swipe_vertically"
+                android:gravity="center"
+                android:text="@string/volume" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                style="@style/TipsFontStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableBottom="@drawable/ic_listening_mode"
+                android:padding="10dp"
+                android:drawableTint="@color/white"
+                android:text="@string/smart_subtitle" />
+
+            <TextView
+                style="@style/TipsFontStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_weight="1"
+                android:drawableBottom="@drawable/ic_shadowing_mode"
+                android:text="@string/shadowing" />
+
         </LinearLayout>
 
     </LinearLayout>
+
 
     <RelativeLayout
             android:layout_width="800dp"

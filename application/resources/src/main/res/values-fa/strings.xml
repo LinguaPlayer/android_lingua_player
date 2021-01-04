@@ -738,4 +738,6 @@
     <string name="welcome_subtitle">پخش کنندی قدرتمند صوتی و تصویری با قابلیت‌های یادگیری زبان</string>
     <string name="subtitle_copy_selected">" بخشی از زیرنویس که برای ترجمه لمس میشود در کلیپ بورد کپی شود"</string>
     <string name="subtitle_copy_selected_title">کپی متن انتخاب شده</string>
+    <string name="shadowing">سایه (shadowing)</string>
+    <string name="smart_subtitle">زیرنویس هوشمند</string>
 </resources>

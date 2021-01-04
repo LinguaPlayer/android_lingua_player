@@ -809,6 +809,9 @@
     <string name="shadowing_mode_enabled">Shadowing mode enabled</string>
     <string name="shadowin_mode_disabled">Shadowing mode disabled</string>
 
+    <string name="shadowing">Shadowing</string>
+    <string name="smart_subtitle">Smart Subtitle</string>
+
 
     <!-- Permissions -->
     <string name="mic_permission_request">In order to record your voice, we need microphone access on your device.</string>
