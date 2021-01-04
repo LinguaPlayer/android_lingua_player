@@ -228,7 +228,7 @@
     <string name="licence">License</string>
     <string name="revision">Revision</string>
     <string name="about">About</string>
-    <string name="about_text">Lingua Player is based on VLC for Android™ \n VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
+    <string name="about_text">Lingua Player is based on VLC for Android™   VLC for Android™ is a port of VLC media player, the popular open source media player. The Android™ version can read most files and network streams.</string>
     <string name="about_link" translatable="false">        &lt;a href=&quot;https://www.videolan.org/vlc/&quot;&gt;https://www.videolan.org/vlc/&lt;/a&gt;</string>
     <string name="lingua_link" translatable="false">        &lt;a href=&quot;https://github.com/LinguaPlayer/android_lingua_player/&quot;&gt;https://github.com/LinguaPlayer/android_lingua_player/&lt;/a&gt;</string>
     <string name="feedback" translatable="false">        &lt;a href=&quot;mailto:playerlingua@gmail.com&quot;&gt;Feeback&lt;/a&gt;</string>
@@ -551,7 +551,7 @@
     <string name="msg_delete_failed">Failed to delete media %1$s</string>
     <string name="renderer_list_title">Displays</string>
     <string name="sdcard_permission_dialog_title">You have to grant Lingua Player write access to your SD Card</string>
-    <string name="sdcard_permission_dialog_message">Lingua Player cannot delete this file without write access permission.\nPlease go to your SD Card and click on \"Select\".\nYou may have to click on \"Show SD card\" first in the top-right menu</string>
+    <string name="sdcard_permission_dialog_message">Lingua Player cannot delete this file without write access permission. Please go to your SD Card and click on \"Select\". You may have to click on \"Show SD card\" first in the top-right menu</string>
     <string name="dialog_sd_wizard">Show me</string>
     <string name="renderers_disconnect">Disconnect</string>
     <string name="audio_digital_failed">Failed to change Audio Digital Output state</string>
@@ -782,7 +782,6 @@
     <string name="audio_delay_global">Audio delay set to %s ms for all videos</string>
     <string name="warning_stream_speed">Increasing playback speed over 1 for streams may cause stuttering</string>
     <string name="go_to_folder">Browse parent</string>
-
 
 <!--    Lingua-->
     <string name="subtitle_parsing_error">%1$s is not a valid subtitle file</string>
