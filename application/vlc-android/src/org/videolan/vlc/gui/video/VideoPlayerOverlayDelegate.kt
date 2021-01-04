@@ -810,7 +810,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun pickSubtitles() {
         val uri = player.videoUri ?: return
-        val media = if (uri.scheme.isSchemeFile() || uri.scheme.isSchemeNetwork()) MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri()) else null
+        val media = if (uri.scheme.isSchemeFile()) MediaWrapperImpl(FileUtils.getParent(uri.toString())!!.toUri()) else null
         player.isShowingDialog = true
         val filePickerIntent = Intent(player, FilePickerActivity::class.java)
         filePickerIntent.putExtra(KEY_MEDIA, media)
