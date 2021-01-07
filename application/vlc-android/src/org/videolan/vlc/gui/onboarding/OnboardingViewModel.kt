@@ -11,7 +11,7 @@ class OnboardingViewModel : ViewModel() {
     var scanStorages = true
     var customizeMediaFolders = false
     var permissionGranted = false
-    var adapterCount = 3
+    var adapterCount = 6
     var theme = if (AndroidDevices.canUseSystemNightMode()) AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM else AppCompatDelegate.MODE_NIGHT_AUTO
 }
 

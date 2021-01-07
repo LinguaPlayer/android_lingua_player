@@ -8,17 +8,20 @@ class OnboardingFragmentPagerAdapter(fragmentActivity: FragmentActivity, private
 
     private var fragmentList: MutableList<FragmentName> = mutableListOf(
             FragmentName.WELCOME,
+            FragmentName.TRANSLATE,
+            FragmentName.SHADOWING,
+            FragmentName.SMARTSUB,
             FragmentName.SCAN,
             FragmentName.THEME
     )
 
     fun onCustomizedChanged(customizeEnabled: Boolean) {
         count = if (customizeEnabled) {
-            fragmentList.add(2, FragmentName.FOLDERS)
-            4
+            fragmentList.add(5, FragmentName.FOLDERS)
+            7
         } else {
             fragmentList.remove(FragmentName.FOLDERS)
-            3
+            6
         }
         notifyDataSetChanged()
     }
@@ -37,6 +40,9 @@ class OnboardingFragmentPagerAdapter(fragmentActivity: FragmentActivity, private
     override fun createFragment(position: Int): Fragment {
         return when (fragmentList[position]) {
             FragmentName.WELCOME -> OnboardingWelcomeFragment.newInstance()
+            FragmentName.TRANSLATE -> OnboardingTranslateFragment.newInstance()
+            FragmentName.SHADOWING -> OnboardingShadowingFragment.newInstance()
+            FragmentName.SMARTSUB -> OnboardingSmartSub.newInstance()
             FragmentName.SCAN -> OnboardingScanningFragment.newInstance()
             FragmentName.FOLDERS -> OnboardingFoldersFragment.newInstance()
             FragmentName.THEME -> OnboardingThemeFragment.newInstance()
@@ -45,6 +51,9 @@ class OnboardingFragmentPagerAdapter(fragmentActivity: FragmentActivity, private
 
     enum class FragmentName {
         WELCOME,
+        TRANSLATE,
+        SHADOWING,
+        SMARTSUB,
         SCAN,
         FOLDERS,
         THEME

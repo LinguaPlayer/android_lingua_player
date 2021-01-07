@@ -31,6 +31,7 @@ import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.resu
 import org.videolan.vlc.util.Permissions
 
 const val ONBOARDING_DONE_KEY = "app_onboarding_done"
+private const val TAG = "OnboardingActivity"
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -42,7 +43,10 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
             findViewById<View>(R.id.indicator0),
             findViewById<View>(R.id.indicator1),
             findViewById<View>(R.id.indicator2),
-            findViewById<View>(R.id.indicator3)
+            findViewById<View>(R.id.indicator3),
+            findViewById<View>(R.id.indicator4),
+            findViewById<View>(R.id.indicator5),
+            findViewById<View>(R.id.indicator6),
     ) }
 
     private val viewModel: OnboardingViewModel by viewModels()
@@ -72,7 +76,7 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
 
         selectPage(0)
 
-        if (count == 4) onCustomizedChanged(true)
+        if (count == 7) onCustomizedChanged(true)
 
         if (permissionModel.permissionPending) lifecycleScope.launch {
             if (resumePermissionRequest()) viewPager.currentItem++
@@ -161,12 +165,24 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
             })
         }
 
+        Log.d(TAG, "selectPage: $index")
+        Log.d(TAG, "selectPage other: ${onboardingPagerAdapter.itemCount - 1}")
         //Indicator states
         for (pos in indicators.indices) {
-            if (pos != index) {
-                indicators[pos].animate()?.alpha(0.6f)?.scaleX(0.5f)?.scaleY(0.5f)
-            } else {
-                indicators[pos].animate()?.alpha(1f)?.scaleX(1f)?.scaleY(1f)
+            when {
+                pos != index -> {
+                    indicators[pos].animate()?.alpha(0.6f)?.scaleX(0.5f)?.scaleY(0.5f)
+                }
+
+                pos == onboardingPagerAdapter.itemCount - 1 -> {
+                    Log.d(TAG, "selectPage: true")
+                    indicators[6].animate()?.alpha(1f)?.scaleX(1f)?.scaleY(1f)
+                    return
+                }
+
+                pos == index -> {
+                    indicators[pos].animate()?.alpha(1f)?.scaleX(1f)?.scaleY(1f)
+                }
             }
         }
     }
@@ -178,10 +194,11 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
 
     }
 
+    val foldersIndicatorIndex = 5
     override fun onCustomizedChanged(customizeEnabled: Boolean) {
         if (customizeEnabled) {
-            indicators[3].visibility = View.VISIBLE
-            indicators[3].animate()?.alpha(0.6f)?.scaleX(0.5f)?.scaleY(0.5f)!!.setListener(null)
+            indicators[foldersIndicatorIndex].visibility = View.VISIBLE
+            indicators[foldersIndicatorIndex].animate()?.alpha(0.6f)?.scaleX(0.5f)?.scaleY(0.5f)!!.setListener(null)
             if (MediaParsingService.preselectedStorages.isEmpty()) lifecycleScope.launch {
                 MediaParsingService.preselectedStorages.run {
                     addAll(AndroidDevices.externalStorageDirectories)
@@ -195,11 +212,11 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
             }
         } else {
             MediaParsingService.preselectedStorages.clear()
-            indicators[3].animate()?.scaleY(0f)?.scaleX(0f)?.alpha(0f)?.setListener(object : Animator.AnimatorListener {
+            indicators[foldersIndicatorIndex].animate()?.scaleY(0f)?.scaleX(0f)?.alpha(0f)?.setListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
 
                 override fun onAnimationEnd(animation: Animator?) {
-                    indicators[3].visibility = View.GONE
+                    indicators[foldersIndicatorIndex].visibility = View.GONE
                 }
 
                 override fun onAnimationCancel(animation: Animator?) {}
@@ -209,7 +226,7 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
             })
         }
         onboardingPagerAdapter.onCustomizedChanged(customizeEnabled)
-        viewModel.adapterCount = if (customizeEnabled) 4 else 3
+        viewModel.adapterCount = if (customizeEnabled) 7 else 6
         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "New adapter count: ${viewModel.adapterCount}")
     }
 }

@@ -530,7 +530,7 @@
     <string name="device_dialog_title">دستگاه بیرونی وارد شد</string>
     <string name="videos_groups_title">گروه‌های ویدیو</string>
     <string name="removed_from_playlist_anonymous">مورد(ها) از فهرست پخش حذف شدند</string>
-    <string name="permission_media">Lingua Player به اجازه شما برای دسترسی به رسانه بر روی دستگاه شما نیاز دارد</string>
+    <string name="permission_media">لینگواپلیر به اجازه شما برای دسترسی به رسانه بر روی دستگاه شما نیاز دارد</string>
     <string name="done">انجام شد</string>
     <string name="onboarding_scan_title">یافتن خودکار رسانه شما</string>
     <string name="onboarding_scanning_enable">بگذار Lingua Player دستگاه من را برای محتوای رسانه پویش کند</string>
@@ -740,4 +740,15 @@
     <string name="subtitle_copy_selected_title">کپی متن انتخاب شده</string>
     <string name="shadowing">سایه (shadowing)</string>
     <string name="smart_subtitle">زیرنویس هوشمند</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="onboarding_translate_title">ترجمه</string>
+    <string name="on_boarding_translate_body">ترجمه‌ی کلمات و جملات را فقط با لمس آن‌ها مشاهده کنید</string>
+
+    <string name="onboarding_shadowing_title">مهارت مکالمه</string>
+    <string name="onboarding_shadowing_body">تقویت مهارت مکالمه به کمک تکنیک سایه(shadowing)</string>
+
+    <string name="onboarding_listening_title">مهارت شنیداری</string>
+    <string name="onboarding_listening_body">تقوبت مهارت شنیداری به کمک ویژگی زیرنویس هوشمند</string>
+    <string name="onboarding_listening_description">زیرنویس هوشمند هر جمله‌ی زیرنویس را پس از این که بازیگر جمله‌اش را تمام کرد نمایش می‌دهد. بنابراین ابتدا شما به مکالمه گوش می‌دهید و سپس آن چه شنیده‌اید را به کمک زیرنویس ارزیابی می‌کنید.</string>
 </resources>

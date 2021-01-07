@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/onboarding_shadowing_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:text="@string/onboarding_shadowing_title"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/onboarding_shadowing_textview_body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:text="@string/onboarding_shadowing_body"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/onboarding_shadowing_title" />
+
+    <ImageButton
+        android:id="@+id/shadowing_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/lingua_options_background_selected"
+        android:clickable="false"
+        android:padding="9dp"
+        android:tint="@color/white"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="@+id/onboarding_shadowing_textview_body"
+        app:layout_constraintTop_toBottomOf="@+id/onboarding_shadowing_textview_body"
+        app:srcCompat="@drawable/ic_shadowing_mode"
+        tools:tint="@color/white"
+        tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/shadowing_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/speak_layout_background"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/prev_caption_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="24dp"
+            android:background="?actionBarItemBackground"
+            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/record_btn"
+            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+            app:srcCompat="@drawable/ic_prev_caption_thin_white" />
+
+        <ImageView
+            android:id="@+id/next_caption_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginRight="24dp"
+            android:background="?actionBarItemBackground"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintLeft_toRightOf="@+id/video_play_btn"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_next_caption_thin_white" />
+
+        <ImageView
+            android:id="@+id/video_play_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:background="?actionBarItemBackground"
+            android:clickable="false"
+            android:contentDescription="@string/play"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="center"
+            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintLeft_toRightOf="@+id/record_btn"
+            app:layout_constraintRight_toLeftOf="@+id/next_caption_btn"
+            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+            app:srcCompat="@drawable/ic_circle_pause_white"
+            tools:src="@drawable/ic_circle_pause_white" />
+
+        <ImageView
+            android:id="@+id/record_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:background="?actionBarItemBackground"
+            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintLeft_toRightOf="@+id/prev_caption_btn"
+            app:layout_constraintRight_toLeftOf="@+id/video_play_btn"
+            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+            app:srcCompat="@drawable/ic_circle_microphone_white"
+            tools:src="@drawable/ic_circle_microphone_white" />
+
+        <View
+            android:id="@+id/view"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            app:layout_constraintLeft_toLeftOf="@+id/prev_caption_btn"
+            app:layout_constraintRight_toRightOf="@+id/next_caption_btn"
+            app:layout_constraintTop_toBottomOf="@+id/video_play_btn" />
+
+        <ImageView
+            android:id="@+id/recorded_play_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="?actionBarItemBackground"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@+id/prev_caption_btn"
+            app:layout_constraintTop_toBottomOf="@+id/view"
+            app:srcCompat="@drawable/ic_circle_mini_play_white"
+            tools:src="@drawable/ic_circle_mini_play_white" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

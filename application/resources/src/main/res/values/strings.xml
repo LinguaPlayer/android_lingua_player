@@ -813,6 +813,18 @@
     <string name="smart_subtitle">Smart Subtitle</string>
 
 
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="onboarding_translate_title">Translate</string>
+    <string name="on_boarding_translate_body">Translate the words, phrases or sentences just by touching the words of subtitles</string>
+
+    <string name="onboarding_shadowing_title">Speaking</string>
+    <string name="onboarding_shadowing_body">Improve your speaking skill with the shadowing technique</string>
+
+    <string name="onboarding_listening_title">Listening</string>
+    <string name="onboarding_listening_body">Improve your listening skill with the smart subtitle feature</string>
+    <string name="onboarding_listening_description">The smart subtitle shows the subtitle captions after the actor or actress has told his or her dialogue so at first, you listen to them and then you can evaluate your self with the subtitle caption.</string>
+
+
     <!-- Permissions -->
     <string name="mic_permission_request">In order to record your voice, we need microphone access on your device.</string>
     <string name="mic_permission_request_settings">In order to record your voice, we need microphone access on your device.

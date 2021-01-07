@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/OnboradingTranslateMotionLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layoutDescription="@xml/fragment_onboarding_translate_scene"
+    tools:background="@color/onboarding_grey"
+    tools:context=".gui.onboarding.OnboardingTranslateFragment">
+
+
+    <TextView
+        android:id="@+id/onboarding_translate_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:text="@string/onboarding_translate_title"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:id="@+id/onboarding_translate_textview_body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:text="@string/on_boarding_translate_body"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/onboarding_translate_title" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/dictionary"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        android:layout_marginBottom="30dp"
+        app:cardBackgroundColor="@color/grey200"
+        app:layout_constraintBottom_toTopOf="@+id/subtitle_text_1"
+        app:layout_constraintEnd_toStartOf="@id/end_guide_line"
+        app:layout_constraintStart_toStartOf="@id/start_guide_line"
+        tools:alpha="1.0">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/dictionary_constraintLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <View
+                android:id="@+id/dictionary_speaker"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/dictionary_language1"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <View
+                android:id="@+id/dictionary_language1"
+                android:layout_width="20dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="@+id/dictionary_speaker"
+                app:layout_constraintStart_toStartOf="@id/dictionary_speaker"
+                app:layout_constraintTop_toTopOf="@+id/dictionary_speaker"></View>
+
+            <View
+                android:id="@+id/dictionary_word"
+                android:layout_width="120dp"
+                android:layout_height="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toTopOf="@+id/divider"
+                app:layout_constraintStart_toStartOf="@+id/dictionary_language1"
+                app:layout_constraintTop_toBottomOf="@id/dictionary_language1"></View>
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="0dp"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@android:color/darker_gray"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/dictionary_language2"
+                android:layout_width="20dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="@+id/dictionary_speaker2"
+                app:layout_constraintEnd_toStartOf="@+id/dictionary_speaker2"
+                app:layout_constraintTop_toTopOf="@+id/dictionary_speaker2"></View>
+
+            <View
+                android:id="@+id/dictionary_speaker2"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/divider"></View>
+
+            <View
+                android:id="@+id/dictionary_translate"
+                android:layout_width="0dp"
+                android:layout_height="10dp"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/onboarding_subtitle_highlight_background"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/dictionary_language2"
+                app:layout_constraintStart_toStartOf="@+id/dictionary_word" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+    <View
+        android:id="@+id/subtitle_text_1"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:background="@drawable/onboarding_subtitle_highlight_background"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/subtitle_text_2"
+        app:layout_constraintEnd_toStartOf="@+id/end_guide_line"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/start_guide_line"
+        app:layout_constraintTop_toBottomOf="@+id/onboarding_translate_textview_body"
+        app:layout_constraintVertical_bias="0.9"
+        app:layout_constraintVertical_chainStyle="packed">
+    </View>
+
+    <View
+        android:id="@+id/subtitle_text_2"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/onboarding_subtitle_grey"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/subtitle_text_3"
+        app:layout_constraintEnd_toEndOf="@+id/subtitle_text_1"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/subtitle_text_1"
+        app:layout_constraintTop_toBottomOf="@+id/subtitle_text_1" />
+
+    <View
+        android:id="@+id/subtitle_text_3"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/onboarding_subtitle_grey"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/subtitle_text_4"
+        app:layout_constraintEnd_toEndOf="@+id/subtitle_text_2"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/subtitle_text_2"
+        app:layout_constraintTop_toBottomOf="@+id/subtitle_text_2" />
+
+    <View
+        android:id="@+id/subtitle_text_4"
+        android:layout_width="0dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/onboarding_subtitle_grey"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/last_sub_guide"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/subtitle_text_3"
+        app:layout_constraintTop_toBottomOf="@+id/subtitle_text_3" />
+
+    <ImageView
+        android:id="@+id/touch_finger"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:elevation="3dp"
+        app:layout_constraintBottom_toBottomOf="@id/subtitle_text_1"
+        app:layout_constraintEnd_toEndOf="@id/start_guide_line"
+        app:layout_constraintStart_toStartOf="@id/start_guide_line"
+        app:layout_constraintTop_toTopOf="@id/subtitle_text_1"
+        app:srcCompat="@drawable/onboarding_touch_finger" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/start_guide_line"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.2" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/end_guide_line"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.8" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/last_sub_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.55" />
+
+
+</androidx.constraintlayout.motion.widget.MotionLayout>

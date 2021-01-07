@@ -58,7 +58,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-                android:id="@+id/textView26"
+                android:id="@+id/onboarding_translate_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -70,7 +70,7 @@
                 tools:text="Davind Fincher" />
 
         <TextView
-                android:id="@+id/textView27"
+                android:id="@+id/onboarding_translate_textview_body"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -80,7 +80,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView26" />
+                app:layout_constraintTop_toBottomOf="@+id/onboarding_translate_title" />
 
         <TextView
                 android:id="@+id/textView28"
@@ -91,7 +91,7 @@
                 android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView27"
+                app:layout_constraintTop_toBottomOf="@+id/onboarding_translate_textview_body"
                 tools:text="Davind Fincher" />
 
         <TextView
