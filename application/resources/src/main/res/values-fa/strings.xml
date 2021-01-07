@@ -236,7 +236,7 @@
     <string name="dev_hardware_decoder">رمزگشای سخت افزاری پیشرفته</string>
     <string name="dev_hardware_decoder_summary">" اعمال اجباری رمزگشای سخت افزاری، فقط برای کاربران پیشرفته"</string>
     <string name="automatic">خودکار</string>
-    <string name="screen_orientation">جهت صفحه نمایش</string>
+    <string name="screen_orientation">چرخش صفحه نمایش ویدئو</string>
     <string name="screen_orientation_sensor">خودکار (سنسور)</string>
     <string name="screen_orientation_start_lock">قفل در شروع</string>
     <string name="screen_orientation_portrait">عمودی</string>
@@ -302,6 +302,7 @@
     <string name="audio_prefs_category">صدا</string>
     <string name="lockscreen_cover_title">نمایش مدیا کاور در صفحه‌ی قفل</string>
     <string name="lockscreen_cover_summary">در صورتی که موجود باشد، تصویر رسانه در حال پخش به عنوان تصویر پس‌زمینه حالت قفل نمایش یابد</string>
+    <string name="list_title_ellipsize">کوته‌سازی عنوان در فهرست تک خطی</string>
     <string name="list_title_ellipsize_default">پیش‌فرض</string>
     <string name="list_title_ellipsize_left">چپ</string>
     <string name="list_title_ellipsize_right">راست</string>
@@ -314,7 +315,9 @@
     <string name="enable_play_on_headset_insertion">با وصل شدن هدست، پخش ادامه یابد</string>
     <string name="aout">خروجی صوتی</string>
     <string name="audio_ducking_title">صدای VLC در زمان دریافت اعلانات کاهش یابد</string>
+    <string name="audio_ducking_summary">به شنیدن آگاهی‌های صوتی، دستورالعمل‌های ناوبری یا دستیار سخنگو کمک می‌کند</string>
     <string name="casting_switch_title">نمایش بیسیم</string>
+    <string name="casting_passthrough_title">انتقال صدا</string>
     <string name="casting_passthrough_summary">اجازه دهید تلویزیون شما پردازش صدا را مدیریت کند</string>
     <string name="casting_conversion_quality_title">کیفیت تبدیل</string>
     <string name="casting_conversion_quality_summary">کیفیت تبدیل را در زمان پخش روی صفحه نمایش ریموت انتخاب کنید</string>
@@ -630,10 +633,8 @@
     <string name="app_name_full">Lingua Player</string>
     <string name="screen_orientation_landscape">افقی</string>
     <string name="enable_clone_mode">ترجیح کلون</string>
-    <string name="list_title_ellipsize">نحوه‌ کوتاه کردن عنوان بلند</string>
     <string name="list_title_ellipsize_marquee">اسکرول افقی خودکار</string>
     <string name="aout_summary">تغییر روش پخش صدا</string>
-    <string name="audio_ducking_summary">به بهتر شنیده شدن صدای اعلانات، دستیار صوتی، دستورات صوتی مسیریاب کمک می‌کند</string>
     <string name="casting_category">کستینگ</string>
     <string name="chroma_format_summary">RGB 32-bit: رنگی  پیشفرض\nRGB 16-bit:  عملکرد بهتر ولی کیفیت پایینتر\nYUV: بهترین عملکرد</string>
     <string name="chroma_format">chroma</string>
