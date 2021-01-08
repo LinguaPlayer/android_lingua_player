@@ -62,7 +62,11 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (BuildConfig.DEBUG) findPreference<Preference>("debug_logs")?.isVisible = false
+        if (!BuildConfig.DEBUG) {
+            findPreference<Preference>("debug_logs")?.isVisible = false
+            findPreference<Preference>("enable_verbose_mode")?.isVisible = false
+
+        }
     }
 
     override fun onStart() {
