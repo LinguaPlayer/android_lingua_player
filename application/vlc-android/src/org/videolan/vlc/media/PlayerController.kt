@@ -139,7 +139,6 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
             mediaplayer.time = time
 
             if (doLoopOver && isShadowingModeEnabled) { loopOverCaption(time) }
-            else subtitleController.getCaption(time)
         }
     }
 
@@ -216,11 +215,14 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
 
-    private fun loopOver(lst: List<CaptionsData>) {
-        val start = lst.minByOrNull { it.minStartTime }
-        val stop = lst.maxByOrNull { it.maxEndTime }
-        if (start != null && stop != null)
-            setABRepeat( start = start.minStartTime + subtitleController.getSpuDelay()/1000, stop = stop.maxEndTime + subtitleController.getSpuDelay()/1000)
+    private fun loopOver(lst: List<CaptionsData>, keepPrevStart: Boolean = false, keepPrevStop: Boolean = false) {
+        val captionDataStart =  lst.minByOrNull { it.minStartTime }
+        val captionDataStop = lst.maxByOrNull { it.maxEndTime }
+        if (captionDataStart != null && captionDataStop != null) {
+            val start = if (keepPrevStart) shadowingABRepeat.start else captionDataStart.minStartTime
+            val stop = if (keepPrevStop) shadowingABRepeat.stop else captionDataStop.maxEndTime
+            setABRepeat(start = start + subtitleController.getSpuDelay() / 1000, stop = stop + subtitleController.getSpuDelay() / 1000)
+        }
     }
 
     private fun loopOverCaption(time: Long) {
@@ -231,6 +233,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     }
 
     fun loopOverNextCaption(): Boolean {
+        Log.d(TAG, "loopOverNextCaption: loopOverNextCaption")
         if (numberOfParsedSubs > 0)
             getNextCaption(alsoSeekThere = true).apply {
                 return if (this.isNotEmpty()) { loopOver(this); true }
@@ -239,10 +242,30 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         else return false
     }
 
+    fun appendNextCaption(): Boolean {
+        Log.d(TAG, "appendNextCaption: appendNextCaption")
+        if (numberOfParsedSubs > 0)
+            getNextCaption(alsoSeekThere = false, append = true).apply {
+                return if (this.isNotEmpty()) { loopOver(this, keepPrevStart = true); true }
+                else { false }
+            }
+        else return false
+    }
+
+
     fun loopOverPreviousCaption(): Boolean {
         if (numberOfParsedSubs > 0)
             getPreviousCaption(alsoSeekThere = true).apply {
                 return if (this.isNotEmpty()) { loopOver(this); true }
+                else { false }
+            }
+        else return false
+    }
+
+    fun appendPreviousCaption(): Boolean {
+        if (numberOfParsedSubs > 0)
+            getPreviousCaption(alsoSeekThere = false, append = true).apply {
+                return if (this.isNotEmpty()) { loopOver(this, keepPrevStop = true); true }
                 else { false }
             }
         else return false
@@ -288,11 +311,11 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         subtitleController.getCaption(mediaplayer.time)
     }
 
-    fun getNextCaption(alsoSeekThere: Boolean) =
-        subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
+    fun getNextCaption(alsoSeekThere: Boolean, append: Boolean = false) =
+        subtitleController.getNextCaption(alsoSeekThere, ::setTimeAndUpdateProgress, append)
 
-    fun getPreviousCaption(alsoSeekThere: Boolean) =
-        subtitleController.getPreviousCaption(alsoSeekThere, ::setTimeAndUpdateProgress)
+    fun getPreviousCaption(alsoSeekThere: Boolean, append: Boolean = false) =
+        subtitleController.getPreviousCaption(alsoSeekThere, ::setTimeAndUpdateProgress, append)
 
     fun enableSmartSubtitle() {
         subtitleController.isSmartSubtitleEnabled = true
@@ -484,7 +507,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
                         updateProgress(newTime = time)
                         lastTime = time
                     }
-                    subtitleController.getCaption(time)
+                    if (!isShadowingModeEnabled) subtitleController.getCaption(time)
 
                     if (shadowingABRepeat.start != -1L) {
                         if (time > shadowingABRepeat.stop) setTime(shadowingABRepeat.start, false)

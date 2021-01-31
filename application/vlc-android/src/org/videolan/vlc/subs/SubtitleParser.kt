@@ -156,7 +156,7 @@ class SubtitleParser {
 
     private val acceptableDelay = 500
 
-    fun getNextCaption(isSmartSubtitleEnabled: Boolean): List<CaptionsData> {
+    fun getNextCaption(isSmartSubtitleEnabled: Boolean, append: Boolean = false): List<CaptionsData> {
         // show the nextCaption
         // if user selected multiple caption it will show multiple captions so I choose the min one
         // if there are other subs that are close to min I'll show them also
@@ -169,7 +169,7 @@ class SubtitleParser {
         }.filterNotNull().run {
             val minTime = minByOrNull { it.minStartTime }?.minStartTime
             if (minTime != null) {
-                lastMinCaptionTime = minTime
+                if (!append) lastMinCaptionTime = minTime
                 lastMaxCaptionTime = minTime
                 filter { kotlin.math.abs(it.minStartTime - minTime) <= acceptableDelay }.also { captionList ->
                     captionList.maxByOrNull { it?.minStartTime }?.minStartTime?.let{ lastMaxCaptionTime = it }
@@ -181,7 +181,7 @@ class SubtitleParser {
 
 
 
-    fun getPreviousCaption(isSmartSubtitleEnabled: Boolean): List<CaptionsData> {
+    fun getPreviousCaption(isSmartSubtitleEnabled: Boolean, append: Boolean = false): List<CaptionsData> {
         return parsedSubtitles.map { mapEntry ->
             mapEntry.value.run {
                 if (isSmartSubtitleEnabled) getPreviousCaption(lastMinCaptionTime, smartCaptions)
@@ -191,7 +191,7 @@ class SubtitleParser {
             val maxTime = maxByOrNull { it.minStartTime}?.minStartTime
             if (maxTime != null) {
                 lastMinCaptionTime = maxTime
-                lastMaxCaptionTime = maxTime
+                if (!append) lastMaxCaptionTime = maxTime
                 filter { kotlin.math.abs(it.minStartTime - maxTime) <= acceptableDelay }.also { captionList ->
                     captionList.minByOrNull { it?.minStartTime }?.minStartTime?.let{ lastMinCaptionTime = it }
                 }

@@ -211,32 +211,37 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
         return captionData
     }
 
-    fun getNextCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
-        val captionsDataList = subtitleParser.getNextCaption(isSmartSubtitleEnabled)
+    fun getNextCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit, append: Boolean = false): List<CaptionsData> {
+        val captionsDataList = subtitleParser.getNextCaption(isSmartSubtitleEnabled, append)
         val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere)
                 minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this + delay/1000) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
 
         if (prevCaption == stringCaptionData) return captionsDataList
-        prevCaption = stringCaptionData
 
-        _subtitleCaption.value = ShowCaption(caption = stringCaptionData, isTouchable = false )
+        val finalStringCaptionData = if (append) "$prevCaption <br> $stringCaptionData" else stringCaptionData
+        prevCaption = finalStringCaptionData
+
+
+        _subtitleCaption.value = ShowCaption(caption = finalStringCaptionData, isTouchable = false )
 
         return captionsDataList
     }
 
-    fun getPreviousCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit): List<CaptionsData> {
-        val captionsDataList = subtitleParser.getPreviousCaption(isSmartSubtitleEnabled)
+    fun getPreviousCaption(alsoSeekThere: Boolean, seekFunction: (time: Long) -> Unit, append: Boolean = false): List<CaptionsData> {
+        val captionsDataList = subtitleParser.getPreviousCaption(isSmartSubtitleEnabled, append)
 
         val stringCaptionData = captionsDataList.apply {
             if (alsoSeekThere) minByOrNull { it.minStartTime }?.minStartTime?.run { seekFunction(this + delay/1000) }
         }.flatMap { it.captionsOfThisTime.map { caption -> caption.content } }.joinToString(separator = "<br>")
 
         if (prevCaption == stringCaptionData) return captionsDataList
-        prevCaption = stringCaptionData
 
-        _subtitleCaption.value = ShowCaption(caption = stringCaptionData, isTouchable = false )
+        val finalStringCaptionData = if (append) "$stringCaptionData <br> $prevCaption" else stringCaptionData
+        prevCaption = finalStringCaptionData
+
+        _subtitleCaption.value = ShowCaption(caption = finalStringCaptionData, isTouchable = false )
 
         return captionsDataList
     }

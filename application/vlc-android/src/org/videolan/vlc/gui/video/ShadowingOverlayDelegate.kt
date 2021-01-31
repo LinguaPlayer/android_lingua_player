@@ -91,8 +91,18 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         return true
     }
 
+    fun appendNextCaption(): Boolean {
+        player.service?.playlistManager?.player?.appendNextCaption()
+        return true
+    }
+
     fun loopOverPreviousCaption(): Boolean {
         player.service?.playlistManager?.player?.loopOverPreviousCaption()
+        return true
+    }
+
+    fun appendPreviousCaption(): Boolean {
+        player.service?.playlistManager?.player?.appendPreviousCaption()
         return true
     }
 
