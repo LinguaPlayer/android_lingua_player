@@ -26,123 +26,150 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:visibility="gone"
-        android:orientation="vertical">
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:visibility="visible"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/speak_layout_background">
+        android:orientation="vertical"
+        android:layoutDirection="ltr"
+        tools:visibility="visible">
 
-        <ImageView
-            android:id="@+id/prev_caption_btn"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="24dp"
-            android:background="?actionBarItemBackground"
-            android:onClick="@{(v) -> vm.loopOverPreviousCaption()}"
-            android:onLongClick="@{(v) -> vm.appendPreviousCaption()}"
-            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/record_btn"
-            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
-            app:srcCompat="@drawable/ic_prev_caption_thin_white" />
+            android:background="@drawable/speak_layout_background"
+            android:visibility="visible">
 
-        <ImageView
-            android:id="@+id/next_caption_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginRight="24dp"
-            android:background="?actionBarItemBackground"
-            android:onClick="@{(v) -> vm.loopOverNextCaption()}"
-            android:onLongClick="@{(v) -> vm.appendNextCaption()}"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintLeft_toRightOf="@+id/video_play_btn"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_next_caption_thin_white" />
+            <ImageView
+                android:id="@+id/prev_caption_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.loopOverPreviousCaption()}"
+                app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+                app:layout_constraintEnd_toStartOf="@+id/append_prev"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+                app:srcCompat="@drawable/ic_prev_caption_thin_white" />
 
-        <ImageView
-            android:id="@+id/video_play_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:background="?actionBarItemBackground"
-            android:clickable="true"
-            android:contentDescription="@string/play"
-            android:focusable="true"
-            android:onClick="@{(v) -> vm.togglePlayPause()}"
-            android:padding="2dp"
-            android:scaleType="center"
-            android:src="@{vm.isPlaying ? @drawable/ic_circle_pause_white: @drawable/ic_circle_play_white}"
-            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintLeft_toRightOf="@+id/record_btn"
-            app:layout_constraintRight_toLeftOf="@+id/next_caption_btn"
-            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
-            tools:src="@drawable/ic_circle_pause_white"/>
+            <ImageView
+                android:id="@+id/append_prev"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.appendPreviousCaption()}"
+                app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+                app:layout_constraintEnd_toStartOf="@+id/video_play_btn"
+                app:layout_constraintStart_toEndOf="@id/prev_caption_btn"
+                app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+                app:srcCompat="@drawable/ic_add_caption" />
 
-        <ImageView
-            android:id="@+id/record_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
-            android:layout_marginRight="4dp"
-            android:background="?actionBarItemBackground"
-            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintLeft_toRightOf="@+id/prev_caption_btn"
-            app:layout_constraintRight_toLeftOf="@+id/video_play_btn"
-            app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
-            android:src="@{vm.isRecording ? @drawable/ic_circle_microphone_recording_white: @drawable/ic_circle_microphone_white}"
-            tools:src="@drawable/ic_circle_microphone_white"/>
+            <ImageView
+                android:id="@+id/append_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.appendNextCaption()}"
+                app:layout_constraintBottom_toBottomOf="@id/next_caption_btn"
+                app:layout_constraintEnd_toStartOf="@+id/next_caption_btn"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@id/video_play_btn"
+                app:layout_constraintTop_toTopOf="@id/next_caption_btn"
+                app:srcCompat="@drawable/ic_add_caption" />
 
-        <View
-            android:id="@+id/view"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/white"
-            app:layout_constraintLeft_toLeftOf="@+id/prev_caption_btn"
-            app:layout_constraintRight_toRightOf="@+id/next_caption_btn"
-            app:layout_constraintTop_toBottomOf="@+id/video_play_btn" />
+            <ImageView
+                android:id="@+id/next_caption_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="24dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.loopOverNextCaption()}"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/append_next"
+                app:layout_constraintTop_toTopOf="parent"
+                vlc:srcCompat="@drawable/ic_next_caption_thin_white" />
 
-        <ImageView
-            android:id="@+id/recorded_play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="@{(v) -> vm.togglePlayPauseRecord()}"
-            android:visibility="@{vm.isRecordedFileExist ? View.VISIBLE : View.INVISIBLE}"
-            android:background="?actionBarItemBackground"
-            app:layout_constraintBottom_toBottomOf="@+id/audio_amplitude"
-            app:layout_constraintLeft_toLeftOf="@+id/prev_caption_btn"
-            app:layout_constraintTop_toTopOf="@+id/audio_amplitude"
-            android:src="@{vm.isRecordedPlaying ? @drawable/ic_circle_mini_pause_white : @drawable/ic_circle_mini_play_white}"
-            tools:src="@drawable/ic_circle_mini_play_white"/>
+            <ImageView
+                android:id="@+id/video_play_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?actionBarItemBackground"
+                android:clickable="true"
+                android:contentDescription="@string/play"
+                android:focusable="true"
+                android:onClick="@{(v) -> vm.togglePlayPause()}"
+                android:padding="2dp"
+                android:scaleType="center"
+                android:src="@{vm.isPlaying ? @drawable/ic_circle_pause_white: @drawable/ic_circle_play_white}"
+                app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+                app:layout_constraintStart_toEndOf="@+id/append_prev"
+                app:layout_constraintEnd_toStartOf="@id/prev_caption_btn"
+                app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+                tools:src="@drawable/ic_circle_pause_white" />
 
-        <com.visualizer.amplitude.AudioRecordView
-            android:id="@+id/audio_amplitude"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
-            app:update="@{vm.amplitudeLiveData}"
-            app:chunkColor="@color/white"
-            app:chunkMaxHeight="30dp"
-            app:chunkMinHeight="2dp"
-            app:chunkRoundedCorners="true"
-            app:chunkSpace="1dp"
-            app:chunkWidth="2dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintLeft_toRightOf="@+id/recorded_play_pause"
-            app:layout_constraintRight_toRightOf="@+id/next_caption_btn"
-            app:layout_constraintTop_toBottomOf="@+id/view"
-            app:layout_constraintVertical_bias="1.0" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <ImageView
+                android:id="@+id/record_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:background="?actionBarItemBackground"
+                android:src="@{vm.isRecording ? @drawable/ic_circle_microphone_recording_white: @drawable/ic_circle_microphone_white}"
+                app:layout_constraintBottom_toBottomOf="@id/recorded_play_pause"
+                app:layout_constraintEnd_toStartOf="@+id/recorded_play_pause"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/view"
+                app:layout_constraintTop_toTopOf="@+id/recorded_play_pause"
+                tools:src="@drawable/ic_circle_microphone_white" />
+
+            <View
+                android:id="@+id/view"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/white"
+                app:layout_constraintEnd_toEndOf="@+id/next_caption_btn"
+                app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
+                app:layout_constraintTop_toBottomOf="@+id/video_play_btn" />
+
+            <ImageView
+                android:id="@+id/recorded_play_pause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.togglePlayPauseRecord()}"
+                android:src="@{vm.isRecordedPlaying ? @drawable/ic_circle_pause_white : @drawable/ic_circle_play_white}"
+                android:visibility="@{vm.isRecordedFileExist ? View.VISIBLE : View.INVISIBLE}"
+                app:layout_constraintBottom_toBottomOf="@+id/audio_amplitude"
+                app:layout_constraintEnd_toStartOf="@id/audio_amplitude"
+                app:layout_constraintStart_toEndOf="@id/record_btn"
+                app:layout_constraintTop_toTopOf="@+id/audio_amplitude"
+                app:layout_constraintVertical_bias="0.45"
+                tools:src="@drawable/ic_circle_play_white" />
+
+            <com.visualizer.amplitude.AudioRecordView
+                android:id="@+id/audio_amplitude"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                app:chunkColor="@color/white"
+                app:chunkMaxHeight="30dp"
+                app:chunkMinHeight="2dp"
+                app:chunkRoundedCorners="true"
+                app:chunkSpace="1dp"
+                app:chunkWidth="2dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/view"
+                app:layout_constraintStart_toEndOf="@+id/recorded_play_pause"
+                app:layout_constraintTop_toBottomOf="@+id/view"
+                app:layout_constraintVertical_bias="1.0"
+                app:update="@{vm.amplitudeLiveData}" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/shadowing_mode_seek"
@@ -178,7 +205,7 @@
             style="@style/VLC.Player.TimeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
+            android:layout_gravity="end"
             android:layout_marginEnd="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:nextFocusUp="@+id/ab_repeat_add_marker"
