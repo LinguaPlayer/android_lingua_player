@@ -190,20 +190,18 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     var isShadowingModeEnabled: Boolean = false
         private set
 
-    private val shadowingABRepeat = ABRepeat()
+    val shadowingABRepeat = MutableLiveData<ABRepeat>().apply { value = ABRepeat() }
 
     private fun setABRepeat(start: Long, stop: Long) {
-        shadowingABRepeat.start = start
-        shadowingABRepeat.stop = stop
+        shadowingABRepeat.value =  ABRepeat(start = start, stop = stop)
     }
 
     fun getABRepeat(): ABRepeat {
-        return ABRepeat(shadowingABRepeat.start, shadowingABRepeat.stop)
+        return ABRepeat(shadowingABRepeat.value?.start ?: -1L, shadowingABRepeat.value?.stop ?: -1L)
     }
 
     fun clearABRepeat() {
-        shadowingABRepeat.start = -1
-        shadowingABRepeat.stop = -1
+        shadowingABRepeat.value = ABRepeat()
     }
 
     fun setShadowingMode(enabled: Boolean, start: Long = -1L, stop: Long = -1L) {
@@ -219,8 +217,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         val captionDataStart =  lst.minByOrNull { it.minStartTime }
         val captionDataStop = lst.maxByOrNull { it.maxEndTime }
         if (captionDataStart != null && captionDataStop != null) {
-            val start = if (keepPrevStart) shadowingABRepeat.start else captionDataStart.minStartTime
-            val stop = if (keepPrevStop) shadowingABRepeat.stop else captionDataStop.maxEndTime
+            val start = if (keepPrevStart) shadowingABRepeat.value?.start ?: -1 else captionDataStart.minStartTime
+            val stop = if (keepPrevStop) shadowingABRepeat.value?.stop ?: -1 else captionDataStop.maxEndTime
             setABRepeat(start = start + subtitleController.getSpuDelay() / 1000, stop = stop + subtitleController.getSpuDelay() / 1000)
         }
     }
@@ -509,8 +507,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
                     }
                     if (!isShadowingModeEnabled) subtitleController.getCaption(time)
 
-                    if (shadowingABRepeat.start != -1L) {
-                        if (time > shadowingABRepeat.stop) setTime(shadowingABRepeat.start, false)
+                    shadowingABRepeat.value?.let {
+                            if (it.start != -1L && time > it.stop) setTime(it.start, false)
                     }
                 }
             }
