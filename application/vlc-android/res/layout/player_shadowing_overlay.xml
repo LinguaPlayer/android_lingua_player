@@ -38,38 +38,43 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/speak_layout_background"
-            android:visibility="visible">
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
+            app:layout_constraintTop_toBottomOf="@+id/next_caption_btn">
 
             <ImageView
                 android:id="@+id/prev_caption_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="16dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.loopOverPreviousCaption()}"
                 android:onLongClick="@{(v) -> vm.appendPreviousCaption()}"
-                app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-                app:layout_constraintEnd_toStartOf="@+id/AB_start"
-                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintBottom_toBottomOf="@+id/video_play_btn"
+                app:layout_constraintEnd_toStartOf="@+id/video_play_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+                app:layout_constraintTop_toTopOf="@+id/video_play_btn"
                 app:srcCompat="@drawable/ic_prev_caption_thin_white" />
 
             <TextView
                 android:id="@+id/AB_start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="8dp"
                 android:background="?actionBarItemBackground"
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
                 android:text="@{Tools.millisToString(shadowingAB.start)}"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-                app:layout_constraintEnd_toStartOf="@+id/increase_start_by_one"
-                app:layout_constraintStart_toEndOf="@id/prev_caption_btn"
-                app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@+id/decrease_start_by_one"
+                app:layout_constraintStart_toEndOf="@+id/increase_start_by_one"
+                app:layout_constraintTop_toTopOf="@+id/decrease_start_by_one"
+                app:layout_constraintVertical_bias="0.4"
                 app:srcCompat="@drawable/ic_add_caption"
                 tools:text="1:30:1" />
 
@@ -77,17 +82,17 @@
                 android:id="@+id/AB_stop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:background="?actionBarItemBackground"
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
                 android:text="@{Tools.millisToString(shadowingAB.stop)}"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="@id/next_caption_btn"
-                app:layout_constraintEnd_toStartOf="@+id/next_caption_btn"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toEndOf="@+id/increase_stop_by_one"
-                app:layout_constraintTop_toTopOf="@id/next_caption_btn"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@+id/decrease_stop_by_one"
+                app:layout_constraintEnd_toStartOf="@+id/decrease_stop_by_one"
+                app:layout_constraintTop_toTopOf="@+id/decrease_stop_by_one"
                 app:srcCompat="@drawable/ic_add_caption"
                 tools:text="1:30:10" />
 
@@ -95,13 +100,15 @@
                 android:id="@+id/next_caption_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="24dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.loopOverNextCaption()}"
                 android:onLongClick="@{(v) -> vm.appendNextCaption()}"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/AB_stop"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/video_play_btn"
                 app:layout_constraintTop_toTopOf="parent"
                 vlc:srcCompat="@drawable/ic_next_caption_thin_white" />
 
@@ -109,7 +116,6 @@
                 android:id="@+id/video_play_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:background="?actionBarItemBackground"
                 android:clickable="true"
                 android:contentDescription="@string/play"
@@ -119,8 +125,9 @@
                 android:scaleType="center"
                 android:src="@{vm.isPlaying ? @drawable/ic_circle_pause_white: @drawable/ic_circle_play_white}"
                 app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
-                app:layout_constraintEnd_toStartOf="@id/prev_caption_btn"
-                app:layout_constraintStart_toEndOf="@+id/increase_start_by_one"
+                app:layout_constraintEnd_toStartOf="@+id/next_caption_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/prev_caption_btn"
                 app:layout_constraintTop_toTopOf="@+id/next_caption_btn"
                 tools:src="@drawable/ic_circle_pause_white" />
 
@@ -131,10 +138,11 @@
                 android:layout_marginEnd="4dp"
                 android:background="?actionBarItemBackground"
                 android:src="@{vm.isRecording ? @drawable/ic_circle_microphone_recording_white: @drawable/ic_circle_microphone_white}"
-                app:layout_constraintBottom_toBottomOf="@id/recorded_play_pause"
+                app:layout_constraintBottom_toBottomOf="@+id/recorded_play_pause"
                 app:layout_constraintEnd_toStartOf="@+id/recorded_play_pause"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="@id/view"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="spread_inside"
+                app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
                 app:layout_constraintTop_toTopOf="@+id/recorded_play_pause"
                 tools:src="@drawable/ic_circle_microphone_white" />
 
@@ -146,31 +154,31 @@
                 android:background="@color/white"
                 app:layout_constraintEnd_toEndOf="@+id/next_caption_btn"
                 app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
-                app:layout_constraintTop_toBottomOf="@+id/video_play_btn" />
+                app:layout_constraintTop_toBottomOf="@+id/AB_stop" />
 
             <ImageView
                 android:id="@+id/recorded_play_pause"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.togglePlayPauseRecord()}"
                 android:src="@{vm.isRecordedPlaying ? @drawable/ic_circle_pause_white : @drawable/ic_circle_play_white}"
                 android:visibility="@{vm.isRecordedFileExist ? View.VISIBLE : View.INVISIBLE}"
                 app:layout_constraintBottom_toBottomOf="@+id/audio_amplitude"
-                app:layout_constraintEnd_toStartOf="@id/audio_amplitude"
-                app:layout_constraintStart_toEndOf="@id/record_btn"
+                app:layout_constraintEnd_toStartOf="@+id/audio_amplitude"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/record_btn"
                 app:layout_constraintTop_toTopOf="@+id/audio_amplitude"
-                app:layout_constraintVertical_bias="0.45"
+                app:layout_constraintVertical_bias="0.666"
                 tools:src="@drawable/ic_circle_play_white" />
 
             <com.visualizer.amplitude.AudioRecordView
                 android:id="@+id/audio_amplitude"
-                android:layout_width="0dp"
+                android:layout_width="150dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 app:chunkColor="@color/white"
                 app:chunkMaxHeight="30dp"
                 app:chunkMinHeight="2dp"
@@ -179,69 +187,63 @@
                 app:chunkWidth="2dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/view"
+                app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/recorded_play_pause"
                 app:layout_constraintTop_toBottomOf="@+id/view"
-                app:layout_constraintVertical_bias="1.0"
                 app:update="@{vm.amplitudeLiveData}" />
 
-            <TextView
+            <ImageView
                 android:id="@+id/increase_stop_by_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="4dp"
-                android:background="?actionBarItemBackground"
-                android:onClick="@{(v) -> vm.increaseStopByOne()}"
-                android:text="+1s"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@id/AB_stop"
-                app:layout_constraintStart_toEndOf="@+id/video_play_btn"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/decrease_stop_by_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.decreaseStopByOne()}"
-                android:text="-1s"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="@+id/increase_stop_by_one"
-                app:layout_constraintStart_toStartOf="@+id/increase_stop_by_one"
-                app:layout_constraintTop_toBottomOf="@+id/increase_stop_by_one" />
+                android:padding="2dp"
+                app:layout_constraintBottom_toBottomOf="@+id/AB_stop"
+                app:layout_constraintEnd_toStartOf="@+id/AB_stop"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintTop_toTopOf="@+id/AB_stop"
+                app:srcCompat="@drawable/ic_decrease" />
 
-            <TextView
+            <ImageView
+                android:id="@+id/decrease_stop_by_one"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="16dp"
+                android:background="?actionBarItemBackground"
+                android:onClick="@{(v) -> vm.increaseStopByOne()}"
+                android:padding="2dp"
+                app:layout_constraintEnd_toEndOf="@+id/next_caption_btn"
+                app:layout_constraintTop_toBottomOf="@+id/next_caption_btn"
+                app:srcCompat="@drawable/ic_add_caption" />
+
+            <ImageView
                 android:id="@+id/increase_start_by_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="?actionBarItemBackground"
+                android:padding="2dp"
+                android:onClick="@{(v) -> vm.decreaseStartByOne()}"
+                app:layout_constraintBottom_toBottomOf="@+id/AB_start"
+                app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
+                app:layout_constraintTop_toTopOf="@+id/AB_start"
+                app:srcCompat="@drawable/ic_decrease" />
+
+
+            <ImageView
+                android:id="@+id/decrease_start_by_one"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.increaseStartByOne()}"
-                android:text="+1s"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@id/video_play_btn"
+                android:padding="2dp"
+                app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toEndOf="@+id/AB_start"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/decrease_start_by_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="?actionBarItemBackground"
-                android:onClick="@{(v) -> vm.decreaseStartByOne()}"
-                android:text="-1s"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="@+id/increase_start_by_one"
-                app:layout_constraintStart_toStartOf="@+id/increase_start_by_one"
-                app:layout_constraintTop_toBottomOf="@+id/increase_start_by_one" />
+                app:layout_constraintTop_toBottomOf="@+id/prev_caption_btn"
+                app:srcCompat="@drawable/ic_add_caption" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -308,10 +310,10 @@
             android:progressDrawable="@drawable/po_seekbar_video"
             android:splitTrack="false"
             android:thumb="@drawable/ic_seekbar_thumb"
-            tools:layout_editor_absoluteY="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            vlc:layout_constraintBottom_toBottomOf="parent"
             vlc:layout_constraintEnd_toStartOf="@id/player_overlay_length"
             vlc:layout_constraintStart_toEndOf="@id/player_overlay_time"
-            vlc:layout_constraintBottom_toBottomOf="parent"
             vlc:mediamax="@{(int)progress.length}" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.LinearLayoutCompat>
