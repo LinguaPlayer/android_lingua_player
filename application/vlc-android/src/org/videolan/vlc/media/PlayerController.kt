@@ -193,7 +193,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     val shadowingABRepeat = MutableLiveData<ABRepeat>().apply { value = ABRepeat() }
 
     private fun setABRepeat(start: Long, stop: Long) {
-        shadowingABRepeat.value =  ABRepeat(start = start, stop = stop)
+        if (start < stop)
+            shadowingABRepeat.value =  ABRepeat(start = start, stop = stop)
     }
 
     fun getABRepeat(): ABRepeat {
@@ -530,6 +531,30 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         playbackState = PlaybackStateCompat.STATE_STOPPED
         updateProgress(0L, 0L)
         lastTime = 0L
+    }
+
+    fun increaseShadowingABStartByOne() {
+        val start = (shadowingABRepeat.value?.start ?: -1) + 1000
+        val stop = shadowingABRepeat.value?.stop ?: -1
+        setABRepeat(start, stop)
+    }
+
+    fun decreaseShadowingABStartByOne() {
+        val start = (shadowingABRepeat.value?.start ?: -1) - 1000
+        val stop = shadowingABRepeat.value?.stop ?: -1
+        setABRepeat(start, stop)
+    }
+
+    fun increaseShadowingABStopByOne() {
+        val start = shadowingABRepeat.value?.start ?: -1
+        val stop = (shadowingABRepeat.value?.stop ?: -1) + 1000
+        setABRepeat(start, stop)
+    }
+
+    fun decreaseShadowingABStopByOne() {
+        val start = shadowingABRepeat.value?.start ?: -1
+        val stop = (shadowingABRepeat.value?.stop ?: -1) - 1000
+        setABRepeat(start, stop)
     }
 
     //    private fun onPlayerError() {

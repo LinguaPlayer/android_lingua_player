@@ -80,6 +80,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         playerSpeakingOverlayBinding.lifecycleOwner = player
         playerSpeakingOverlayBinding.progress = player?.service?.playlistManager?.player?.progress
         playerSpeakingOverlayBinding.player = player
+        playerSpeakingOverlayBinding.shadowingAB = player?.service?.playlistManager?.player?.shadowingABRepeat
         playerSpeakingOverlayBinding.recordBtn.setOnClickListener {
             player.handleMICPermission(false)
         }
@@ -103,6 +104,26 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
     fun appendPreviousCaption(): Boolean {
         player.service?.playlistManager?.player?.appendPreviousCaption()
+        return true
+    }
+
+    fun increaseStartByOne(): Boolean {
+        player.service?.playlistManager?.player?.increaseShadowingABStartByOne()
+        return true
+    }
+
+    fun decreaseStartByOne(): Boolean {
+        player.service?.playlistManager?.player?.decreaseShadowingABStartByOne()
+        return true
+    }
+
+    fun increaseStopByOne(): Boolean {
+        player.service?.playlistManager?.player?.increaseShadowingABStopByOne()
+        return true
+    }
+
+    fun decreaseStopByOne(): Boolean {
+        player.service?.playlistManager?.player?.decreaseShadowingABStopByOne()
         return true
     }
 

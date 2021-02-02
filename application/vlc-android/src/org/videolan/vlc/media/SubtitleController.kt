@@ -220,7 +220,8 @@ class SubtitleController(val context: Context, val mediaplayer: MediaPlayer) : C
 
         if (prevCaption == stringCaptionData) return captionsDataList
 
-        val finalStringCaptionData = if (append) "$prevCaption <br> $stringCaptionData" else stringCaptionData
+        val finalStringCaptionData = if (append) { "$prevCaption <br> $stringCaptionData"
+        } else { stringCaptionData}
         prevCaption = finalStringCaptionData
 
 
