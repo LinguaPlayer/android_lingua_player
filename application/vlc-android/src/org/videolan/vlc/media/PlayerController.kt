@@ -193,7 +193,7 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
     val shadowingABRepeat = MutableLiveData<ABRepeat>().apply { value = ABRepeat() }
 
     private fun setABRepeat(start: Long, stop: Long) {
-        if (start < stop)
+        if (start < stop && start >= 0L && stop >= 0L)
             shadowingABRepeat.value =  ABRepeat(start = start, stop = stop)
     }
 
@@ -533,27 +533,27 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
         lastTime = 0L
     }
 
-    fun increaseShadowingABStartByOne() {
-        val start = (shadowingABRepeat.value?.start ?: -1) + 1000
+    fun increaseShadowingABStart(value: Long) {
+        val start = (shadowingABRepeat.value?.start ?: -1) + value
         val stop = shadowingABRepeat.value?.stop ?: -1
         setABRepeat(start, stop)
     }
 
-    fun decreaseShadowingABStartByOne() {
-        val start = (shadowingABRepeat.value?.start ?: -1) - 1000
+    fun decreaseShadowingABStart(value: Long) {
+        val start = (shadowingABRepeat.value?.start ?: -1) - value
         val stop = shadowingABRepeat.value?.stop ?: -1
         setABRepeat(start, stop)
     }
 
-    fun increaseShadowingABStopByOne() {
+    fun increaseShadowingABStop(value: Long) {
         val start = shadowingABRepeat.value?.start ?: -1
-        val stop = (shadowingABRepeat.value?.stop ?: -1) + 1000
+        val stop = (shadowingABRepeat.value?.stop ?: -1) + value
         setABRepeat(start, stop)
     }
 
-    fun decreaseShadowingABStopByOne() {
+    fun decreaseShadowingABStop(value: Long) {
         val start = shadowingABRepeat.value?.start ?: -1
-        val stop = (shadowingABRepeat.value?.stop ?: -1) - 1000
+        val stop = (shadowingABRepeat.value?.stop ?: -1) - value
         setABRepeat(start, stop)
     }
 

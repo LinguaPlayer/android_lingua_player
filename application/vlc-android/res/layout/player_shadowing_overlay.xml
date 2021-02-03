@@ -34,11 +34,13 @@
         android:layoutDirection="ltr"
         tools:visibility="visible">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.constraintlayout.motion.widget.MotionLayout
+            android:id="@+id/constraintLayout5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/speak_layout_background"
             android:visibility="visible"
+            app:layoutDescription="@xml/player_shadowing_overlay_xml_constraintlayout5_scene"
             app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
             app:layout_constraintTop_toBottomOf="@+id/next_caption_btn">
 
@@ -68,7 +70,7 @@
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
-                android:text="@{Tools.millisToString(shadowingAB.start)}"
+                android:text="@{vm.millisToStringWith(shadowingAB.start)}"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="@+id/decrease_start_by_one"
@@ -87,7 +89,7 @@
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
-                android:text="@{Tools.millisToString(shadowingAB.stop)}"
+                android:text="@{vm.millisToStringWith(shadowingAB.stop)}"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="@+id/decrease_stop_by_one"
@@ -135,14 +137,14 @@
                 android:id="@+id/record_btn"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="8dp"
                 android:background="?actionBarItemBackground"
                 android:src="@{vm.isRecording ? @drawable/ic_circle_microphone_recording_white: @drawable/ic_circle_microphone_white}"
                 app:layout_constraintBottom_toBottomOf="@+id/recorded_play_pause"
-                app:layout_constraintEnd_toStartOf="@+id/recorded_play_pause"
+                app:layout_constraintEnd_toStartOf="@+id/audio_amplitude"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
-                app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
+                app:layout_constraintStart_toStartOf="@+id/view"
                 app:layout_constraintTop_toTopOf="@+id/recorded_play_pause"
                 tools:src="@drawable/ic_circle_microphone_white" />
 
@@ -160,36 +162,36 @@
                 android:id="@+id/recorded_play_pause"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.togglePlayPauseRecord()}"
                 android:src="@{vm.isRecordedPlaying ? @drawable/ic_circle_pause_white : @drawable/ic_circle_play_white}"
                 android:visibility="@{vm.isRecordedFileExist ? View.VISIBLE : View.INVISIBLE}"
-                app:layout_constraintBottom_toBottomOf="@+id/audio_amplitude"
-                app:layout_constraintEnd_toStartOf="@+id/audio_amplitude"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/view"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/record_btn"
-                app:layout_constraintTop_toTopOf="@+id/audio_amplitude"
-                app:layout_constraintVertical_bias="0.666"
+                app:layout_constraintStart_toEndOf="@+id/audio_amplitude"
+                app:layout_constraintTop_toTopOf="@+id/view"
                 tools:src="@drawable/ic_circle_play_white" />
 
             <com.visualizer.amplitude.AudioRecordView
                 android:id="@+id/audio_amplitude"
                 android:layout_width="150dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
                 app:chunkColor="@color/white"
                 app:chunkMaxHeight="30dp"
                 app:chunkMinHeight="2dp"
                 app:chunkRoundedCorners="true"
                 app:chunkSpace="1dp"
                 app:chunkWidth="2dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/view"
+                app:layout_constraintBottom_toBottomOf="@+id/recorded_play_pause"
+                app:layout_constraintEnd_toStartOf="@+id/recorded_play_pause"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toEndOf="@+id/recorded_play_pause"
-                app:layout_constraintTop_toBottomOf="@+id/view"
+                app:layout_constraintStart_toEndOf="@+id/record_btn"
+                app:layout_constraintTop_toTopOf="@+id/recorded_play_pause"
+                app:layout_constraintVertical_bias="1.0"
                 app:update="@{vm.amplitudeLiveData}" />
 
             <ImageView
@@ -223,8 +225,8 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:background="?actionBarItemBackground"
-                android:padding="2dp"
                 android:onClick="@{(v) -> vm.decreaseStartByOne()}"
+                android:padding="2dp"
                 app:layout_constraintBottom_toBottomOf="@+id/AB_start"
                 app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
                 app:layout_constraintTop_toTopOf="@+id/AB_start"
@@ -244,7 +246,7 @@
                 app:layout_constraintStart_toEndOf="@+id/AB_start"
                 app:layout_constraintTop_toBottomOf="@+id/prev_caption_btn"
                 app:srcCompat="@drawable/ic_add_caption" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.motion.widget.MotionLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/shadowing_mode_seek"

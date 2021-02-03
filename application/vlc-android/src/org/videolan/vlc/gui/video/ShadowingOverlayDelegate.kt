@@ -4,12 +4,14 @@ import android.content.DialogInterface
 import android.net.Uri
 import android.widget.ImageButton
 import androidx.appcompat.widget.ViewStubCompat
+import androidx.databinding.BindingAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ObservableField
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import com.visualizer.amplitude.AudioRecordView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.videolan.tools.setGone
@@ -19,6 +21,9 @@ import org.videolan.vlc.databinding.PlayerShadowingOverlayBinding
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.util.*
 import java.io.File
+import java.text.DecimalFormat
+import java.text.NumberFormat
+import java.util.*
 
 private const val TAG = "ShadowingOverlayDelegat"
 class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
@@ -28,11 +33,20 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
     private val audioRecordEventsObserver = Observer<AudioRecordEvents> {
         when(it) {
-            is RecordingStarted -> { recordingStarted() }
-            is RecordingStopped -> { recordingStopped(it.audoPlay) }
-            is RecordedStopped -> { recordedStopping() }
-            is RecordedPlaying -> { recordedPlaying() }
-            is RecordNone -> {}
+            is RecordingStarted -> {
+                recordingStarted()
+            }
+            is RecordingStopped -> {
+                recordingStopped(it.audoPlay)
+            }
+            is RecordedStopped -> {
+                recordedStopping()
+            }
+            is RecordedPlaying -> {
+                recordedPlaying()
+            }
+            is RecordNone -> {
+            }
         }
     }
 
@@ -107,23 +121,24 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         return true
     }
 
+    private val increaseDecreaseValue = 100L
     fun increaseStartByOne(): Boolean {
-        player.service?.playlistManager?.player?.increaseShadowingABStartByOne()
+        player.service?.playlistManager?.player?.increaseShadowingABStart(increaseDecreaseValue)
         return true
     }
 
     fun decreaseStartByOne(): Boolean {
-        player.service?.playlistManager?.player?.decreaseShadowingABStartByOne()
+        player.service?.playlistManager?.player?.decreaseShadowingABStart(increaseDecreaseValue)
         return true
     }
 
     fun increaseStopByOne(): Boolean {
-        player.service?.playlistManager?.player?.increaseShadowingABStopByOne()
+        player.service?.playlistManager?.player?.increaseShadowingABStop(increaseDecreaseValue)
         return true
     }
 
     fun decreaseStopByOne(): Boolean {
-        player.service?.playlistManager?.player?.decreaseShadowingABStopByOne()
+        player.service?.playlistManager?.player?.decreaseShadowingABStop(increaseDecreaseValue)
         return true
     }
 
@@ -247,4 +262,47 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     fun activityPaused() {
         if (isRecording.get() == true)  audioRecorder.stopRecording(autoPlay = false)
     }
+
+    private val TWO_DIGITS: ThreadLocal<NumberFormat?> = object : ThreadLocal<NumberFormat?>() {
+        override fun initialValue(): NumberFormat {
+            val fmt = NumberFormat.getInstance(Locale.US)
+            if (fmt is DecimalFormat) fmt.applyPattern("00")
+            return fmt
+        }
+    }
+
+    private val THREE_DIGITS: ThreadLocal<NumberFormat?> = object : ThreadLocal<NumberFormat?>() {
+        override fun initialValue(): NumberFormat {
+            val fmt = NumberFormat.getInstance(Locale.US)
+            if (fmt is DecimalFormat) fmt.applyPattern("000")
+            return fmt
+        }
+    }
+
+
+
+    fun millisToStringWith(millis: Long): String {
+        var millis = millis
+        val sb = StringBuilder()
+        if (millis < 0) {
+            millis = -millis
+            sb.append("-")
+        }
+        val mills = (millis % 1000).toInt()
+        millis /= 1000
+        val sec = (millis % 60).toInt()
+        millis /= 60
+        val min = (millis % 60).toInt()
+        millis /= 60
+        val hours = millis.toInt()
+        sb.append(TWO_DIGITS.get()!!.format(sec.toLong())).append(":").append(THREE_DIGITS.get()!!.format(mills.toLong()))
+        return sb.toString()
+    }
 }
+
+@BindingAdapter("update")
+fun setAmplitude(audioRecordView: AudioRecordView, data: Int) {
+    if (data == -1) audioRecordView.recreate()
+    else audioRecordView.update(data)
+}
+
