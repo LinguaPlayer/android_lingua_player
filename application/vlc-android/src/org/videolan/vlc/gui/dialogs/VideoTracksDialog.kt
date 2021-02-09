@@ -26,25 +26,26 @@ package org.videolan.vlc.gui.dialogs
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.videolan.libvlc.MediaPlayer
-import org.videolan.tools.CoroutineContextProvider
 import org.videolan.tools.DependencyProvider
+import org.videolan.tools.dp
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
@@ -54,6 +55,7 @@ import org.videolan.vlc.gui.dialogs.adapters.TrackAdapter
 import org.videolan.vlc.media.isFailed
 import org.videolan.vlc.media.isPending
 import org.videolan.vlc.repository.SubtitlesRepository
+import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -64,23 +66,15 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     private lateinit var binding: PlayerOverlayTracksBinding
 
-    private val coroutineContextProvider: CoroutineContextProvider
-
     override fun initialFocusedView(): View = binding.subtitleTracks.emptyView
 
-    lateinit var menuItemListener: (Int) -> Unit
+    lateinit var menuItemListener: (VideoTrackOption) -> Unit
     lateinit var trackSelectionListener: (Int, TrackType) -> Unit
     var videoUri: Uri? = null
-
-    init {
-        VideoTracksDialog.registerCreator { CoroutineContextProvider() }
-        coroutineContextProvider = VideoTracksDialog.get(0)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         videoUri = this.arguments?.get("videoUri") as Uri
 
-        PlaybackService.serviceFlow.onEach { onServiceChanged(it) }.launchIn(MainScope())
         super.onCreate(savedInstanceState)
     }
 
@@ -134,22 +128,28 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     private suspend fun setupSpuAdapter(playbackService: PlaybackService) {
         playbackService.spuTracks(videoUri)?.let { trackList ->
-            val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks(videoUri).contains(it.id) }, true)
-            trackAdapter.setOnTrackSelectedListener { track ->
-                trackSelectionListener.invoke(track.id, TrackType.SPU)
-                when {
-                    track.isPending() -> {
-                        Snackbar.make(binding.root, R.string.subtitle_is_pending, Snackbar.LENGTH_LONG)
-                                .show()
-                    }
-                    // I DON't have any failed tracks in adapter at the moment, just put it here in case I need it in future
-                    track.isFailed() -> {
-                        Snackbar.make(binding.root, R.string.subtitle_is_failed, Snackbar.LENGTH_LONG).show()
+            if (!playbackService.hasRenderer()) {
+                val trackAdapter = TrackAdapter(trackList as Array<MediaPlayer.TrackDescription>, trackList.toList().filter { playbackService.selectedSpuTracks(videoUri).contains(it.id) }, true)
+                trackAdapter.setOnTrackSelectedListener { track ->
+                    trackSelectionListener.invoke(track.id, TrackType.SPU)
+                    when {
+                        track.isPending() -> {
+                            Snackbar.make(binding.root, R.string.subtitle_is_pending, Snackbar.LENGTH_LONG)
+                                    .show()
+                        }
+                        // I DON't have any failed tracks in adapter at the moment, just put it here in case I need it in future
+                        track.isFailed() -> {
+                            Snackbar.make(binding.root, R.string.subtitle_is_failed, Snackbar.LENGTH_LONG).show()
+                        }
                     }
                 }
 
+                binding.subtitleTracks.trackList.adapter = trackAdapter
+            } else {
+                binding.subtitleTracks.emptyView.text = getString(org.videolan.vlc.R.string.no_sub_renderer)
+                binding.subtitleTracks.emptyView.setVisible()
+                binding.subtitleTracks.trackMore.setGone()
             }
-            binding.subtitleTracks.trackList.adapter = trackAdapter
             if (trackList.isEmpty()) binding.subtitleTracks.emptyView.setVisible()
         }
 
@@ -176,28 +176,60 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         binding.tracksSeparator3.isEnabled = false
         binding.tracksSeparator2.isEnabled = false
 
-        binding.audioTracks.trackMore.setOnClickListener {
-            val popup = PopupMenu(requireActivity(), binding.audioTracks.trackMore)
-            popup.menuInflater.inflate(R.menu.audio_track_menu, popup.menu)
-            popup.show()
-            popup.setOnMenuItemClickListener {
-                menuItemListener.invoke(it.itemId)
-                dismiss()
-                true
-            }
-        }
 
-        binding.subtitleTracks.trackMore.setOnClickListener {
-            val popup = PopupMenu(requireActivity(), binding.subtitleTracks.trackMore, Gravity.END)
-            popup.menuInflater.inflate(R.menu.subtitle_track_menu, popup.menu)
-            popup.show()
-            popup.setOnMenuItemClickListener {
-                menuItemListener.invoke(it.itemId)
-                dismiss()
-                true
-            }
-        }
+
+        generateSeparator(binding.audioTracks.options)
+        generateOptionItem(binding.audioTracks.options, getString(R.string.audio_delay), R.drawable.ic_delay, VideoTrackOption.AUDIO_DELAY)
+        generateSeparator(binding.audioTracks.options, true)
+//        binding.audioTracks.options.setAnimationUpdateListener {
+//            binding.audioTracks.trackMore.rotation = if (binding.audioTracks.options.isCollapsed) 180F - (180F * it) else 180F * it
+//        }
+
+
+        generateSeparator(binding.subtitleTracks.options)
+        generateOptionItem(binding.subtitleTracks.options, getString(R.string.spu_delay), R.drawable.ic_delay, VideoTrackOption.SUB_DELAY)
+        generateOptionItem(binding.subtitleTracks.options, getString(R.string.subtitle_select), R.drawable.ic_subtitles_file, VideoTrackOption.SUB_PICK)
+        generateOptionItem(binding.subtitleTracks.options, getString(R.string.download_subtitles), R.drawable.ic_download, VideoTrackOption.SUB_DOWNLOAD)
+        generateSeparator(binding.subtitleTracks.options, true)
+//        binding.subtitleTracks.options.setAnimationUpdateListener {
+//            binding.subtitleTracks.trackMore.rotation = if (binding.subtitleTracks.options.isCollapsed) 180F - (180F * it) else 180F * it
+//        }
+
+//        binding.audioTracks.trackMore.setOnClickListener {
+//            binding.audioTracks.options.toggle()
+//            binding.subtitleTracks.options.collapse()
+//        }
+
+//        binding.subtitleTracks.trackMore.setOnClickListener {
+//            binding.subtitleTracks.options.toggle()
+//            binding.audioTracks.options.collapse()
+//        }
         super.onViewCreated(view, savedInstanceState)
+        PlaybackService.serviceFlow.onEach { onServiceChanged(it) }.launchIn(lifecycleScope)
+    }
+
+    private fun generateSeparator(parent: ViewGroup, margin: Boolean = false) {
+        val view = View(context)
+        view.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.white_transparent_50))
+        val lp = LinearLayout.LayoutParams(-1, 1.dp)
+
+        lp.marginStart = if (margin) 56.dp else 16.dp
+        lp.marginEnd = 16.dp
+        lp.topMargin = 8.dp
+        lp.bottomMargin = 8.dp
+        view.layoutParams = lp
+        parent.addView(view)
+    }
+
+    private fun generateOptionItem(parent: ViewGroup, title: String, @DrawableRes icon: Int, optionId: VideoTrackOption) {
+        val view = layoutInflater.inflate(R.layout.player_overlay_track_option_item, null)
+        view.findViewById<TextView>(R.id.option_title).text = title
+        view.findViewById<ImageView>(R.id.option_icon).setImageBitmap(requireContext().getBitmapFromDrawable(icon))
+        view.setOnClickListener {
+            menuItemListener.invoke(optionId)
+            dismiss()
+        }
+        parent.addView(view)
     }
 
     companion object : DependencyProvider<Any>() {
@@ -207,5 +239,9 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
 
     enum class TrackType {
         VIDEO, AUDIO, SPU
+    }
+
+    enum class VideoTrackOption {
+        SUB_DELAY, SUB_PICK, SUB_DOWNLOAD, AUDIO_DELAY
     }
 }

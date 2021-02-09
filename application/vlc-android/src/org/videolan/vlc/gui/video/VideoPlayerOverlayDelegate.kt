@@ -150,10 +150,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 player.videoUri,
                 {
                     when (it) {
-                        R.id.audio_track_delay -> player.delayDelegate.showAudioDelaySetting()
-                        R.id.subtitle_track_delay -> showSubsDelaySettings()
-                        R.id.subtitle_track_download -> downloadSubtitles()
-                        R.id.subtitle_track_file -> pickSubtitles()
+                        VideoTracksDialog.VideoTrackOption.AUDIO_DELAY -> player.delayDelegate.showAudioDelaySetting()
+                        VideoTracksDialog.VideoTrackOption.SUB_DELAY -> showSubsDelaySettings()
+                        VideoTracksDialog.VideoTrackOption.SUB_DOWNLOAD -> downloadSubtitles()
+                        VideoTracksDialog.VideoTrackOption.SUB_PICK -> pickSubtitles()
                     }
                 }, { trackID: Int, trackType: VideoTracksDialog.TrackType ->
             when (trackType) {

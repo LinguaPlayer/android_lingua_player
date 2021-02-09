@@ -55,6 +55,7 @@ const val LIST_TITLE_ELLIPSIZE = "list_title_ellipsize"
 
 
 // AudioPlayer
+const val SHOW_REMAINING_TIME = "show_remaining_time"
 const val PREF_PLAYLIST_TIPS_SHOWN = "playlist_tips_shown"
 const val PREF_AUDIOPLAYER_TIPS_SHOWN = "audioplayer_tips_shown"
 const val KEY_MEDIALIBRARY_SCAN = "ml_scan"
@@ -80,7 +81,9 @@ const val VIDEO_SPEED = "VideoSpeed"
 const val VIDEO_RATIO = "video_ratio"
 const val LOGIN_STORE = "store_login"
 const val KEY_PLAYBACK_RATE = "playback_rate"
+const val KEY_PLAYBACK_RATE_VIDEO = "playback_rate_video"
 const val KEY_PLAYBACK_SPEED_PERSIST = "playback_speed"
+const val KEY_PLAYBACK_SPEED_PERSIST_VIDEO = "playback_speed_video"
 const val KEY_VIDEO_APP_SWITCH = "video_action_switch"
 const val VIDEO_TRANSITION_SHOW = "video_transition_show"
 const val VIDEO_HUD_TIMEOUT = "video_hud_timeout"

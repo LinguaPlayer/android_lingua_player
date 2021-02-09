@@ -53,7 +53,6 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
@@ -78,6 +77,7 @@ import kotlinx.android.synthetic.main.player_overlay_volume.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.videolan.libvlc.Dialog
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.libvlc.util.AndroidUtil
@@ -92,6 +92,7 @@ import org.videolan.tools.*
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.audio.EqualizerFragment
 import org.videolan.vlc.gui.audio.PlaylistAdapter
 import org.videolan.vlc.gui.browser.EXTRA_MRL
@@ -104,9 +105,8 @@ import org.videolan.vlc.media.ABRepeat
 import org.videolan.vlc.repository.ExternalSubRepository
 import org.videolan.vlc.repository.SlaveRepository
 import org.videolan.vlc.repository.SubtitlesRepository
+import org.videolan.vlc.util.*
 import org.videolan.vlc.util.FileUtils
-import org.videolan.vlc.util.Permissions
-import org.videolan.vlc.util.Util
 import org.videolan.vlc.viewmodels.PlaylistModel
 import java.lang.Runnable
 import kotlin.math.roundToInt
@@ -118,7 +118,7 @@ private const val SHARED_PREF_FIRST_ASK = "mic_first_ask"
 @Suppress("DEPRECATION")
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, PlaylistAdapter.IPlayer, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher {
+open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, PlaylistAdapter.IPlayer, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher, IDialogManager {
 
     private var subtitlesExtraPath: String? = null
     private lateinit var startedScope : CoroutineScope
@@ -187,6 +187,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     val adsDelegate: AdsDelegate by lazy(LazyThreadSafetyMode.NONE) {AdsDelegate(this@VideoPlayerActivity)}
     val shadowingDelegate: ShadowingOverlayDelegate by lazy(LazyThreadSafetyMode.NONE) {ShadowingOverlayDelegate(this@VideoPlayerActivity)}
     var isTv: Boolean = false
+
+    private val dialogsDelegate = DialogDelegate()
+
 
     /**
      * Flag to indicate whether the media should be paused once loaded
@@ -390,6 +393,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        dialogsDelegate.observeDialogs(this, this)
         Util.checkCpuCompatibility(this)
 
         settings = Settings.getInstance(this)
@@ -492,6 +496,15 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         adsDelegate.initAds()
         shadowingDelegate.initShadowing()
+    }
+
+    override fun fireDialog(dialog: Dialog) {
+        DialogActivity.dialog = dialog
+        startActivity(Intent(DialogActivity.KEY_DIALOG, null, this, DialogActivity::class.java))
+    }
+
+    override fun dialogCanceled(dialog: Dialog?) {
+        (dialog?.context as? DialogFragment)?.dismiss()
     }
 
     override fun afterTextChanged(s: Editable?) {
@@ -1584,7 +1597,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         optionsDelegate?.hide()
     }
 
-    @WorkerThread
     fun setSpuTrack(trackID: Int) {
 // HABIB: I DONT NEED THIS
 //        runOnMainThread(Runnable { service?.setSpuTrack(trackID) })

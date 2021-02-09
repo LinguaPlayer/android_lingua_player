@@ -107,6 +107,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         savedInstanceState?.let {
             playerState = it.getInt("player_state")
             wasPlaying = it.getBoolean("was_playing")
+            showRemainingTime = it.getBoolean("show_remaining_time")
         }
         playlistAdapter = PlaylistAdapter(this)
         settings = Settings.getInstance(requireContext())
@@ -183,6 +184,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     override fun onResume() {
         onStateChanged(playerState)
+        showRemainingTime = Settings.getInstance(requireContext()).getBoolean(SHOW_REMAINING_TIME, false)
         super.onResume()
     }
 
@@ -190,6 +192,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         super.onSaveInstanceState(outState)
         outState.putInt("player_state", playerState)
         outState.putBoolean("was_playing", wasPlaying)
+        outState.putBoolean("show_remaining_time", showRemainingTime)
     }
 
     private val ctxReceiver: CtxActionReceiver = object : CtxActionReceiver {
@@ -223,7 +226,8 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     override fun onPopupMenu(view: View, position: Int, item: MediaWrapper?) {
         val activity = activity
         if (activity === null || position >= playlistAdapter.itemCount) return
-        val flags = CTX_REMOVE_FROM_PLAYLIST or CTX_SET_RINGTONE or CTX_ADD_TO_PLAYLIST or CTX_STOP_AFTER_THIS or CTX_INFORMATION or CTX_SHARE
+        var flags = CTX_REMOVE_FROM_PLAYLIST or CTX_STOP_AFTER_THIS or CTX_INFORMATION
+        if (item?.uri?.scheme != "content") flags = flags or CTX_ADD_TO_PLAYLIST or CTX_SHARE or CTX_SET_RINGTONE
         showContext(activity, ctxReceiver, position, item?.title ?: "", flags)
     }
 
@@ -338,6 +342,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     fun onTimeLabelClick(view: View) {
         showRemainingTime = !showRemainingTime
+        Settings.getInstance(requireContext()).edit().putBoolean(SHOW_REMAINING_TIME, showRemainingTime).apply()
         playlistModel.progress.value?.let { updateProgress(it) }
     }
 

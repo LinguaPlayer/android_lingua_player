@@ -392,7 +392,7 @@ object UiTools {
     }
 
     lateinit var videoTracksDialog: VideoTracksDialog
-    fun FragmentActivity.showVideoTrack(videoUri: Uri?, menuListener: (Int) -> Unit, trackSelectionListener: (Int, VideoTracksDialog.TrackType) -> Unit) {
+    fun FragmentActivity.showVideoTrack(videoUri: Uri?, menuListener: (VideoTracksDialog.VideoTrackOption) -> Unit, trackSelectionListener: (Int, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
 
         if (::videoTracksDialog.isInitialized)
