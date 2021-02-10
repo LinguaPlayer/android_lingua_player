@@ -372,7 +372,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (player.isShowing)
                 updateSubtitlePositionWhenPlayerControllsIsVisible()
             else
-                player.subtitleDelegate.updateSubtitlePosition(0, false)
+                player.subtitleDelegate.updateSubtitlePosition(2.dp.toPixel(), false)
         }
 
     }
@@ -802,7 +802,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             dimStatusBar(true)
         }
 
-        player.subtitleDelegate.updateSubtitlePosition(0, false)
+        player.subtitleDelegate.updateSubtitlePosition(2.dp.toPixel(), false)
         linguaPlayerOverlayOptions.setGone()
     }
 
