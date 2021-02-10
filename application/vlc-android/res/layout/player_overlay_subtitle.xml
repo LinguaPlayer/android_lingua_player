@@ -43,7 +43,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
         app:srcCompat="@drawable/ic_next_caption"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/prev_caption"
@@ -60,7 +60,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/subtitleTextView"
         app:srcCompat="@drawable/ic_prev_caption"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
 
     <androidx.appcompat.widget.ViewStubCompat
         android:id="@+id/shadowing_overlay_stub"

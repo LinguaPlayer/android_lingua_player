@@ -63,7 +63,7 @@
         android:background="@drawable/gradient_title_player"
         android:visibility="gone" />
 
-    <include layout="@layout/lingua_player_overlay_options" ></include>
+<!--    <include layout="@layout/lingua_player_overlay_options" ></include>-->
 
 
     <RelativeLayout

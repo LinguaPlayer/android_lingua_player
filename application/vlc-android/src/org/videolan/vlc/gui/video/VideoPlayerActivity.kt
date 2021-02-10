@@ -495,7 +495,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
 
         adsDelegate.initAds()
-        shadowingDelegate.initShadowing()
+//        shadowingDelegate.initShadowing()
     }
 
     override fun fireDialog(dialog: Dialog) {

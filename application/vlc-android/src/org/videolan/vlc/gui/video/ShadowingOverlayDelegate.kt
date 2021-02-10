@@ -28,7 +28,7 @@ import java.util.*
 private const val TAG = "ShadowingOverlayDelegat"
 class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
 
-    private val shadowing: ImageButton? = player.findViewById(R.id.shadowing_mode)
+    private var shadowing: ImageButton? = null
     val audioRecorder = AudioRecorder(player.applicationContext)
 
     private val audioRecordEventsObserver = Observer<AudioRecordEvents> {
@@ -51,6 +51,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun initShadowing() {
+        shadowing = player.findViewById(R.id.shadowing_mode)
         shadowing?.setOnClickListener {
             initShadowingUI()
             player.service?.playlistManager?.player?.apply {

@@ -55,7 +55,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     private val prevCaptionButton: ImageView? = player.findViewById(R.id.prev_caption)
     private val subtitleContainer: ConstraintLayout? = player.findViewById(R.id.subtitle_container)
     private val subtitleTextView: StrokedTextView? = player.findViewById(R.id.subtitleTextView)
-    private val smartSub: ImageButton? = player.findViewById(R.id.listening_mode)
+    private var smartSub: ImageButton? = null
     private val copySelected = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitle_copy", false)
 
     init {
@@ -81,11 +81,15 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
         }
 
+
+
+    }
+
+    fun initSmartSub() {
+        smartSub =  player.findViewById(org.videolan.vlc.R.id.listening_mode)
         smartSub?.setOnClickListener {
             toggleSmartSubtitle()
         }
-
-
     }
 
     fun shadowingModeEnabled() {
@@ -268,7 +272,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun updateSubtitlePosition(playerControllerHeight: Int, calledFromOnLayoutChangeListener: Boolean) {
-        val subtitleBottomPosition = playerControllerHeight + if (playerControllerHeight == 0) 4.dp.toPixel() else 0.dp.toPixel()
+        val subtitleBottomPosition = playerControllerHeight + 4.dp.toPixel()
         subtitleContainer?.setMargins(l = subtitleContainer.marginLeft, t = subtitleContainer.marginTop, r = subtitleContainer.marginRight, b = subtitleBottomPosition)
         // TODO: fixme: dirty hack. when video starts if user pauses then taps on screen setMargin won't take effect unless clicking on a button or calling dimStatusBar
         if (calledFromOnLayoutChangeListener) {
