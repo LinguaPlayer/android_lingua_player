@@ -1,6 +1,7 @@
 package org.videolan.vlc.util
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.util.Log
@@ -14,13 +15,10 @@ import java.io.IOException
 
 private const val TAG = "AudioRecorder"
 
-// TODO("Hanlde audio focus")
-//TODO("Maybe I should not create them every time")
-
 class AudioRecorder(val context: Context): LifecycleObserver {
-    private var recorder: MediaRecorder? = null
-    private var player: MediaPlayer? = null
-
+    private var recorder: MediaRecorder? = MediaRecorder()
+    private var player: MediaPlayer? = MediaPlayer()
+    private val audioFocusHelper by lazy { LinguaAudioFocusHelper(this) }
     val audioRecordEventsLiveData = MutableLiveData<AudioRecordEvents>(
         RecordNone
     )
@@ -46,28 +44,31 @@ class AudioRecorder(val context: Context): LifecycleObserver {
     }
 
     fun startRecording(fileName: String) {
-        recorder?.let { stopRecording() } // Stop previous one in case it was recording
-        recorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-            setMaxDuration(120000) //60s
-            setOutputFile(fileName)
-            setOnInfoListener { _, what, _ ->
-                if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                    isRecording = false
-                    audioRecordEventsLiveData.value =
-                        RecordingStopped()
-                }
-            }
-
+        if (isRecording) stopRecording()
+        recorder?.apply {
             try {
+                reset()
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(96000)
+                setAudioSamplingRate(44100)
+                setMaxDuration(120000) //60s
+                setOutputFile(fileName)
+                setOnInfoListener { _, what, _ ->
+                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                        isRecording = false
+                        audioRecordEventsLiveData.value =
+                                RecordingStopped()
+                    }
+                }
+
                 prepare()
                 start()
                 emitAmplitude(true)
                 isRecording = true
                 audioRecordEventsLiveData.value =
-                    RecordingStarted
+                        RecordingStarted
             } catch (e: IOException) {
                 Log.e(TAG, "prepare() failed")
                 isRecording = false
@@ -93,11 +94,13 @@ class AudioRecorder(val context: Context): LifecycleObserver {
     }
 
     fun stopRecording(autoPlay: Boolean = true) {
+        if (!isRecording) return
         isRecording = false
         emitAmplitude(false)
+        recorder?.stop()
         audioRecordEventsLiveData.value =
             RecordingStopped(audoPlay = autoPlay)
-        releaseRecorder()
+//        releaseRecorder()
     }
 
     fun togglePlayPauseRecord() {
@@ -112,10 +115,13 @@ class AudioRecorder(val context: Context): LifecycleObserver {
         Log.d(TAG, "startPlaying")
         player?.let { stopPlaying() } // stop previous one in case it was playing
         player?.setOnCompletionListener {  }
-        player = MediaPlayer().apply {
+        player?.apply {
             try {
+                reset()
                 setDataSource(fileName)
                 prepare()
+                isLooping = false
+                player?.setVolume(1f, 1f)
                 start()
                 setOnCompletionListener {
                     Log.d(TAG, "onComplete")
@@ -131,13 +137,36 @@ class AudioRecorder(val context: Context): LifecycleObserver {
                 isRecordedPlaying = false
             }
         }
+
+        audioFocusHelper.changeAudioFocus(true)
+    }
+
+    private var playerVolume = 1.0f
+    fun getVolume() = playerVolume
+
+    fun setVolume(vol: Float) {
+        playerVolume = vol
+        player?.setVolume(playerVolume, playerVolume)
     }
 
     fun stopPlaying() {
+        if (!isRecordedPlaying) return
         isRecordedPlaying = false
-        audioRecordEventsLiveData.value =
-            RecordedStopped
-        releaseMediaPlayer()
+        audioRecordEventsLiveData.value = RecordedStopped
+        player?.stop()
+        audioFocusHelper.changeAudioFocus(false)
+    }
+
+    fun pausePlaying() {
+        isRecordedPlaying = false
+        audioRecordEventsLiveData.value = RecordedStopped
+        player?.pause()
+    }
+
+    fun resumePlaying() {
+        isRecordedPlaying = false
+        audioRecordEventsLiveData.value = RecordedPlaying
+        player?.start()
     }
 
     private fun releaseRecorder() {
@@ -155,8 +184,18 @@ class AudioRecorder(val context: Context): LifecycleObserver {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     fun onActivityPause() {
+        Log.d(TAG, "onActivityPause: ")
+        stopPlaying()
+        stopRecording(false)
         _amplitudeLiveData.value = -1
     }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    fun release() {
+        releaseMediaPlayer()
+        releaseRecorder()
+    }
+
 }
 
 

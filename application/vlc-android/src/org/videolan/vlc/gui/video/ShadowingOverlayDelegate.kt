@@ -69,6 +69,7 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
             }
         }
         audioRecorder.audioRecordEventsLiveData.observeForever(audioRecordEventsObserver)
+        player.lifecycle.addObserver(audioRecorder)
     }
 
     private val _shadowingMode = MutableLiveData<Boolean>()
