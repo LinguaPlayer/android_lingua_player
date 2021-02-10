@@ -167,8 +167,8 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         constraintSet.clone(constraintLayout)
         constraintSet.connect(R.id.subtitleTextView, ConstraintSet.END, R.id.subtitle_container, ConstraintSet.END, 8.dp)
         constraintSet.connect(R.id.subtitleTextView, ConstraintSet.START, R.id.subtitle_container, ConstraintSet.START, 8.dp)
-        constraintSet.connect(R.id.next_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM)
-        constraintSet.connect(R.id.prev_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM)
+        constraintSet.connect(R.id.next_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM, 4.dp)
+        constraintSet.connect(R.id.prev_caption, ConstraintSet.TOP, R.id.subtitleTextView, ConstraintSet.BOTTOM, 4.dp)
         constraintSet.clear(R.id.next_caption, ConstraintSet.BOTTOM)
         constraintSet.clear(R.id.prev_caption, ConstraintSet.BOTTOM)
 
