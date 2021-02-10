@@ -159,6 +159,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var wasShadowingMode = false
     private var shadowingABRepeat: ABRepeat = ABRepeat()
 
+    private var wasSmartSubtitleMode = false
+
     /**
      * For uninterrupted switching between audio and video mode
      */
@@ -770,6 +772,10 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
             playlistManager.player.setShadowingMode(wasShadowingMode, shadowingABRepeat.start, shadowingABRepeat.stop)
 
+            if (wasSmartSubtitleMode)
+                playlistManager.player.enableSmartSubtitle()
+
+
             val vlcVout = vout
             if (vlcVout != null && vlcVout.areViewsAttached()) {
                 if (isPlayingPopup) {
@@ -816,6 +822,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         service?.run {
             val tv = Settings.showTvUi
             val interactive = isInteractive
+            wasSmartSubtitleMode = playlistManager.player.isSmartSubtitleEnabled()
             wasShadowingMode = playlistManager.player.isShadowingModeEnabled
             shadowingABRepeat = playlistManager.player.getABRepeat()
             playlistManager.player.setShadowingMode(false)
