@@ -675,6 +675,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         statsDelegate.onConfigurationChanged()
         overlayDelegate.updateHudMargins()
         overlayDelegate.updateTitleConstraints()
+        overlayDelegate.onConfigurationChanged()
         subtitleDelegate.onConfigurationChanged(newConfig)
         adsDelegate.onConfigurationChanged(newConfig)
     }

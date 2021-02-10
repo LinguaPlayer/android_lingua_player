@@ -33,6 +33,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -45,8 +46,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -54,6 +57,8 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
@@ -357,6 +362,23 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         linguaPlayerOverlayOptions.setVisible()
     }
 
+    fun onConfigurationChanged() {
+        Log.d(TAG, "onConfigurationChanged:called ")
+        //Example: we are in portrait and nav bar is show. In portrait navbar is on left side of the screen so bottom inset padding is zero
+        // If we rotate the screen it the bottom inset will be shown at the bottom of the screen and we add the padding to hud
+        // but as user didn't touch the screen the updateSubtitlePositionWhenPlayerControllerIsVisible will not be shown
+        // so the subtitle position not updates and would overlap with hud
+        // same for shadowing mode, seekbar overlpas the navbar
+        player.lifecycleScope.launch {
+            delay(100) // DIRTY HACK AS ViewCompat.setOnApplyWindowInsetsListener is called after onConfigurationChange
+            if (player.isShowing)
+                updateSubtitlePositionWhenPlayerControllsIsVisible()
+            else
+                player.subtitleDelegate.updateSubtitlePosition(0, false)
+        }
+
+    }
+
     fun updateSubtitlePositionWhenPlayerControllsIsVisible() {
         var playerControllerSize = hudBinding.constraintLayout2.height
 
@@ -371,7 +393,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (player.service?.playlistManager?.abRepeatOn?.value == true)
                 playerControllerSize += 48.dp.toPixel()
 
-            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) 0 else playerControllerSize, false)
+            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) bottomInsetsPadding else playerControllerSize, false)
         }
     }
 
@@ -379,7 +401,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         override fun onLayoutChange(v: View?, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
             var playerControllerSize = hudBinding.constraintLayout2.height
             Log.d("HABIB", "isShowing: ${player.isShowing} showOverlayTimeout: $playerControllerSize")
-            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) 0 else playerControllerSize, true)
+            player.subtitleDelegate.updateSubtitlePosition(if (minimizeMode) bottomInsetsPadding else playerControllerSize, true)
             hudBinding.constraintLayout2.removeOnLayoutChangeListener(this)
         }
     }
@@ -427,6 +449,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         })
     }
 
+    var bottomInsetsPadding = 0
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private fun initOverlay() {
         if (linguaPlayerOverlayOptions == null)
@@ -510,7 +533,20 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 hudBinding.progress = service.playlistManager.player.progress
                 hudBinding.lifecycleOwner = player
             }
+
+            ViewCompat.setOnApplyWindowInsetsListener(hudBinding.root.rootView) { v, insets ->
+                // To prevent problems with overlapping with soft navigation
+                // as it ads padding it will add to the hight of Hud and also subtitle overlapping with
+                // hud will be fixed as we got the height of it add to subtitle
+                val bottomPadding = insets.systemWindowInsetBottom
+//                player.shadowingDelegate.updateShadowingUIPosition(bottomPadding)
+                bottomInsetsPadding = bottomPadding
+                Log.d(TAG, "Habib padding: $bottomPadding")
+                hudBinding.constraintLayout2.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, bottomPadding)
+                insets.consumeSystemWindowInsets()
+            }
         }
+
     }
 
     fun updateSeekable(seekable: Boolean) {

@@ -10,6 +10,7 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -23,6 +24,8 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.core.text.toSpannable
+import androidx.core.view.OnApplyWindowInsetsListener
+import androidx.core.view.ViewCompat
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
@@ -277,13 +280,6 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         }
     }
 
-    fun View.setMargins(l: Int, t: Int, r: Int, b: Int) {
-        if (this.layoutParams is ViewGroup.MarginLayoutParams){
-            val p: ViewGroup.MarginLayoutParams = this.layoutParams as ViewGroup.MarginLayoutParams
-            p.setMargins(l, t, r, b)
-            this.requestLayout()
-        }
-    }
 
     private fun makeClickable(spannableText: Spannable): Spannable {
         val pattern = "[-!$%^&*()_+|~=`{}\\[\\]:\\\";'<>?,.\\/\\s+]"
@@ -456,3 +452,10 @@ private class SubTouchSpan(val start: Int, val end: Int, private val underlineTe
 
 }
 
+fun View.setMargins(l: Int, t: Int, r: Int, b: Int) {
+    if (this.layoutParams is ViewGroup.MarginLayoutParams){
+        val p: ViewGroup.MarginLayoutParams = this.layoutParams as ViewGroup.MarginLayoutParams
+        p.setMargins(l, t, r, b)
+        this.requestLayout()
+    }
+}
