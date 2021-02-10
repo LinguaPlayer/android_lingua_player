@@ -75,7 +75,8 @@
                 app:layout_constraintBottom_toBottomOf="@id/track_title"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/track_title"
-                app:srcCompat="@drawable/ic_collapse_arrow" />
+                app:srcCompat="@drawable/ic_collapse_arrow"
+                android:visibility="invisible" />
 
         <FrameLayout
                 android:layout_width="match_parent"
