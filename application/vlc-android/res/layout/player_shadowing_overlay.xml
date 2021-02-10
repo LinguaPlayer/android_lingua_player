@@ -34,13 +34,12 @@
         android:layoutDirection="ltr"
         tools:visibility="visible">
 
-        <androidx.constraintlayout.motion.widget.MotionLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/speak_layout_background"
             android:visibility="visible"
-            app:layoutDescription="@xml/player_shadowing_overlay_xml_constraintlayout5_scene"
             app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
             app:layout_constraintTop_toBottomOf="@+id/next_caption_btn">
 
@@ -65,7 +64,6 @@
                 android:id="@+id/AB_start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:background="?actionBarItemBackground"
                 android:ellipsize="start"
                 android:gravity="center"
@@ -84,7 +82,6 @@
                 android:id="@+id/AB_stop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:background="?actionBarItemBackground"
                 android:ellipsize="start"
                 android:gravity="center"
@@ -186,7 +183,7 @@
                 app:chunkRoundedCorners="true"
                 app:chunkSpace="1dp"
                 app:chunkWidth="2dp"
-                app:layout_constraintBottom_toBottomOf="@+id/recorded_play_pause"
+                app:layout_constraintBottom_toBottomOf="@+id/recorded_play_paus"
                 app:layout_constraintEnd_toStartOf="@+id/recorded_play_pause"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toEndOf="@+id/record_btn"
@@ -198,7 +195,6 @@
                 android:id="@+id/increase_stop_by_one"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:layout_marginEnd="8dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.decreaseStopByOne()}"
                 android:padding="2dp"
@@ -237,7 +233,6 @@
                 android:id="@+id/decrease_start_by_one"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
                 android:background="?actionBarItemBackground"
                 android:onClick="@{(v) -> vm.increaseStartByOne()}"
@@ -246,7 +241,7 @@
                 app:layout_constraintStart_toEndOf="@+id/AB_start"
                 app:layout_constraintTop_toBottomOf="@+id/prev_caption_btn"
                 app:srcCompat="@drawable/ic_add_caption" />
-        </androidx.constraintlayout.motion.widget.MotionLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/shadowing_mode_seek"
