@@ -112,7 +112,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     private fun shouldShowAds(): Boolean {
         if (isInPictureInPictureMode) return false
 
-        if (numberOfTimesShowAdsIsCalled % 3 != 0) {
+        if (numberOfTimesShowAdsIsCalled % 10 != 0) {
             if (shouldRequestNewAd) requestNewAd()
             shouldRequestNewAd = false
             return false
