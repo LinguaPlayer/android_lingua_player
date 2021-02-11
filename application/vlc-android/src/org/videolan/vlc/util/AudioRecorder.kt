@@ -1,7 +1,6 @@
 package org.videolan.vlc.util
 
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.util.Log
@@ -87,7 +86,7 @@ class AudioRecorder(val context: Context): LifecycleObserver {
                 }
             }
         } else {
-            _amplitudeLiveData.value = -1
+//            _amplitudeLiveData.value = -1
             tickerChannel?.cancel()
             tickerChannel = null
         }
@@ -187,7 +186,7 @@ class AudioRecorder(val context: Context): LifecycleObserver {
         Log.d(TAG, "onActivityPause: ")
         stopPlaying()
         stopRecording(false)
-        _amplitudeLiveData.value = -1
+//        _amplitudeLiveData.value = -1
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
