@@ -169,14 +169,18 @@ class AudioRecorder(val context: Context): LifecycleObserver {
     }
 
     private fun releaseRecorder() {
-        recorder?.stop()
-        recorder?.release()
+        if (isRecording) {
+            recorder?.stop()
+            recorder?.release()
+        }
         recorder = null // To prevent calling stop on released
     }
 
     private fun releaseMediaPlayer() {
-        player?.stop()
-        player?.release()
+        if (isRecordedPlaying) {
+            player?.stop()
+            player?.release()
+        }
         player = null // To prevent calling stop after it's released
     }
 
@@ -184,8 +188,8 @@ class AudioRecorder(val context: Context): LifecycleObserver {
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     fun onActivityPause() {
         Log.d(TAG, "onActivityPause: ")
-        stopPlaying()
-        stopRecording(false)
+        if(isRecordedPlaying) stopPlaying()
+        if (isRecording) stopRecording(false)
 //        _amplitudeLiveData.value = -1
     }
 
