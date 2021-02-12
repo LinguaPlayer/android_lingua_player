@@ -15,8 +15,7 @@
         android:largeHeap="true"
         android:logo="@drawable/icon"
         android:roundIcon="@mipmap/ic_launcher"
-        android:supportsRtl="false"
-        tools:replace="android:supportsRtl"
+        android:supportsRtl="true"
         android:theme="@style/Theme.VLC.Transparent"
         android:requestLegacyExternalStorage="true"
         tools:targetApi="q" />
