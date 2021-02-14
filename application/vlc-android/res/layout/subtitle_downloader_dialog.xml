@@ -136,19 +136,21 @@
                     app:layout_constraintTop_toBottomOf="@+id/result_description" />
 
             <TextView
-                    android:id="@+id/message"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="9dp"
-                    android:gravity="center_horizontal"
-                    android:text="@{viewmodel.observableMessage}"
-                    android:textColor="@color/orange500"
-                    android:visibility="@{state == state.Download &amp;&amp; !TextUtils.isEmpty(viewmodel.observableMessage) ? View.VISIBLE : View.GONE}"
-                    app:layout_constraintBottom_toBottomOf="@+id/subs_download_list"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/subs_download_list"
-                    app:layout_goneMarginTop="40dp" />
+                android:id="@+id/message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="9dp"
+                android:gravity="center_horizontal"
+                android:text="@{viewmodel.observableMessage}"
+                android:textColor="@color/orange500"
+                android:visibility="@{state == state.Download &amp;&amp; !TextUtils.isEmpty(viewmodel.observableMessage) ? View.VISIBLE : View.GONE}"
+                app:layout_constraintBottom_toBottomOf="@+id/subs_download_list"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/subs_download_list"
+                app:layout_goneMarginTop="40dp" />
 
             <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/subs_history_list"
