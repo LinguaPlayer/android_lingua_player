@@ -389,7 +389,7 @@
     <string name="clear_media_db">Clear media database</string>
     <string name="clear_media_database_summary">Clears the database to start over</string>
     <string name="clear_history">Clear history</string>
-    <string name="set_locale">Set locale</string>
+    <string name="set_locale">Change language</string>
     <string name="network_caching">Network caching value</string>
     <string name="network_caching_summary">The amount of time to buffer network media (in ms) for software decoding\nLeave blank to reset</string>
     <string name="resume_playback_title">Resume playback after a call</string>
