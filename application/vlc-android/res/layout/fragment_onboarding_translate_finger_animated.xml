@@ -52,7 +52,7 @@
         app:layout_constraintEnd_toStartOf="@id/end_guide_line"
         app:layout_constraintStart_toStartOf="@id/start_guide_line"
         android:visibility="invisible"
-        tools:alpha="1.0">
+        tools:alpha="0.0">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/dictionary_constraintLayout"
@@ -204,8 +204,8 @@
         android:layout_marginTop="20dp"
         android:elevation="3dp"
         app:layout_constraintBottom_toBottomOf="@id/subtitle_text_1"
-        app:layout_constraintEnd_toEndOf="@id/start_guide_line"
-        app:layout_constraintStart_toStartOf="@id/start_guide_line"
+        app:layout_constraintEnd_toEndOf="@id/end_guide_line"
+        app:layout_constraintStart_toStartOf="@id/end_guide_line"
         app:layout_constraintTop_toTopOf="@id/subtitle_text_1"
         app:srcCompat="@drawable/onboarding_touch_finger" />
 
