@@ -40,7 +40,7 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    flavorDimensions "abi"
+    flavorDimensions "abi", "market"
 
     lintOptions {
         abortOnError false
@@ -110,6 +110,38 @@ android {
         dev {
             initWith debug
             matchingFallbacks = ['debug']
+        }
+    }
+
+    productFlavors {
+        myket {
+            dimension "market"
+        }
+        bazaar {
+            dimension "market"
+        }
+        googleplay {
+            dimension "market"
+        }
+        vanilla {
+            dimension "target"
+            versionCode = 1
+        }
+        ARMv7 {
+            dimension "abi"
+            versionCode = 4
+        }
+        x86 {
+            dimension "abi"
+            versionCode = 5
+        }
+        ARMv8 {
+            dimension "abi"
+            versionCode = 7
+        }
+        x86_64 {
+            dimension "abi"
+            versionCode = 8
         }
     }
 

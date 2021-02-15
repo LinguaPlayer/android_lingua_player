@@ -80,7 +80,9 @@ class AppSetupDelegate : AppDelegate,
                 setupIndexers()
             }
         }
-        AppContextProvider.setLocale(Settings.getInstance(this).getString("set_locale", ""))
+
+        var defaultLocale = if (org.videolan.mobile.app.BuildConfig.FLAVOR_market == "bazaar") "fa"  else  "en"
+        AppContextProvider.setLocale(Settings.getInstance(this).getString("set_locale", defaultLocale))
 
         //Initiate Kotlinx Dispatchers in a thread to prevent ANR
         backgroundInit()

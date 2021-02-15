@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.onboarding
 
 import android.animation.Animator
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -81,6 +82,10 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
         if (permissionModel.permissionPending) lifecycleScope.launch {
             if (resumePermissionRequest()) viewPager.currentItem++
         }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(newBase?.getContextWithLocale(AppContextProvider.locale))
     }
 
     fun onPrevious(@Suppress("UNUSED_PARAMETER") v: View) {
