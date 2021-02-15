@@ -38,7 +38,7 @@ allprojects {
         // Ignores errors from mavenAndroidJavadocs task
         // (reference: github.com/novoda/bintray-release/issues/71#issuecomment-164324255)
         options.addStringOption('Xdoclint:none', '-quiet')
-        options.addStringOption('encodipng', 'UTF-8')
+        options.addStringOption('encoding', 'UTF-8')
     }
 }
 
@@ -46,7 +46,6 @@ ext {
     appId = 'ir.habibkazemi.linguaplayer'
     versionName = '2.0.2'
     versionCode = 2000200
-    libvlcVersion = '3.3.12'
     libvlcVersion = '3.3.14'
     medialibraryVersion = '0.7.13'
     minSdkVersion = 17
