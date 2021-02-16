@@ -24,8 +24,6 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.core.text.toSpannable
-import androidx.core.view.OnApplyWindowInsetsListener
-import androidx.core.view.ViewCompat
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
@@ -86,9 +84,31 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun initSmartSub() {
-        smartSub =  player.findViewById(org.videolan.vlc.R.id.listening_mode)
+        smartSub =  player.findViewById(R.id.listening_mode)
         smartSub?.setOnClickListener {
             toggleSmartSubtitle()
+        }
+
+        if (player.service?.playlistManager?.player?.numberOfParsedSubs!! > 0) smartSub?.setVisible()
+        else smartSub?.setGone()
+    }
+
+    fun setSubtitleListener() {
+        player.lifecycleScope.launchWhenStarted {
+            player.service?.playlistManager?.player?.numberOfParsedSubsFlow?.collect { numberOfSubs ->
+                when {
+                    player.service?.playlistManager?.player?.isShadowingModeEnabled == true -> smartSub?.setGone()
+                    numberOfSubs > 0 -> {
+                        smartSub?.setVisible()
+                    }
+                    else -> {
+                        smartSub?.setGone()
+                        if (player.service?.playlistManager?.player?.isSmartSubtitleEnabled() == true) {
+                            disableSmartSubtitle()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -138,7 +158,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             goToLandscapeMode()
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            goToPortraiteMode()
+            goToPortraitMode()
         }
     }
 
@@ -161,7 +181,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         constraintSet.applyTo(constraintLayout)
     }
 
-    private fun goToPortraiteMode() {
+    private fun goToPortraitMode() {
         val constraintLayout: ConstraintLayout = player.findViewById(R.id.subtitle_container)
         val constraintSet = ConstraintSet()
         constraintSet.clone(constraintLayout)
@@ -178,22 +198,15 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         constraintSet.applyTo(constraintLayout)
     }
 
-
+    private var prevSubtitleLiveData: LiveData<List<Subtitle>>? = null
     fun prepareSubtitles(videoUri: Uri) {
         prepareEmbeddedSubtitles(videoUri)
-        SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri).observe(player, subtitleObserver)
+        prevSubtitleLiveData?.removeObserver(subtitleObserver)
+        prevSubtitleLiveData = SubtitlesRepository.getInstance(player.applicationContext).getSelectedSpuTracksLiveData(mediaPath = videoUri)
+        prevSubtitleLiveData?.observe(player, subtitleObserver)
 
         player.service?.playlistManager?.player?.subtitleCaption?.observe(player, showCaptionObserver)
 
-        player.lifecycleScope.launchWhenStarted {
-            player.service?.playlistManager?.player?.numberOfParsedSubsFlow?.collect { numberOfSubs ->
-                when {
-                    player.service?.playlistManager?.player?.isShadowingModeEnabled == true -> smartSub.setGone()
-                    numberOfSubs > 0 -> smartSub.setVisible()
-                    else -> smartSub.setGone()
-                }
-            }
-        }
 
         player.service?.playlistManager?.player?.subtitleInfo?.observe(player, EventObserver {
             UiTools.snacker(player, it.message)

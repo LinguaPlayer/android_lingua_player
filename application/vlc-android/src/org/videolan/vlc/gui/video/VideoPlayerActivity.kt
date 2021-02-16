@@ -580,6 +580,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             initUI()
             lastTime = -1
             forcedTime = lastTime
+
             enableSubs()
             shadowingDelegate.newVideoUriPlaying(videoUri)
         }
@@ -774,6 +775,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
             if (wasSmartSubtitleMode)
                 playlistManager.player.enableSmartSubtitle()
+            subtitleDelegate.setSubtitleListener()
 
 
             val vlcVout = vout

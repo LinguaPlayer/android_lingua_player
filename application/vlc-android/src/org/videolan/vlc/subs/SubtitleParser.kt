@@ -69,6 +69,7 @@ class SubtitleParser {
             subtitlePaths: List<String>,
             subtitleLanguage: String? = null,
             subtitleManualEncoding: String = ""): Flow<SubtitleParsinginfo> = flow {
+
         // Remove unselected items from parsedSubtitles
         parsedSubtitles.filterNot { subtitlePaths.contains(it.key) }.forEach {
             parsedSubtitles.remove(it.key)
