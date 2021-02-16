@@ -553,8 +553,8 @@ YUV: بهترین عملکرد"</string>
     <string name="video_remote_disable"></string>
     <string name="removed_from_playlist_anonymous">"مورد(ها) از فهرست پخش حذف شدند"</string>
     <string name="welcome_title">"به لینگواپلیر خوش آمدید!"</string>
-    <string name="welcome_subtitle">"پخش کنندی قدرتمند صوتی و تصویری با قابلیت‌های یادگیری زبان"</string>
-    <string name="permission_media">"لینگواپلیر به اجازه شما برای دسترسی به رسانه بر روی دستگاه شما نیاز دارد"</string>
+    <string name="welcome_subtitle">"پخش‌کننده‌ی قدرتمند صوتی و تصویری با ویژگی‌های یادگیری زبان"</string>
+    <string name="permission_media">"لینگواپلیر به اجازه شما برای دسترسی به فایل‌های صوتی و تصویری دستگاه شما نیاز دارد"</string>
     <string name="medialibrary_scan_explanation">"لینگواپلیر می‌تواند به صورت خودکار دستگاه شما را برای یافتن رسانه‌ها پویش کند"</string>
     <string name="onboarding_theme_title">"شخصی سازی"</string>
     <string name="done">"انجام شد"</string>
@@ -753,11 +753,11 @@ YUV: بهترین عملکرد"</string>
     <string name="smart_subtitle">"زیرنویس هوشمند"</string>
     <string name="hello_blank_fragment">"Hello blank fragment"</string>
     <string name="onboarding_translate_title">"ترجمه"</string>
-    <string name="on_boarding_translate_body">"جملات وکلمات زیرنویس را فقط با لمس ‌آن‌ها ترجمه کنید"</string>
+    <string name="on_boarding_translate_body">"جملات و کلمات زیرنویس را فقط با لمس ‌آن‌ها ترجمه کنید"</string>
     <string name="onboarding_shadowing_title">"مهارت مکالمه"</string>
-    <string name="onboarding_shadowing_body">"تقویت مهارت مکالمه به کمک ویژگی سایه(shadowing)"</string>
+    <string name="onboarding_shadowing_body">"تقویت مهارت مکالمه به کمک ویژگی سایه (shadowing)"</string>
     <string name="onboarding_listening_title">"مهارت شنیداری"</string>
-    <string name="onboarding_listening_body">"تقوبت مهارت شنیداری به کمک ویژگی زیرنویس هوشمند"</string>
+    <string name="onboarding_listening_body">"تقویت مهارت شنیداری به کمک زیرنویس هوشمند"</string>
     <string name="onboarding_listening_description">"زیرنویس هوشمند هر جمله‌ی زیرنویس را پس از این که بازیگر جمله‌اش را به اتمام رساند نمایش می‌دهد. بنابراین ابتدا شما به مکالمه گوش می‌دهید و سپس آن چه شنیده‌اید را به کمک زیرنویس ارزیابی می‌کنید."</string>
 
     <!-- Permissions -->
