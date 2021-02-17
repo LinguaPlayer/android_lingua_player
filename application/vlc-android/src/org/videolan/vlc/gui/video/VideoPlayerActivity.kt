@@ -39,6 +39,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.DisplayMetrics
+import android.util.LayoutDirection
 import android.util.Log
 import android.util.Rational
 import android.view.*
@@ -65,6 +66,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.core.text.layoutDirection
 import androidx.databinding.BindingAdapter
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.LiveData
@@ -109,6 +111,8 @@ import org.videolan.vlc.util.*
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.viewmodels.PlaylistModel
 import java.lang.Runnable
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 private const val REQUEST_MIC= 2
@@ -1550,12 +1554,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         service?.playIndex(position)
     }
 
+    fun isRTL() = Locale.getDefault().layoutDirection == LayoutDirection.RTL
+
     override fun onClick(v: View) {
         when (v.id) {
             R.id.orientation_toggle -> toggleOrientation()
             R.id.playlist_toggle -> overlayDelegate.togglePlaylist()
-            R.id.player_overlay_forward -> touchDelegate.seekDelta(10000)
-            R.id.player_overlay_rewind -> touchDelegate.seekDelta(-10000)
+            R.id.player_overlay_forward -> touchDelegate.seekDelta(if(isRTL()) -10000 else 10000)
+            R.id.player_overlay_rewind -> touchDelegate.seekDelta( if(isRTL()) 10000 else -10000)
             R.id.ab_repeat_add_marker -> service?.playlistManager?.setABRepeatValue(overlayDelegate.hudBinding.playerOverlaySeekbar.progress.toLong())
             R.id.ab_repeat_reset -> service?.playlistManager?.resetABRepeatValues()
             R.id.ab_repeat_stop -> service?.playlistManager?.clearABRepeat()
@@ -2216,12 +2222,12 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     //  Think again about it and make it modern with jetpack)
 
     fun handleMICPermission(fromOnRequestPermissionResult: Boolean = false) {
-        if (ContextCompat.checkSelfPermission( this, Manifest.permission.RECORD_AUDIO )
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
             // User already denied but didn't check never ask again
             if (fromOnRequestPermissionResult) return
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
-                showPermissionDialog( false)
+                showPermissionDialog(false)
             } else {
                 if (isFirstPermissionAsk()) {
                     // first time permission been asked
@@ -2229,7 +2235,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     requestMICPermission()
                 } else {
                     // User already denied and check never ask again
-                    showPermissionDialog( true)
+                    showPermissionDialog(true)
                 }
             }
 
@@ -2256,7 +2262,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     private var permissionDialog: AlertDialog? = null
 
-    private fun showPermissionDialog(openSettings: Boolean ) {
+    private fun showPermissionDialog(openSettings: Boolean) {
         permissionDialog?.dismiss()
         permissionDialog = AlertDialog.Builder(this)
                 .setMessage(if (openSettings) R.string.mic_permission_request_settings else R.string.mic_permission_request)
