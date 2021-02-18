@@ -72,9 +72,9 @@
                 android:text="@{vm.millisToStringWith(shadowingAB.start)}"
                 android:textColor="@color/white"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@+id/decrease_start_by_one"
-                app:layout_constraintStart_toEndOf="@+id/increase_start_by_one"
-                app:layout_constraintTop_toTopOf="@+id/decrease_start_by_one"
+                app:layout_constraintBottom_toBottomOf="@+id/increase_start_by_one"
+                app:layout_constraintStart_toEndOf="@+id/decrease_start_by_one"
+                app:layout_constraintTop_toTopOf="@+id/increase_start_by_one"
                 app:layout_constraintVertical_bias="0.4"
                 app:srcCompat="@drawable/ic_add_caption"
                 tools:text="1:30:1" />
@@ -203,7 +203,6 @@
                 android:layout_marginEnd="4dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:tint="@color/white"
-                android:onClick="@{(v) -> vm.decreaseStopByOne()}"
                 android:padding="2dp"
                 app:layout_constraintBottom_toBottomOf="@+id/AB_stop"
                 app:layout_constraintEnd_toStartOf="@+id/AB_stop"
@@ -218,19 +217,17 @@
                 android:layout_marginTop="16dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:tint="@color/white"
-                android:onClick="@{(v) -> vm.increaseStopByOne()}"
                 android:padding="2dp"
                 app:layout_constraintEnd_toEndOf="@+id/next_caption_btn"
                 app:layout_constraintTop_toBottomOf="@+id/next_caption_btn"
                 app:srcCompat="@drawable/ic_plus_circle_outline" />
 
             <ImageView
-                android:id="@+id/increase_start_by_one"
+                android:id="@+id/decrease_start_by_one"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:tint="@color/white"
-                android:onClick="@{(v) -> vm.decreaseStartByOne()}"
                 android:padding="2dp"
                 app:layout_constraintBottom_toBottomOf="@+id/AB_start"
                 app:layout_constraintStart_toStartOf="@+id/prev_caption_btn"
@@ -239,14 +236,13 @@
 
 
             <ImageView
-                android:id="@+id/decrease_start_by_one"
+                android:id="@+id/increase_start_by_one"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="16dp"
                 android:background="?selectableItemBackgroundBorderless"
                 android:tint="@color/white"
-                android:onClick="@{(v) -> vm.increaseStartByOne()}"
                 android:padding="2dp"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toEndOf="@+id/AB_start"

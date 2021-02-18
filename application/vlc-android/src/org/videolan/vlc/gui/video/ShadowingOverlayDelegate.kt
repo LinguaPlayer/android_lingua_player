@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.video
 
 import android.content.DialogInterface
 import android.net.Uri
+import android.view.View
 import android.widget.ImageButton
 import androidx.appcompat.widget.ViewStubCompat
 import androidx.databinding.BindingAdapter
@@ -18,6 +19,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.PlayerShadowingOverlayBinding
+import org.videolan.vlc.gui.helpers.OnRepeatListenerTouch
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.util.*
 import java.io.File
@@ -26,7 +28,7 @@ import java.text.NumberFormat
 import java.util.*
 
 private const val TAG = "ShadowingOverlayDelegat"
-class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
+class ShadowingOverlayDelegate(private val player: VideoPlayerActivity): View.OnClickListener{
 
     private var shadowing: ImageButton? = null
     val audioRecorder = AudioRecorder(player.applicationContext)
@@ -100,6 +102,15 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         playerSpeakingOverlayBinding.recordBtn.setOnClickListener {
             player.handleMICPermission(false)
         }
+        playerSpeakingOverlayBinding.increaseStartByOne.setOnClickListener(this)
+        playerSpeakingOverlayBinding.decreaseStartByOne.setOnClickListener(this)
+        playerSpeakingOverlayBinding.increaseStopByOne.setOnClickListener(this)
+        playerSpeakingOverlayBinding.decreaseStopByOne.setOnClickListener(this)
+
+        playerSpeakingOverlayBinding.increaseStartByOne.setOnTouchListener(OnRepeatListenerTouch(this))
+        playerSpeakingOverlayBinding.decreaseStartByOne.setOnTouchListener(OnRepeatListenerTouch(this))
+        playerSpeakingOverlayBinding.increaseStopByOne.setOnTouchListener(OnRepeatListenerTouch(this))
+        playerSpeakingOverlayBinding.decreaseStopByOne.setOnTouchListener(OnRepeatListenerTouch(this))
     }
 
 
@@ -299,6 +310,15 @@ class ShadowingOverlayDelegate(private val player: VideoPlayerActivity) {
         val hours = millis.toInt()
         sb.append(TWO_DIGITS.get()!!.format(sec.toLong())).append(":").append(THREE_DIGITS.get()!!.format(mills.toLong()))
         return sb.toString()
+    }
+
+    override fun onClick(v: View) {
+        when(v.id) {
+            R.id.decrease_start_by_one -> { decreaseStartByOne() }
+            R.id.increase_start_by_one -> { increaseStartByOne() }
+            R.id.increase_stop_by_one -> { increaseStopByOne() }
+            R.id.decrease_stop_by_one -> { decreaseStopByOne() }
+        }
     }
 }
 
