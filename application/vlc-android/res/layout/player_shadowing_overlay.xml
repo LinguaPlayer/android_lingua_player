@@ -170,8 +170,6 @@
                 android:src="@{vm.isRecordedPlaying ? @drawable/ic_circle_pause_white : @drawable/ic_circle_play_white}"
                 android:visibility="@{vm.isRecordedFileExist ? View.VISIBLE : View.INVISIBLE}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/audio_amplitude"
-                app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="@+id/view"
                 app:layout_constraintTop_toTopOf="@+id/view"
                 tools:src="@drawable/ic_circle_play_white" />
@@ -180,7 +178,7 @@
                 android:id="@+id/audio_amplitude"
                 android:layout_width="150dp"
                 android:layout_height="30dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginStart="4dp"
                 app:chunkColor="@color/white"
                 app:chunkMaxHeight="30dp"
                 app:chunkMinHeight="2dp"
