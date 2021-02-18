@@ -240,13 +240,13 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_marginStart="4dp"
-                android:layout_marginTop="16dp"
                 android:background="?selectableItemBackgroundBorderless"
-                android:tint="@color/white"
                 android:padding="2dp"
+                android:tint="@color/white"
+                app:layout_constraintBottom_toBottomOf="@+id/decrease_stop_by_one"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintStart_toEndOf="@+id/AB_start"
-                app:layout_constraintTop_toBottomOf="@+id/prev_caption_btn"
+                app:layout_constraintTop_toTopOf="@+id/decrease_stop_by_one"
                 app:srcCompat="@drawable/ic_plus_circle_outline" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
