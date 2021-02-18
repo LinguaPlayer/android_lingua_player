@@ -556,12 +556,12 @@ YUV: بهترین عملکرد"</string>
     <string name="welcome_subtitle">"پخش‌کننده‌ی قدرتمند صوتی و تصویری با ویژگی‌های یادگیری زبان"</string>
     <string name="permission_media">"لینگواپلیر به اجازه شما برای دسترسی به فایل‌های صوتی و تصویری دستگاه شما نیاز دارد"</string>
     <string name="medialibrary_scan_explanation">"لینگواپلیر می‌تواند به صورت خودکار دستگاه شما را برای یافتن رسانه‌ها پویش کند"</string>
-    <string name="onboarding_theme_title">"شخصی سازی"</string>
+    <string name="onboarding_theme_title">"شخصی‌سازی"</string>
     <string name="done">"انجام شد"</string>
     <string name="onboarding_scan_title">"یافتن خودکار رسانه شما"</string>
     <string name="daynight_system_explanation">"لینگواپلیر بر اساس تنظیمات دستگاه به صورت خودکار به حالت شب می‌رود"</string>
     <string name="daynight_legacy_explanation">"لینگواپلیر بر اساس ساعت به صورت خودکار به حالت شب می‌رود"</string>
-    <string name="onboarding_scanning_enable">"بگذار Lingua Player دستگاه من را برای محتوای رسانه پویش کند"</string>
+    <string name="onboarding_scanning_enable">"بگذار Lingua Player دستگاه من را برای محتوای رسانه‌ای پویش کند"</string>
     <string name="onboarding_scan_customize">"بگذار انتخاب کنم که لینگواپلیر کدام پوشه‌ها را پویش کند"</string>
     <string name="button_medialibrary_preferences">"رفتن به تنظیمات کتابخانه رسانه‌ای"</string>
     <string name="light_theme">"پوسته روشن"</string>
