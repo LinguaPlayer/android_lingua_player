@@ -17,6 +17,8 @@
         android:layout_marginEnd="32dp"
         android:text="@string/onboarding_scan_title"
         android:gravity="center"
+        android:textStyle="bold"
+        android:textSize="28sp"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         app:layout_constraintEnd_toEndOf="parent"

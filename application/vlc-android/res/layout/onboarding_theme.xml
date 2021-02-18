@@ -17,6 +17,8 @@
         android:gravity="center"
         android:text="@string/onboarding_theme_title"
         android:textAlignment="center"
+        android:textSize="28sp"
+        android:textStyle="bold"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
