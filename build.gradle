@@ -44,8 +44,8 @@ allprojects {
 
 ext {
     appId = 'ir.habibkazemi.linguaplayer'
-    versionName = '2.0.3'
-    versionCode = 2000300
+    versionName = '2.0.4'
+    versionCode = 2000400
     libvlcVersion = '3.3.14'
     medialibraryVersion = '0.7.13'
     minSdkVersion = 17
