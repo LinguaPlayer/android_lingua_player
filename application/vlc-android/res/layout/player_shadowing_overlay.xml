@@ -40,6 +40,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/speak_layout_background"
             android:visibility="visible"
+            android:clickable="true"
             app:layout_constraintBottom_toBottomOf="@+id/next_caption_btn"
             app:layout_constraintTop_toBottomOf="@+id/next_caption_btn">
 
@@ -67,6 +68,7 @@
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
+                android:clickable="true"
                 android:text="@{vm.millisToStringWith(shadowingAB.start)}"
                 android:textColor="@color/white"
                 android:textSize="16sp"
@@ -86,6 +88,7 @@
                 android:ellipsize="start"
                 android:gravity="center"
                 android:singleLine="true"
+                android:clickable="true"
                 android:text="@{vm.millisToStringWith(shadowingAB.stop)}"
                 android:textColor="@color/white"
                 android:textSize="16sp"
