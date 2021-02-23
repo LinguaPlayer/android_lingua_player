@@ -6,12 +6,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.lifecycleScope
 import com.visualizer.amplitude.AudioRecordView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.launch
 import org.videolan.vlc.R
 
+private const val TAG = "OnboardingShadowingFrag"
 class OnboardingShadowingFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +31,7 @@ class OnboardingShadowingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val amplitudeView =view.findViewById<AudioRecordView>(R.id.audio_amplitude)
         val tickerChannel = ticker(delayMillis = 100, initialDelayMillis = 0)
-        GlobalScope.launch {
+        lifecycleScope.launch(Dispatchers.Main) {
             for (event in tickerChannel) {
                 if (i == dummyAmplitude.size) i = 0
                 amplitudeView.update(dummyAmplitude[i++])

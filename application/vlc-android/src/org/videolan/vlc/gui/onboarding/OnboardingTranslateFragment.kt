@@ -1,6 +1,7 @@
 package org.videolan.vlc.gui.onboarding
 
 import android.animation.ValueAnimator
+import android.content.Context
 import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
@@ -40,19 +41,19 @@ class OnboardingTranslateFragment : Fragment() {
         val clipDrawable: ClipDrawable = subtitleTextOneBackground.findDrawableByLayerId(R.id.clip_drawable) as ClipDrawable
         activity?.lifecycleScope?.launch {
             delay(200)
-            animateTextSelection(clipDrawable)
+            animateTextSelection(view.context , clipDrawable)
         }
     }
 
-    private fun animateTextSelection(clipDrawable: ClipDrawable) {
-        animateFinger()
+    private fun animateTextSelection(context: Context, clipDrawable: ClipDrawable) {
+        animateFinger(context)
         ValueAnimator.ofInt(0, 10000).apply {
             duration = 800
             interpolator = LinearInterpolator()
             addUpdateListener {
                 clipDrawable.level = animatedValue as Int
                 if (animatedValue == 10000)
-                    animateDictionary()
+                    animateDictionary(context)
             }
 
             start()
@@ -60,9 +61,9 @@ class OnboardingTranslateFragment : Fragment() {
 
     }
 
-    private fun animateFinger() {
+    private fun animateFinger(context: Context) {
         val constraintSet = ConstraintSet()
-        constraintSet.clone(this.context, R.layout.fragment_onboarding_translate_finger_animated)
+        constraintSet.clone(context, R.layout.fragment_onboarding_translate_finger_animated)
         val transition = ChangeBounds()
         transition.interpolator = LinearInterpolator()
         transition.duration = 800
@@ -70,9 +71,9 @@ class OnboardingTranslateFragment : Fragment() {
         constraintSet.applyTo(layout)
     }
 
-    private fun animateDictionary() {
+    private fun animateDictionary(context: Context) {
         val constraintSet = ConstraintSet()
-        constraintSet.clone(this.context, R.layout.fragment_onboarding_translate_dictionary_animated)
+        constraintSet.clone(context, R.layout.fragment_onboarding_translate_dictionary_animated)
         val transition = ChangeBounds()
         transition.interpolator = OvershootInterpolator(2.0f)
         transition.duration = 800

@@ -75,8 +75,6 @@ class AudioRecorder(val context: Context): LifecycleObserver {
         }
     }
 
-    var r = mutableListOf<Int>()
-
     private var tickerChannel: ReceiveChannel<Unit>? = null
     private fun emitAmplitude(enable: Boolean) {
         if (enable) {
@@ -86,8 +84,6 @@ class AudioRecorder(val context: Context): LifecycleObserver {
                 for (event in tickerChannel!!) {
                     recorder?.maxAmplitude?.run {
                         _amplitudeLiveData.postValue(this)
-//                        Log.d(TAG, "emitAmplitude: $this")
-                        r.add(this)
                     }
                 }
             }
@@ -99,7 +95,6 @@ class AudioRecorder(val context: Context): LifecycleObserver {
     }
 
     fun stopRecording(autoPlay: Boolean = true) {
-        Log.d(TAG, "stopRecording: $r")
         if (!isRecording) return
         isRecording = false
         emitAmplitude(false)
