@@ -57,9 +57,9 @@
             android:name="com.lge.support.SPLIT_WINDOW"
             android:value="true"/>
         <!-- Android auto -->
-        <meta-data
-            android:name="com.google.android.gms.car.application"
-            android:resource="@xml/automotive_app_desc"/>
+<!--        <meta-data-->
+<!--            android:name="com.google.android.gms.car.application"-->
+<!--            android:resource="@xml/automotive_app_desc"/>-->
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/icon"/>
