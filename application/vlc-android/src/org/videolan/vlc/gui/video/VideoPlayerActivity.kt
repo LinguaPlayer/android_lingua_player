@@ -98,7 +98,9 @@ import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.audio.EqualizerFragment
 import org.videolan.vlc.gui.audio.PlaylistAdapter
 import org.videolan.vlc.gui.browser.EXTRA_MRL
+import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.RenderersDialog
+import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
@@ -390,6 +392,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     override fun attachBaseContext(newBase: Context?) {
         super.attachBaseContext(newBase?.getContextWithLocale(AppContextProvider.locale))
+        applyOverrideConfiguration(newBase?.resources?.configuration)
     }
 
     override fun getApplicationContext(): Context {
@@ -1407,7 +1410,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         if (service == null) return
         switchingView = true
         // Show the MainActivity if it is not in background.
-        if (showUI) {
+        if (showUI && intent.getBooleanExtra(FROM_EXTERNAL, false)) {
             val i = Intent().apply {
                 setClassName(applicationContext, if (isTv) TV_AUDIOPLAYER_ACTIVITY else MOBILE_MAIN_ACTIVITY)
             }
@@ -1572,6 +1575,26 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             R.id.video_secondary_display -> {
                 clone = displayManager.isSecondary
                 recreate()
+            }
+            R.id.playback_speed_quick_action -> {
+                val newFragment = PlaybackSpeedDialog.newInstance()
+                newFragment.onDismissListener = DialogInterface.OnDismissListener { overlayDelegate.dimStatusBar(true) }
+                newFragment.show(supportFragmentManager, "playback_speed")
+                overlayDelegate.hideOverlay(false)
+            }
+            R.id.sleep_quick_action -> {
+                val newFragment = SleepTimerDialog.newInstance()
+                newFragment.onDismissListener = DialogInterface.OnDismissListener { overlayDelegate.dimStatusBar(true) }
+                newFragment.show(supportFragmentManager, "time")
+                overlayDelegate.hideOverlay(false)
+            }
+            R.id.audio_delay_quick_action -> {
+                delayDelegate.showAudioDelaySetting()
+                overlayDelegate.hideOverlay(false)
+            }
+            R.id.spu_delay_quick_action -> {
+                delayDelegate.showSubsDelaySetting()
+                overlayDelegate.hideOverlay(false)
             }
         }
     }
@@ -1787,8 +1810,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 if (intent.hasExtra(PLAY_EXTRA_ITEM_TITLE))
                     itemTitle = extras.getString(PLAY_EXTRA_ITEM_TITLE)
             }
-            if (startTime == 0L && savedTime > 0L) startTime = savedTime
             val restorePlayback = hasMedia && currentMedia?.uri == videoUri
+            if (startTime == 0L && savedTime > 0L && restorePlayback) startTime = savedTime
 
             var openedMedia: MediaWrapper? = null
             val resumePlaylist = service.isValidIndex(positionInPlaylist)
@@ -1834,7 +1857,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                             return
                         } else {
                             val rTime = settings.getLong(VIDEO_RESUME_TIME, -1L)
-                            if (rTime > 0) {
+                            val lastUri = settings.getString(VIDEO_RESUME_URI, "")
+                            if (rTime > 0 && service.currentMediaLocation == lastUri) {
                                 if (askResume) {
                                     showConfirmResumeDialog()
                                     return
@@ -2126,6 +2150,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         private const val EXTRA_POSITION = "extra_position"
         private const val EXTRA_DURATION = "extra_duration"
         private const val EXTRA_URI = "extra_uri"
+        const val FROM_EXTERNAL = "from_external"
         private const val RESULT_CONNECTION_FAILED = Activity.RESULT_FIRST_USER + 1
         private const val RESULT_PLAYBACK_ERROR = Activity.RESULT_FIRST_USER + 2
         private const val RESULT_VIDEO_TRACK_LOST = Activity.RESULT_FIRST_USER + 3

@@ -75,3 +75,6 @@ gradle_keys.properties
 application/app/google-services.json
 application/app/signedRelease
 assets
+
+application/app/ARMv7Bazaar/
+application/app/ARMv7Googleplay/

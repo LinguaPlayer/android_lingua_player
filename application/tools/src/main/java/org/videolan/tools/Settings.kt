@@ -67,6 +67,7 @@ const val FORCE_PLAY_ALL = "force_play_all"
 
 const val SCREEN_ORIENTATION = "screen_orientation"
 const val VIDEO_RESUME_TIME = "VideoResumeTime"
+const val VIDEO_RESUME_URI = "VideoResumeUri"
 const val ENABLE_SEEK_BUTTONS = "enable_seek_buttons"
 const val ENABLE_DOUBLE_TAP_SEEK = "enable_double_tap_seek"
 const val ENABLE_VOLUME_GESTURE = "enable_volume_gesture"
@@ -101,6 +102,7 @@ const val RESUME_PLAYBACK = "resume_playback"
 const val AUDIO_DUCKING = "audio_ducking"
 
 const val AUDIO_DELAY_GLOBAL = "audio_delay_global"
+const val AUDIO_PLAY_PROGRESS_MODE = "audio_play_progress_mode"
 
 class DeviceInfo(context: Context) {
     val pm = context.packageManager

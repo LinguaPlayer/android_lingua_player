@@ -75,12 +75,10 @@ class CollapsibleLinearLayout : LinearLayout {
 
     private fun initialize() {
         if (layoutParams is ConstraintLayout.LayoutParams) throw IllegalStateException("The parent should not be a ConstraintLayout to prevent height issues (when set to 0)")
-
         viewTreeObserver.addOnGlobalLayoutListener(
                 object : OnGlobalLayoutListener {
                     override fun onGlobalLayout() {
                         maxHeight = height
-                        Log.d(TAG, "onGlobalLayout: $height")
                         viewTreeObserver.removeOnGlobalLayoutListener(this)
                         layoutParams.height = 0
                         requestLayout()

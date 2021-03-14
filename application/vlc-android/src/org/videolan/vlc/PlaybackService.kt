@@ -216,7 +216,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         get() {
             return when {
                 playlistManager.player.isVideoPlaying() -> {//PIP
-                    val notificationIntent = Intent(this, VideoPlayerActivity::class.java)
+                    val notificationIntent = Intent(this, VideoPlayerActivity::class.java).apply { putExtra(VideoPlayerActivity.FROM_EXTERNAL, true) }
                     PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                 }
                 playlistManager.videoBackground || canSwitchToVideo() && !currentMediaHasFlag(MediaWrapper.MEDIA_FORCE_AUDIO) -> {//resume video playback
@@ -1396,7 +1396,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
         return if (Permissions.canReadStorage(this@PlaybackService)) {
-            BrowserRoot(MediaSessionBrowser.ID_ROOT, MediaSessionBrowser.getContentStyle(CONTENT_STYLE_LIST_ITEM_HINT_VALUE, CONTENT_STYLE_LIST_ITEM_HINT_VALUE))
+            val extras = MediaSessionBrowser.getContentStyle(CONTENT_STYLE_LIST_ITEM_HINT_VALUE, CONTENT_STYLE_LIST_ITEM_HINT_VALUE)
+            extras.putBoolean(TABS_OPT_IN_HINT, true)
+            BrowserRoot(MediaSessionBrowser.ID_ROOT, extras)
         } else null
     }
 
@@ -1412,8 +1414,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 result.sendResult(MediaSessionBrowser.browse(applicationContext, parentId))
-            } catch (ignored: RuntimeException) {
-            } //bitmap parcelization can fail
+            } catch (e: RuntimeException) {
+                Log.e(TAG, "Failed to load children for $parentId", e);
+            }
         }
     }
 

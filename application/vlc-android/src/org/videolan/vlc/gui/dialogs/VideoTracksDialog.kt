@@ -176,8 +176,6 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         binding.tracksSeparator3.isEnabled = false
         binding.tracksSeparator2.isEnabled = false
 
-
-
         generateSeparator(binding.audioTracks.options)
         generateOptionItem(binding.audioTracks.options, getString(R.string.audio_delay), R.drawable.ic_delay, VideoTrackOption.AUDIO_DELAY)
         generateSeparator(binding.audioTracks.options, true)
@@ -245,3 +243,4 @@ class VideoTracksDialog : VLCBottomSheetDialogFragment() {
         SUB_DELAY, SUB_PICK, SUB_DOWNLOAD, AUDIO_DELAY
     }
 }
+

@@ -143,6 +143,11 @@ object VLCOptions {
                 options.add(hstfPath)
             }
 
+            val soundFontFile = getSoundFontFile(context)
+            if (soundFontFile.exists()) {
+                options.add("--soundfont=${soundFontFile.path}")
+            }
+
             options.addAll(addLinguaOptions())
             return options
         }
@@ -341,4 +346,6 @@ object VLCOptions {
         options.add("--sub-autodetect-fuzzy=0")
         return options
     }
+
+    fun getSoundFontFile(context: Context)= File( context.getDir("soundfont", Context.MODE_PRIVATE)!!.path+"/soundfont.sf2")
 }
