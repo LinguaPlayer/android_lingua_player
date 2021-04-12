@@ -437,6 +437,13 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
+    <style name="Theme.VLC.NoStatus" parent="Theme.VLC">
+        <item name="android:windowTranslucentStatus"  tools:targetApi="lollipop">true</item>
+        <item name="android:navigationBarColor" tools:targetApi="lollipop">@color/transparent</item>
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@color/white</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+    </style>
+
     <style name="VLC.TextView" parent="android:Widget.TextView">
         <item name="android:textDirection">locale</item>
     </style>
@@ -492,7 +499,7 @@
         <item name="colorControlNormal">@color/grey700</item>
     </style>
 
-    <style name="TextAppearance.Design.CollapsingToolbar.Expanded.Shadow">
+    <style name="TextAppearance.Design.CollapsingToolbar.Expanded.Shadow" parent="TextAppearance.MaterialComponents.Headline5">
         <item name="android:shadowDy">0</item>
         <item name="android:shadowDx">0</item>
         <item name="android:shadowRadius">4</item>

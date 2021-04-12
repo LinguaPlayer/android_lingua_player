@@ -73,6 +73,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     val abRepeatOn by lazy(LazyThreadSafetyMode.NONE) { MutableLiveData<Boolean>().apply { value = false } }
     val videoStatsOn by lazy(LazyThreadSafetyMode.NONE) { MutableLiveData<Boolean>().apply { value = false } }
     val delayValue by lazy(LazyThreadSafetyMode.NONE) { MutableLiveData<DelayValues>().apply { value = DelayValues() } }
+    private var lastPrevious = -1L
 
     private val mediaFactory = FactoryManager.getFactory(IMediaFactory.factoryId) as IMediaFactory
 
@@ -120,7 +121,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     }
 
     @MainThread
-    suspend fun load(list: List<MediaWrapper>, position: Int, mlUpdate: Boolean = false) {
+    suspend fun load(list: List<MediaWrapper>, position: Int, mlUpdate: Boolean = false, avoidErasingStop:Boolean = false) {
         saveMediaList()
         savePosition()
         mediaList.removeEventListener(this@PlaylistManager)
@@ -135,7 +136,9 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
         // Add handler after loading the list
         mediaList.addEventListener(this@PlaylistManager)
-        stopAfter = -1
+        val instance = Settings.getInstance(AppContextProvider.appContext)
+        if (!avoidErasingStop) instance.putSingle(AUDIO_STOP_AFTER, -1)
+        stopAfter = instance.getInt(AUDIO_STOP_AFTER, -1)
         clearABRepeat()
         player.setRate(1.0f, false)
         playIndex(currentIndex)
@@ -179,7 +182,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                 playList[position].addFlags(MediaWrapper.MEDIA_PAUSED)
             }
             if (audio && position < playList.size) playList[position].addFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
-            load(playList, position, true)
+            load(playList, position, true, true)
             loadingLastPlaylist = false
             if (!audio) {
                 val rate = settings.getFloat(VIDEO_SPEED, player.getRate())
@@ -227,6 +230,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     fun stop(systemExit: Boolean = false, video: Boolean = false) {
         clearABRepeat()
+        if (stopAfter != -1) Settings.getInstance(AppContextProvider.appContext).putSingle(AUDIO_STOP_AFTER, stopAfter)
         stopAfter = -1
         videoBackground = false
         val job = getCurrentMedia()?.let {
@@ -257,7 +261,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     @MainThread
     fun previous(force : Boolean) {
         if (hasPrevious() && currentIndex > 0 &&
-                (force || !player.seekable || player.getCurrentTime() < PREVIOUS_LIMIT_DELAY)) {
+                ((force || !player.seekable || (player.getCurrentTime() < PREVIOUS_LIMIT_DELAY) || (lastPrevious != -1L && System.currentTimeMillis() - lastPrevious <  PREVIOUS_LIMIT_DELAY)))) {
             val size = mediaList.size()
             currentIndex = prevIndex
             if (previous.size > 0) previous.pop()
@@ -267,7 +271,11 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                 return
             }
             launch { playIndex(currentIndex) }
-        } else player.setPosition(0F)
+            lastPrevious = -1L
+        } else {
+            player.setPosition(0F)
+            lastPrevious = System.currentTimeMillis()
+        }
     }
 
     @MainThread
@@ -431,7 +439,6 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     fun saveMediaMeta() = launch(start = CoroutineStart.UNDISPATCHED) {
         val titleIdx = player.getTitleIdx()
-        val chapterIdx = player.getChapterIdx()
         val currentMedia = getCurrentMedia() ?: return@launch
         if (currentMedia.uri.scheme == "fd") return@launch
         //Save progress
@@ -443,7 +450,6 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             val media = medialibrary.findMedia(currentMedia) ?: return@launch
             if (media.id == 0L) return@launch
             if (titleIdx > 0) media.setLongMeta(MediaWrapper.META_TITLE, titleIdx.toLong())
-            if (media.title != currentMedia.title) media.rename(currentMedia.title)
             if (media.type == MediaWrapper.TYPE_VIDEO || canSwitchToVideo || media.isPodcast) {
                 var progress = time / length.toFloat()
                 if (progress > 0.95f || length - time < 10000) {
@@ -850,6 +856,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                         if (nextIndex == -1) savePosition(reset = true)
                     }
                     if (stopAfter == currentIndex) {
+                        if (BuildConfig.DEBUG) Log.d("AUDIO_STOP_AFTER", "reset")
                         stop()
                     } else {
                         if (isBenchmark) player.setCurrentStats()
@@ -893,6 +900,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                             entryUrl = null
                         }
                     } else medialibrary.addMedia(mw.uri.toString(), mw.length)
+                    getCurrentMedia()?.let {currentMedia -> if (internalMedia.title != currentMedia.title) internalMedia.rename(currentMedia.title) }
                     if (internalMedia != null) id = internalMedia.id
                 }
             }

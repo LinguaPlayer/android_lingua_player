@@ -56,6 +56,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.BaseContextWrappingDelegate
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.ViewStubCompat
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -127,7 +129,7 @@ private const val SHARED_PREF_FIRST_ASK = "mic_first_ask"
 open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, PlaylistAdapter.IPlayer, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher, IDialogManager {
 
     private var subtitlesExtraPath: String? = null
-    private lateinit var startedScope : CoroutineScope
+    private lateinit var startedScope: CoroutineScope
     var service: PlaybackService? = null
     lateinit var medialibrary: Medialibrary
     private var videoLayout: VLCVideoLayout? = null
@@ -154,6 +156,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 //    private var currentSpuTrack = -2
 
     var isLocked = false
+
     /* -1 is a valid track (Disable) */
     private var lastAudioTrack = -2
 //    HABIB: I DON'T NEED THIS
@@ -197,7 +200,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     var isTv: Boolean = false
 
     private val dialogsDelegate = DialogDelegate()
-
+    private var baseContextWrappingDelegate: AppCompatDelegate? = null
 
     /**
      * Flag to indicate whether the media should be paused once loaded
@@ -390,14 +393,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         }
     }
 
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(newBase?.getContextWithLocale(AppContextProvider.locale))
-        applyOverrideConfiguration(newBase?.resources?.configuration)
-    }
-
     override fun getApplicationContext(): Context {
         return super.getApplicationContext().getContextWithLocale(AppContextProvider.locale)
     }
+
+    override fun getDelegate() = baseContextWrappingDelegate
+            ?: BaseContextWrappingDelegate(super.getDelegate()).apply { baseContextWrappingDelegate = this }
+
+    override fun createConfigurationContext(overrideConfiguration: Configuration) = super.createConfigurationContext(overrideConfiguration).getContextWithLocale(AppContextProvider.locale)
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -427,7 +430,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.playlistSearchText.editText?.addTextChangedListener(this)
 
         overlayDelegate.playerUiContainer = findViewById(R.id.player_ui_container)
-
 
         val screenOrientationSetting = Integer.valueOf(settings.getString(SCREEN_ORIENTATION, "99" /*SCREEN ORIENTATION SENSOR*/)!!)
         orientationMode = when (screenOrientationSetting) {
@@ -567,7 +569,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         setIntent(intent)
         if (playbackStarted) service?.run {
             if (overlayDelegate.isHudRightBindingInitialized()) {
-                overlayDelegate.hudRightBinding.playerOverlayTitle.text = currentMediaWrapper?.title ?: return@run
+                overlayDelegate.hudRightBinding.playerOverlayTitle.text = currentMediaWrapper?.title
+                        ?: return@run
             }
             var uri: Uri? = if (intent.hasExtra(PLAY_EXTRA_ITEM_LOCATION)) {
                 intent.extras?.getParcelable<Parcelable>(PLAY_EXTRA_ITEM_LOCATION) as Uri?
@@ -880,7 +883,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         /* Stop listening for changes to media routes. */
         if (!isBenchmark) displayManager.removeMediaRouterCallback()
 
-         if (!displayManager.isSecondary) service?.mediaplayer?.detachViews()
+        if (!displayManager.isSecondary) service?.mediaplayer?.detachViews()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -949,7 +952,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             service?.playlistManager?.videoStatsOn?.postValue(false)
         } else if (isTv && isShowing && !isLocked) {
             overlayDelegate.hideOverlay(true)
-        }  else {
+        } else {
             exitOK()
             super.onBackPressed()
         }
@@ -1782,11 +1785,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             if (wasPaused && BuildConfig.DEBUG)
                 Log.d(TAG, "Video was previously paused, resuming in paused mode")
             intent.data?.let {
-               val translatedPath = try {
-                   FileUtils.getPathFromURI(it)
-               } catch (e: IllegalStateException) {
-                   ""
-               }
+                val translatedPath = try {
+                    FileUtils.getPathFromURI(it)
+                } catch (e: IllegalStateException) {
+                    ""
+                }
                 videoUri = if (translatedPath.isNotEmpty()) translatedPath.toUri() else it
             }
             if (extras != null) {
@@ -1825,7 +1828,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 overlayDelegate.updatePausable(service.isPausable)
             }
             if (videoUri != null) {
-                var uri = videoUri ?:return
+                var uri = videoUri ?: return
                 var media: MediaWrapper? = null
                 if (!continueplayback) {
                     if (!resumePlaylist) {
@@ -2177,6 +2180,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         const val KEY_BLUETOOTH_DELAY = "key_bluetooth_delay"
 
         private const val LOADING_ANIMATION_DELAY = 1000
+
         @Volatile
         internal var sDisplayRemainingTime: Boolean = false
         private const val PREF_TIPS_SHOWN = "video_player_tips_shown"
@@ -2345,7 +2349,6 @@ fun setConstraintPercent(view: Guideline, percent: Float) {
     constraintSet.setGuidelinePercent(view.id, percent)
     constraintSet.applyTo(constraintLayout)
 }
-
 
 @BindingAdapter("mediamax")
 fun setProgressMax(view: SeekBar, length: Long) {
