@@ -86,6 +86,7 @@ class OnboardingActivity : AppCompatActivity(), IOnScanningCustomizeChangedListe
 
     override fun attachBaseContext(newBase: Context?) {
         super.attachBaseContext(newBase?.getContextWithLocale(AppContextProvider.locale))
+        applyOverrideConfiguration(newBase?.resources?.configuration)
     }
 
     fun onPrevious(@Suppress("UNUSED_PARAMETER") v: View) {

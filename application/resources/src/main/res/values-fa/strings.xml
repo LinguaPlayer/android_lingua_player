@@ -350,7 +350,7 @@ YUV: بهترین عملکرد"</string>
     <string name="clear_history">"پاک‌سازی تاریخچه"</string>
     <string name="set_locale">"تغییر‌ زبان"</string>
     <string name="network_caching">"مقدار کش کردن شبکه"</string>
-    <string name="network_caching_summary">"مقدار زمان بافر رسانه شبکه‌ای (در میلی‌ثانیه) برای رمزگشای نرم‌افزاری. 
+    <string name="network_caching_summary">"مقدار زمان بافر رسانه شبکه‌ای (در میلی‌ثانیه) برای رمزگشای نرم‌افزاری.
 برای تنظیم مجدد خالی بگذارید."</string>
     <string name="resume_playback_title">"ادامه بازپخش بعد از تماس"</string>
     <string name="resume_playback_summary">"در‌هر‌حال، روی حالت مکث بمان"</string>
@@ -390,7 +390,7 @@ YUV: بهترین عملکرد"</string>
     <string name="no_result">"هیچ نتیجه‌ای یافت نشد"</string>
     <string name="no_internet_connection">"اتصال اینترنت خود را بررسی کنید"</string>
     <string name="subs_download_error">"لینگواپلیر از opensubtitles.org برای دانلود زیرنویس استفاده می‌کند و متاسفانه این سرویس هم‌اکنون در دسترس نیست.
-ممکن است سرور دچار مشکل شده باشد یا اینکه این سرویس در کشور شما فیلتر شده باشد. 
+ممکن است سرور دچار مشکل شده باشد یا اینکه این سرویس در کشور شما فیلتر شده باشد.
 لطفا بعدا دوباره تلاش کنید."</string>
     <string name="network_browsing">"شبکه محلی"</string>
     <string name="browsing">"مرور"</string>
@@ -641,8 +641,7 @@ YUV: بهترین عملکرد"</string>
     <string name="recently_played">"به تازگی پخش شده"</string>
     <string name="recently_added">"به تازگی افزوده شده"</string>
     <string name="playback_multiple_errors">"چندین مدیا قابل اجرا شدن نیستند"</string>
-    <string name="clear_media_db_warning">"شما پیشرفت‌هایتان و فهرست پخشی که ایجاد کردید را از دست خواهید داد.
-%s"</string>
+    <string name="clear_media_db_warning">"شما پیشرفت‌هایتان و فهرست پخشی که ایجاد کردید را از دست خواهید داد. %s"</string>
     <string name="abrepeat_add_first_marker">"تنظیم نقطه آغاز"</string>
     <string name="abrepeat_add_second_marker">"تنظیم نقطه پایان"</string>
     <string name="demux_bitrate"></string>
@@ -656,8 +655,7 @@ YUV: بهترین عملکرد"</string>
     <string name="bitrate_value">"%1$s/s"</string>
     <string name="language">"زبان"</string>
     <string name="track_samplerate">"نرخ نمونه"</string>
-    <string name="track_samplerate_value">"%1$d Hz
-"</string>
+    <string name="track_samplerate_value">"%1$d Hz "</string>
     <string name="bitrate">"نرخ بیت"</string>
     <string name="codec">"کدک"</string>
     <string name="text">"متن"</string>
