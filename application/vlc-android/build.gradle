@@ -122,7 +122,7 @@ android {
 def generateTranslation() {
     def foundLocales = new StringBuilder()
     foundLocales.append("new String[]{")
-
+    /*
     fileTree("../resources/src/main/res").visit { FileVisitDetails details ->
         println 'details: ' + details
         if (details.file.path.endsWith("strings.xml")) {
@@ -131,6 +131,10 @@ def generateTranslation() {
             foundLocales.append("\"").append(languageCode).append("\"").append(",")
         }
     }
+     */
+
+    foundLocales.append("\"").append("eng").append("\"").append(",")
+    foundLocales.append("\"").append("fa").append("\"")
 
     foundLocales.append("}")
     //Don't forget to remove the trailing comma
