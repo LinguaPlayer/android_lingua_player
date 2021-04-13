@@ -170,6 +170,8 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     private var wasSmartSubtitleMode = false
 
+    private var timeBeforeOnPause: Long = -1
+
     /**
      * For uninterrupted switching between audio and video mode
      */
@@ -562,6 +564,9 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             handler.removeMessages(it)
             handler.sendEmptyMessage(it)
         }
+
+        if (timeBeforeOnPause != -1L)
+            subtitleDelegate.reloadSubtitlePositionAfterPauseAndResume(timeBeforeOnPause)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -608,7 +613,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.setListeners(false)
 
         /* Stop the earliest possible to avoid vout error */
-
+        timeBeforeOnPause = service?.time ?: -1
         if (!isInPictureInPictureMode
                 && (finishing || (AndroidUtil.isNougatOrLater && !AndroidUtil.isOOrLater //Video on background on Nougat Android TVs
                         && AndroidDevices.isAndroidTv && !requestVisibleBehind(true))))

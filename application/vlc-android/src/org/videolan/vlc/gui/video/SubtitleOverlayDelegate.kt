@@ -78,9 +78,6 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             }
 
         }
-
-
-
     }
 
     fun initSmartSub() {
@@ -129,6 +126,12 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
             if (isSmartSubtitleEnabled())  this@SubtitleOverlayDelegate.disableSmartSubtitle()
             else this@SubtitleOverlayDelegate.enableSmartSubtitle()
             updateCurrentCaption()
+        }
+    }
+
+    fun reloadSubtitlePositionAfterPauseAndResume(time: Long) {
+        player.lifecycleScope.launch {
+            player.service?.playlistManager?.player?.updateCurrentCaption(time)
         }
     }
 

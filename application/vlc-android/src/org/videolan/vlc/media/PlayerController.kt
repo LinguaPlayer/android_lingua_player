@@ -306,8 +306,8 @@ class PlayerController(val context: Context) : IVLCVout.Callback, MediaPlayer.Ev
 //        return mediaplayer.spuTrack
     }
 
-    fun updateCurrentCaption() {
-        subtitleController.getCaption(mediaplayer.time)
+    fun updateCurrentCaption(time:Long = mediaplayer.time) {
+        subtitleController.getCaption(time)
     }
 
     fun getNextCaption(alsoSeekThere: Boolean, append: Boolean = false) =
