@@ -2,22 +2,24 @@ package org.videolan.vlc.gui.video
 
 import android.content.res.Configuration
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import ir.tapsell.plus.AdRequestCallback
+import ir.tapsell.plus.TapsellPlus
+import ir.tapsell.plus.TapsellPlusBannerType
 import ir.tapsell.sdk.bannerads.TapsellBannerType
 import ir.tapsell.sdk.bannerads.TapsellBannerView
-import ir.tapsell.sdk.bannerads.TapsellBannerViewEventListener
-import org.videolan.tools.dp
-import org.videolan.tools.setInvisible
-import org.videolan.tools.setVisible
+import org.videolan.tools.*
 import org.videolan.vlc.R
+
 
 private const val TAG = "AdsDelegate"
 
-class AdsDelegate (val player: VideoPlayerActivity) {
+class AdsDelegate(val player: VideoPlayerActivity) {
 
-    private var banner: TapsellBannerView? = null
+    private var banner: ViewGroup? = null
     private var adCloseButton: ImageView? = null
     private var adContainer: FrameLayout? = null
     private var requestFilled = false
@@ -31,7 +33,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     }
 
     private fun goToLandscapeMode() {
-        adContainer?.let {container ->
+        adContainer?.let { container ->
             val layoutParams: RelativeLayout.LayoutParams = container.layoutParams as RelativeLayout.LayoutParams
             layoutParams.removeRule(RelativeLayout.CENTER_IN_PARENT)
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE)
@@ -43,7 +45,7 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     }
 
     private fun goToPortraiteMode() {
-        adContainer?.let {container ->
+        adContainer?.let { container ->
             val layoutParams: RelativeLayout.LayoutParams = container.layoutParams as RelativeLayout.LayoutParams
             layoutParams.removeRule(RelativeLayout.ALIGN_PARENT_TOP)
             layoutParams.removeRule(RelativeLayout.CENTER_HORIZONTAL)
@@ -54,39 +56,12 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     }
 
     fun initAds() {
-        banner = player.findViewById(R.id.banner)
         adCloseButton = player.findViewById(R.id.close_ad)
+        banner = player.findViewById(R.id.banner)
         adContainer = player.findViewById(R.id.ad_container)
+
+
         requestNewAd()
-
-        banner?.setEventListener(object : TapsellBannerViewEventListener {
-            override fun onNoAdAvailable() {
-//                Log.d(TAG, "onNoAdAvailable: ")
-                shouldRequestNewAd = true
-            }
-
-            override fun onNoNetwork() {
-//                Log.d(TAG, "onNoNetwork: ")
-                shouldRequestNewAd = true
-            }
-
-            override fun onError(error: String?) {
-//                Log.d(TAG, "onError: $error")
-                shouldRequestNewAd = true
-            }
-
-            override fun onRequestFilled() {
-                shouldRequestNewAd = false
-//                Log.d(TAG, "onRequestFilled")
-                requestFilled = true
-                player.service?.let {
-                    if (it.isPlaying || !shouldShowAds()) hideAds()
-                    else adCloseButton?.setVisible()
-                }
-            }
-
-            override fun onHideBannerView() { }
-        })
 
         adCloseButton?.setOnClickListener { hideAds() }
     }
@@ -97,13 +72,29 @@ class AdsDelegate (val player: VideoPlayerActivity) {
     }
 
     private fun requestNewAd() {
-//        Log.d(TAG, "requestNewAd:")
-        banner?.loadAd(player.applicationContext, "5fd7a4556ccd5c000137994c", TapsellBannerType.BANNER_320x100)
+        Log.d(TAG, "requestNewAd:")
+        TapsellPlus.showBannerAd(
+                player,
+                banner,
+                "5fd7a4556ccd5c000137994c",
+                TapsellPlusBannerType.BANNER_320x100,
+                object : AdRequestCallback() {
+                    override fun response(res: String) {
+                        Log.d(TAG, "response: $res")
+                        requestFilled = true
+                        if(banner?.isVisible() == true) adCloseButton.setVisible()
+                    }
+
+                    override fun error(message: String?) {
+                        Log.d(TAG, "error: $message")
+                        requestFilled = false
+                    }
+                })
     }
 
     private fun hideAds() {
 //        Log.d(TAG, "hideAds")
-        banner?.hideBannerView()
+        banner.setGone()
         adCloseButton?.setInvisible()
     }
 
@@ -125,10 +116,10 @@ class AdsDelegate (val player: VideoPlayerActivity) {
         numberOfTimesShowAdsIsCalled++
         if (!shouldShowAds()) return
 
-//        shouldRequestNewAd = true
+        shouldRequestNewAd = true
 
 //        Log.d(TAG, "showAds")
-        banner?.showBannerView()
+        banner.setVisible()
 
         if (requestFilled) adCloseButton?.setVisible()
     }

@@ -25,7 +25,7 @@ import android.os.Build
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
-import ir.tapsell.sdk.Tapsell
+import ir.tapsell.plus.TapsellPlus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.videolan.libvlc.Dialog
@@ -45,7 +45,8 @@ class VLCApplication : MultiDexApplication(), Dialog.Callbacks by DialogDelegate
     @TargetApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         setupApplication()
-        Tapsell.initialize(this, BuildConfig.TAPSELL);
+        TapsellPlus.initialize(this, BuildConfig.TAPSELL);
+//        TapsellPlus.initialize(this, "alsoatsrtrotpqacegkehkaiieckldhrgsbspqtgqnbrrfccrtbdomgjtahflchkqtqosa")
         super.onCreate()
     }
 

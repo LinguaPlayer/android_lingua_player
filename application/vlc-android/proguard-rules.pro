@@ -20,17 +20,32 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keepattributes Signature
--keepattributes *Annotation*
--keepattributes EnclosingMethod
--keepattributes InnerClasses
 
--keep class sun.misc.Unsafe { *; }
+##---------------Begin: proguard configuration for Gson  ----------
+# Gson uses generic type information stored in a class file when working with fields. Proguard
+# removes such information by default, so configure it to keep all of it.
+-keepattributes Signature
+
+# For using GSON @Expose annotation
+-keepattributes *Annotation*
+
+# Gson specific classes
 -dontwarn sun.misc.**
+#-keep class com.google.gson.stream.** { *; }
+
+# Application classes that will be serialized/deserialized over Gson
+-keep class com.google.gson.examples.android.model.** { *; }
+
+# Prevent proguard from stripping interface information from TypeAdapterFactory,
+# JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
 
+##---------------End: proguard configuration for Gson  ----------
+
+
+##---------------Begin: proguard configuration for Retrofit  ----------
 # Retrofit does reflection on generic parameters. InnerClasses is required to use Signature and
 # EnclosingMethod is required to use InnerClasses.
 -keepattributes Signature, InnerClasses, EnclosingMethod
@@ -51,7 +66,10 @@
 
 # Top-level functions that can only be used by Kotlin.
 -dontwarn retrofit2.-KotlinExtensions
+##---------------End: proguard configuration for Retrofit  ----------
 
+
+##---------------Begin: proguard configuration for okhttp3  ----------
 # JSR 305 annotations are for embedding nullability information.
 -dontwarn javax.annotation.**
 
@@ -63,25 +81,25 @@
 
 # OkHttp platform used only on JVM and when Conscrypt dependency is available.
 -dontwarn okhttp3.internal.platform.ConscryptPlatform
+##---------------End: proguard configuration for okhttp3  ----------
 
+
+##---------------Begin: proguard configuration for okio  ----------
 # Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
 -dontwarn org.codehaus.mojo.animal_sniffer.*
+##---------------End: proguard configuration for okio  ----------
 
 
--keepclassmembers enum * { *; }
--keep class **.R$* { *; }
--keep interface ir.tapsell.sdk.NoProguard
--keep class * implements ir.tapsell.sdk.NoProguard { *; }
--keep interface * extends ir.tapsell.sdk.NoProguard { *; }
--keep enum * extends ir.tapsell.sdk.NoProguard { *; }
--keepnames class * extends android.app.Activity
--keep class ir.tapsell.sdk.models.** { *; }
 
--keep class com.google.obf.** { *; }
--keep interface com.google.obf.** { *; }
+##---------------Begin: proguard configuration for admob  ----------
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+   public *;
+}
 
--keep class com.google.ads.interactivemedia.** { *; }
--keep interface com.google.ads.interactivemedia.** { *; }
+# The following rules are used to strip any non essential Google Play Services classes and method.
 
 # For Google Play Services
 -keep public class com.google.android.gms.ads.**{
@@ -92,6 +110,9 @@
 -keep public class com.google.ads.**{
    public *;
 }
+
+# For mediation
+-keepattributes *Annotation*
 
 # Other required classes for Google Play Services
 # Read more at http://developer.android.com/google/play-services/setup.html
@@ -111,5 +132,55 @@
 -keepnames class * implements android.os.Parcelable {
    public static final ** CREATOR;
 }
+##---------------End: proguard configuration for admob  ----------
+
+
+##---------------Begin: proguard configuration for chartboost  ----------
+-keep class com.chartboost.** { *; }
+##---------------End: proguard configuration for chartboost  ----------
+
+
+##---------------Begin: proguard configuration for tapsell  ----------
+-keepclassmembers enum * { *; }
+-keep class **.R$* { *; }
+-keep interface ir.tapsell.sdk.NoProguard
+-keep interface ir.tapsell.sdk.NoNameProguard
+-keep class * implements ir.tapsell.sdk.NoProguard { *; }
+-keep interface * extends ir.tapsell.sdk.NoProguard { *; }
+-keep enum * implements ir.tapsell.sdk.NoProguard { *; }
+-keepnames class * implements ir.tapsell.sdk.NoNameProguard { *; }
+-keepnames class * extends android.app.Activity
+-keep class ir.tapsell.plus.model.** { *; }
+-keep class ir.tapsell.sdk.models.** { *; }
+
+-keep class ir.tapsell.sdk.nativeads.TapsellNativeVideoAdLoader$Builder {*;}
+-keep class ir.tapsell.sdk.nativeads.TapsellNativeBannerAdLoader$Builder {*;}
+
+-keepclasseswithmembers class * {
+    native <methods>;
+}
+
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+-keep interface ir.tapsell.plus.NoProguard
+-keep interface * extends ir.tapsell.plus.NoProguard { *; }
+-keep class * implements ir.tapsell.plus.NoProguard { *; }
+
+##---------------End: proguard configuration for tapsell  ----------
+
+##---------------Begin: proguard configuration for AppLovin  ----------
+
+-dontwarn com.applovin.**
+-keep class com.applovin.** { *; }
+-keep class com.google.android.gms.ads.identifier.** { *; }
+
+##---------------End: proguard configuration for AppLovin  ----------
 
 -keep public class com.bumptech.glide.**
+
+# For communication with AdColony's WebView
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}

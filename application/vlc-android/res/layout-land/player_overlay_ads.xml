@@ -10,13 +10,11 @@
     android:layout_centerHorizontal="true"
     android:layout_marginTop="25dp"
     android:visibility="visible">
-    <ir.tapsell.sdk.bannerads.TapsellBannerView
+    <RelativeLayout
         android:id="@+id/banner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        app:tapsell_banner_type="banner_320x100"
-        app:tapsell_zone_id="ZONE_ID"/>
+        android:layout_margin="20dp" />
 
     <ImageView
         android:id="@+id/close_ad"
