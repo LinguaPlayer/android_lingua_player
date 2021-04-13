@@ -25,14 +25,19 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import ir.tapsell.plus.AdRequestCallback
+import ir.tapsell.plus.AdShowListener
+import ir.tapsell.plus.TapsellPlus
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onEach
 import org.videolan.medialibrary.interfaces.Medialibrary
@@ -69,6 +74,7 @@ import org.videolan.vlc.viewmodels.mobile.VideoGroupingType
 import org.videolan.vlc.viewmodels.mobile.VideosViewModel
 import org.videolan.vlc.viewmodels.mobile.getViewModel
 import java.util.*
+
 
 private const val TAG = "VLC/VideoListFragment"
 
@@ -209,6 +215,39 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
         binding.emptyLoading.setOnNoMediaClickListener {
             requireActivity().setResult(RESULT_RESTART)
         }
+
+        prepareAd(view)
+    }
+
+    private fun prepareAd(view: View) {
+        val banner = view.findViewById<FrameLayout>(R.id.native_banner)
+
+        val adHolder = TapsellPlus.createAdHolder(activity, banner, R.layout.native_banner)
+
+        TapsellPlus.requestNativeBanner(
+                activity,
+                "60756447e07c8c0001400a19",
+                object : AdRequestCallback() {
+                    override fun response() {
+                        banner.layoutParams = ConstraintLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 50.dp)
+                        TapsellPlus.showAd(activity, adHolder, "60756447e07c8c0001400a19", object : AdShowListener() {
+                            override fun onOpened() {
+                                super.onOpened()
+                            }
+
+                            override fun onClosed() {
+                                super.onClosed()
+                            }
+
+                            override fun onError(error: String?) {
+                                super.onError(error)
+                            }
+                        })
+                    }
+
+                    override fun error(message: String?) { }
+                })
+
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

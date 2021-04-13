@@ -2,45 +2,60 @@
 <com.google.android.gms.ads.formats.UnifiedNativeAdView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraint_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:id="@+id/tapsell_nativead_cta_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/tapsell_nativead_sponsored"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#dedede"
-            android:padding="3dp"
-            android:text="Ad"
+            android:padding="2dp"
+            android:text="AD"
             android:textColor="#aaaaaa"
             android:textSize="10sp"
-            app:layout_constraintEnd_toStartOf="@+id/tapsell_nativead_banner"
-            app:layout_constraintTop_toTopOf="@+id/tapsell_nativead_banner" />
-
-        <ir.tapsell.sdk.nativeads.views.RatioImageView
-            android:id="@+id/tapsell_nativead_banner"
-            android:layout_width="250dp"
-            android:layout_height="0dp"
-            android:contentDescription="Banner"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/tapsell_nativead_logo" />
 
+        <TextView
+            android:id="@+id/tapsell_nativead_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textColor="@color/orange700"
+            app:layout_constraintBottom_toBottomOf="@+id/tapsell_nativead_logo"
+            app:layout_constraintStart_toEndOf="@+id/tapsell_nativead_logo"
+            app:layout_constraintTop_toTopOf="@+id/tapsell_nativead_logo"
+            tools:text="Some title" />
 
-        <ir.tapsell.plus.imp.admob.AdMobMediaView
-            android:id="@+id/tapsell_nativead_banner_admob"
-            android:layout_width="250dp"
-            android:layout_height="0dp"
-            android:contentDescription="Banner"
+        <ImageView
+            android:id="@+id/tapsell_nativead_logo"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="16dp"
+            android:visibility="visible"
+            app:layout_constraintStart_toEndOf="@+id/tapsell_nativead_sponsored"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_height="40dp"
+            tools:layout_width="40dp" />
+
+        <Button
+            android:id="@+id/tapsell_nativead_cta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="10dp"
+            android:text="Install"
+            app:layout_constraintBottom_toBottomOf="@+id/tapsell_nativead_description"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/tapsell_nativead_description"
+            app:layout_constraintTop_toTopOf="@+id/tapsell_nativead_description" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
