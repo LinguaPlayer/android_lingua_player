@@ -131,6 +131,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
 
     fun reloadSubtitlePositionAfterPauseAndResume(time: Long) {
         player.lifecycleScope.launch {
+            delay(500)
             player.service?.playlistManager?.player?.updateCurrentCaption(time)
         }
     }
