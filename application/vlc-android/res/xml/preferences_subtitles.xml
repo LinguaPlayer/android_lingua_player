@@ -36,12 +36,21 @@
             android:key="subtitles_bold"
             android:title="@string/subtitles_bold_title"/>
 
+    <ListPreference
+        android:defaultValue="25"
+        android:entries="@array/subtitles_bottom_margins"
+        android:entryValues="@array/subtitles_bottom_margins"
+        android:key="subtitles_bottom_margins"
+        android:persistent="true"
+        android:title="@string/subtitles_bottom_margins_title" />
+
     <CheckBoxPreference
             app:singleLineTitle="false"
             android:defaultValue="false"
             android:key="subtitle_copy"
             android:title="@string/subtitle_copy_selected_title"
             app:summary="@string/subtitle_copy_selected"/>
+
 
 <!--    <ListPreference-->
 <!--            android:defaultValue=""-->

@@ -254,6 +254,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     var color = Color.parseColor("#ffffff")
+    var bottomMarginUserSelected: Int = 0
 
     fun updateSubtitleTextViewStyle() {
         // not in settings yet
@@ -264,6 +265,7 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
         color = Color.parseColor(PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_color", "#ffffff")
                 ?: "#ffffff")
 
+        bottomMarginUserSelected  = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_bottom_margins", "25")?.toInt()?.dp ?: 25.dp
         val size = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getString("subtitles_size", "25")?.toInt() ?: 25
         val bold = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_bold", false)
         backgroundColorEnabled = PreferenceManager.getDefaultSharedPreferences(player.applicationContext).getBoolean("subtitles_background", false)
@@ -288,7 +290,13 @@ class SubtitleOverlayDelegate(private val player: VideoPlayerActivity) {
     }
 
     fun updateSubtitlePosition(playerControllerHeight: Int, calledFromOnLayoutChangeListener: Boolean) {
-        val subtitleBottomPosition = playerControllerHeight + 4.dp.toPixel()
+        val subtitleBottomPosition =
+                when {
+                    player.service?.playlistManager?.player?.isShadowingModeEnabled == true -> playerControllerHeight
+                    playerControllerHeight > bottomMarginUserSelected.toPixel() -> playerControllerHeight
+                    else -> bottomMarginUserSelected.toPixel()
+                }
+
         subtitleContainer?.setMargins(l = subtitleContainer.marginLeft, t = subtitleContainer.marginTop, r = subtitleContainer.marginRight, b = subtitleBottomPosition)
         // TODO: fixme: dirty hack. when video starts if user pauses then taps on screen setMargin won't take effect unless clicking on a button or calling dimStatusBar
         if (calledFromOnLayoutChangeListener) {

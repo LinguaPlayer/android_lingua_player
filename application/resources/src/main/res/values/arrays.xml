@@ -207,6 +207,35 @@
         <item>60</item>
     </string-array>
 
+    <string-array name="subtitles_bottom_margins">
+        <item>0</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+        <item>55</item>
+        <item>60</item>
+        <item>65</item>
+        <item>70</item>
+        <item>75</item>
+        <item>80</item>
+        <item>85</item>
+        <item>90</item>
+        <item>95</item>
+        <item>100</item>
+        <item>105</item>
+        <item>110</item>
+        <item>115</item>
+        <item>120</item>
+        <item>125</item>
+    </string-array>
+
     <string-array name="subtitles_color_entries">
         <item>@string/subtitles_color_white</item>
         <item>@string/subtitles_color_black</item>

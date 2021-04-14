@@ -271,6 +271,7 @@
     <string name="browser_show_hidden_files_title">"نمایش فایل های مخفی"</string>
     <string name="subtitles_prefs_category">"زیرنویس"</string>
     <string name="subtitles_size_title">"اندازه زیرنویس"</string>
+    <string name="subtitles_bottom_margins_title">حاشیه‌ی پایین زیرنویس</string>
     <string name="subtitles_size_small">"کوچک"</string>
     <string name="subtitles_size_normal">"معمولی"</string>
     <string name="subtitles_size_big">"بزرگ"</string>
