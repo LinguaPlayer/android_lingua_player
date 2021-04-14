@@ -82,7 +82,6 @@ class AdsDelegate(val player: VideoPlayerActivity) {
                     override fun response(res: String) {
                         Log.d(TAG, "response: $res")
                         requestFilled = true
-                        if(banner?.isVisible() == true) adCloseButton.setVisible()
                     }
 
                     override fun error(message: String?) {
@@ -121,7 +120,7 @@ class AdsDelegate(val player: VideoPlayerActivity) {
 //        Log.d(TAG, "showAds")
         banner.setVisible()
 
-        if (requestFilled) adCloseButton?.setVisible()
+        adCloseButton?.setVisible()
     }
 
     private var isInPictureInPictureMode: Boolean = false
