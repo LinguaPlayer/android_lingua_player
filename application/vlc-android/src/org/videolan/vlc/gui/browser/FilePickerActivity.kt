@@ -43,10 +43,11 @@ import kotlin.reflect.jvm.jvmName
 class FilePickerActivity : AppCompatActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
-        if (callingActivity?.className != VideoPlayerActivity::class.jvmName)
-            AppCompatDelegate.setDefaultNightMode(Integer.valueOf(Settings.getInstance(this).getString(KEY_APP_THEME, "-1")!!))
-        else
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        //TODO: Fix this later https://code.videolan.org/videolan/vlc-android/-/issues/1990
+//        if (callingActivity?.className != VideoPlayerActivity::class.jvmName)
+//            AppCompatDelegate.setDefaultNightMode(Integer.valueOf(Settings.getInstance(this).getString(KEY_APP_THEME, "-1")!!))
+//        else
+//            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.file_picker_activity)
         val ft = supportFragmentManager.beginTransaction()
