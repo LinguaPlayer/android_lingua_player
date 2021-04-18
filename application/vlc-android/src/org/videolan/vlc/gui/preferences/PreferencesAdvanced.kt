@@ -28,6 +28,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
@@ -50,6 +51,7 @@ import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getW
 import org.videolan.vlc.util.FileUtils
 import java.io.File
 
+private const val TAG = "PreferencesAdvanced"
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
 class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -62,11 +64,12 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (!BuildConfig.DEBUG) {
-            findPreference<Preference>("debug_logs")?.isVisible = false
-            findPreference<Preference>("enable_verbose_mode")?.isVisible = false
-
-        }
+//        if (!BuildConfig.DEBUG) {
+//            Log.d(TAG, "onCreate: PreferencesAdvanced")
+//            findPreference<Preference>("debug_logs")?.isVisible = false
+//            findPreference<Preference>("enable_verbose_mode")?.isVisible = false
+//
+//        }
     }
 
     override fun onStart() {
