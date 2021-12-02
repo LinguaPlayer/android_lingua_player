@@ -1,144 +1,50 @@
-# VLC for Android
-This is the official **Android** port of [VLC](https://videolan.org/vlc/).
+# Lingua Player
+Lingua Player is an advanced media player with all features of well-known apps such as MX player but with an outstanding advantage; it has unique features to build vocabulary, improve your speaking and listening just by watching your favorite movies.
 
-VLC on Android plays all the same files as the classical version of VLC, and features a media database
-for Audio and Video files and stream.
+Subtitle translation feature:
 
-- [Project Structure](#project-structure)
-- [LibVLC](#libvlc)
-- [License](#license)
-- [Build](#build)
-  - [Build Application](#build-application)
-  - [Build LibVLC](#build-libvlc)
-- [Contribute](#contribute)
-  - [Pull requests](#pull-requests)
-  - [Translations](#translations)
-- [Issues and feature requests](#issues-and-feature-requests)
-- [Support](#support)
+Do not be afraid of watching foreign movies with native subtitles anymore. Whenever you didn't know the meaning of a word, phrase, or even the whole sentence you can just move your finger on the subtitle, and google translate will translate it for you. With the help of google translate, we can translate from any language to any other language.
 
-## Project Structure
+Speak fluently with the shadowing feature:
 
-Here are the current folders of vlc-android project:
-- extension-api : Application extensions SDK (not released yet)
-- application : Android application source code, organized by modules.
-- buildsystem : Build scripts, CI and maven publication configuration
-- libvlc : LibVLC gradle module, VLC source code will be cloned in `vlc/` at root level.
-- medialibrary : Medialibrary gradle module
+Lingua player's shadowing mode automatically skips the silent parts of the movie and just loops over the conversations.
+Listen to each conversation multiple times then try to repeat it with the same accent and intonation you just heard. Lingua Player records your voice so you can compare it with the movie and detect your flaws and improve it.
+This way you can memorize real-world sentences, improve your accent and prepare for the TOEFL and IELTS speaking sections.
 
-## LibVLC
+Improve listening comprehension with the smart subtitle:
 
-LibVLC is the Android library embedding VLC engine, which provides a lot of multimedia features, like:
+You might have noticed that whenever you add a subtitle you just read the subtitles instead of listening. Smart subtitle solves this problem by displaying each sentence after the actor or actress has finished his or her sentence instead of displaying it simultaneously.
+By enabling this feature, at first, you listen to the movie and try to comprehend it. In the next step, you see the transcription of that voice and now you can how much The smart subtitle is an effortless method to improve your listening skills just by watching movies.
 
-- Play every media file formats, every codec and every streaming protocols
-- Hardware and efficient decoding on every platform, up to 8K
-- Network browsing for distant filesystems (SMB, FTP, SFTP, NFS...) and servers (UPnP, DLNA)
-- Playback of Audio CD, DVD and Bluray with menu navigation
-- Support for HDR, including tonemapping for SDR streams
-- Audio passthrough with SPDIF and HDMI, including for Audio HD codecs, like DD+, TrueHD or DTS-HD
-- Support for video and audio filters
-- Support for 360 video and 3D audio playback, including Ambisonics
-- Ability to cast and stream to distant renderers, like Chromecast and UPnP renderers.
+All features:
+Translates the words, phrases, and sentences of the subtitle
+Support all video formats, including MKV, MP4, M4V, AVI, MOV, 3GP, FLV, WMV, WEBM, WMV, RMVB, TS, OGG, etc.
+support all audio formats
+Lingua Player Shadowing to improve speaking skills
+Lingua Player Smart Sub to improve listening skills
+Display multiple subtitles at the same time
+Support for 1080p and 4K videos
+Increase the volume up to 200%
+syncing subtitles effortlessly
+syncing audio effortlessly
+Display previous and next subtitle captions by pressing the < and > buttons
+Seek to previous and next subtitle captions by long-pressing the < and > buttons
+Support gestures to modify volume, brightness, and seeking the video
+Pop-up display
+Support SRT, VTT, SSA/ASS subtitle files
+Support embedded subtitles
+Download subtitles
+Local network stream
+URL stream
+Support multi-language videos and change language
+Change speed of playback
+Seek by 10s with double tap on screen edges
+Display multiple subtitles at the same time
+Hardware acceleration
+Play in background
 
-And more.
+Permissions:
+*Storage* is required to read your media files in your primary & secondary storage.
 
-![LibVLC stack](https://images.videolan.org/images/libvlc_stack.png)
-
-You can use our LibVLC module to power your own Android media player.
-Have a look at our  [sample codes](https://code.videolan.org/videolan/libvlc-android-samples).
-
-
-## License
-VLC for Android is licensed under [GPLv2 (or later)](COPYING). Android libraries make this, de facto, a GPLv3 application.
-
-VLC engine *(LibVLC)* for Android is licensed under [LGPLv2](libvlc/COPYING.LIB).
-
-## Build
-
-Native libraries are published on bintray. So you can:
-- Build the application and get libraries via gradle dependencies (JVM build only)
-- Build the whole app (LibVLC + Medialibrary + Application)
-- Build LibVLC only, and get an .aar package
-
-### Build Application
-
-VLC-Android build relies on gradle build modes :
-- `Release` & `Debug` will get LibVLC and Medialibrary from Bintray, and build application source code only.
-- `SignedRelease` also, but it will allow you to sign application apk with a local keystore.
-- `Dev` will build build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
-
-### Build LibVLC
-
-You will need a recent Linux distribution to build VLC.
-It should work with Windows 10, and macOS, but there is no official support for this.
-
-#### Setup
-
-Check our [AndroidCompile wiki page](https://wiki.videolan.org/AndroidCompile/), especially for build dependencies.
-
-Here are the essential points:
-
-On Debian/Ubuntu, install the required dependencies:
-```
-sudo apt install automake ant autopoint cmake build-essential libtool-bin \
-    patch pkg-config protobuf-compiler ragel subversion unzip git \
-    openjdk-8-jre openjdk-8-jdk flex python wget
-```
-
-Setup the build environment:
-Set `$ANDROID_SDK` to point to your Android SDK directory
-`export ANDROID_SDK=/path/to/android-sdk`
-
-Set `$ANDROID_NDK` to point to your Android NDK directory
-`export ANDROID_NDK=/path/to/android-ndk`
-
-Then, you are ready to build!
-
-#### Build
-
-`buildsystem/compile.sh -l -a <ABI>`
-
-
-ABI can be `arm`, `arm64`, `x86`, `x86_64` or `all` for a multi-abis build
-
-You can do a library release build with `-r` argument
-
-#### Medialibrary
-
-Build Medialibrary with `-ml` instead of `-l`
-
-## Contribute
-
-VLC is a libre and open source project, we welcome all contributions.
-
-Just respect our [Code of Conduct](https://wiki.videolan.org/CoC/).
-
-### Pull requests
-
-Pull requests must be proposed on our [gitlab server](https://code.videolan.org/videolan/vlc-android/).
-
-So you must create an account, fork vlc-android project, and propose your merge requests from it.
-
-**Exept for translations**, see the section below.
-
-### Translations
-
-You can help improving translations too by joining the [transifex vlc project](https://www.transifex.com/yaron/vlc-trans/dashboard/)
-
-Translations merge requests are then generated from transifex work.
-
-## Issues and feature requests
-
-VLC for Android bugtracker is hosted on [VideoLAN gitlab](https://code.videolan.org/videolan/vlc-android/issues)  
-Please look for existing issues and provide as much useful details as you can (e.g. vlc app version, device and Android version).
-
-A template is provided, please use it!
-
-Issues without relevant informations will be ignored, we cannot help in this case.
-
-## Support
-
-- Android mailing list: android@videolan.org
-- bugtracker: https://code.videolan.org/videolan/vlc-android/issues
-- IRC: *#videolan* channel on [freenode](http://freenode.net/)
-- VideoLAN forum: https://forum.videolan.org/
+*Microphone* is optional in case you want to use Lingua Player Shadowing feature.
 
